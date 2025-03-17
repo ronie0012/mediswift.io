@@ -4,7 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck, MapPin, AlertCircle } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck, MapPin, AlertCircle, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
