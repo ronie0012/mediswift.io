@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart, Star, ChevronRight, ChevronLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
 
 // Sample medicine data
 const medicineCategories = [
@@ -180,6 +182,17 @@ const medicines = {
 };
 
 const MedicineCard = ({ medicine }: { medicine: any }) => {
+  const { addToCart } = useCart();
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const handleAddToCart = () => {
+    addToCart(medicine, 1);
+  };
+
+  const handleToggleWishlist = () => {
+    setIsWishlisted(!isWishlisted);
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className="relative">
@@ -188,8 +201,11 @@ const MedicineCard = ({ medicine }: { medicine: any }) => {
           alt={medicine.name}
           className="w-full h-48 object-cover"
         />
-        <button className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100">
-          <Heart className="h-4 w-4 text-gray-400 hover:text-emergency-500" />
+        <button 
+          className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100"
+          onClick={handleToggleWishlist}
+        >
+          <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-emergency-500'}`} />
         </button>
         {medicine.discountPrice < medicine.price && (
           <span className="absolute top-2 left-2 bg-emergency-500 text-white text-xs px-2 py-1 rounded">
@@ -214,7 +230,7 @@ const MedicineCard = ({ medicine }: { medicine: any }) => {
               <span className="text-xs text-gray-500 line-through ml-1">${medicine.price}</span>
             )}
           </div>
-          <Button size="sm" className="bg-medical-500 hover:bg-medical-600">
+          <Button size="sm" className="bg-medical-500 hover:bg-medical-600" onClick={handleAddToCart}>
             <ShoppingCart className="h-4 w-4" />
           </Button>
         </div>
@@ -235,9 +251,9 @@ const FeaturedMedicines = () => {
             <p className="text-gray-600">Browse our top selling medicines with fastest delivery</p>
           </div>
           <Button asChild variant="outline" className="mt-4 md:mt-0">
-            <a href="/medicines" className="flex items-center">
+            <Link to="/medicines" className="flex items-center">
               View All <ChevronRight className="ml-1 h-4 w-4" />
-            </a>
+            </Link>
           </Button>
         </div>
         

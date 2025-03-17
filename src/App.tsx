@@ -10,27 +10,32 @@ import Signup from "./pages/Signup";
 import Medicines from "./pages/Medicines";
 import Doctors from "./pages/Doctors";
 import AmbulanceBooking from "./pages/AmbulanceBooking";
+import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
+import { CartProvider } from "./context/CartContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/medicines" element={<Medicines />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/ambulance" element={<AmbulanceBooking />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <CartProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/medicines" element={<Medicines />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/ambulance" element={<AmbulanceBooking />} />
+            <Route path="/cart" element={<Cart />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

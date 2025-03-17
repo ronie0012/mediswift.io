@@ -8,6 +8,7 @@ import { Search, Heart, ShoppingCart, Filter, ChevronDown, Star, Plus, Minus } f
 import Layout from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { useCart } from "@/context/CartContext";
 
 // Sample medicine data
 const medicineCategories = [
@@ -148,14 +149,13 @@ const medicineData = [
 
 const MedicineCard = ({ medicine }: { medicine: any }) => {
   const { toast } = useToast();
+  const { addToCart } = useCart();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
   const handleAddToCart = () => {
-    toast({
-      title: "Added to cart",
-      description: `${medicine.name} has been added to your cart.`,
-    });
+    addToCart(medicine, quantity);
+    setQuantity(1); // Reset quantity after adding to cart
   };
 
   const handleToggleWishlist = () => {
