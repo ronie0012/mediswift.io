@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,19 +14,58 @@ import {
   EyeOff 
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { toast } from "sonner";
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptTerms) {
+      toast.error("Please accept the terms and conditions");
+      return;
+    }
+    
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+    
     console.log("Signup attempt with:", { name, email, phone, password, acceptTerms });
-    // Future implementation: Handle signup logic
+    
+    setIsLoading(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Store user data in localStorage
+      const userData = {
+        id: Date.now().toString(),
+        name,
+        email,
+        phone,
+        isLoggedIn: true
+      };
+      
+      localStorage.setItem("user", JSON.stringify(userData));
+      
+      toast.success("Account created successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Signup error:", error);
+      toast.error("Failed to create account. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -143,9 +182,9 @@ const Signup = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-medical-500 hover:bg-medical-600"
-                disabled={!acceptTerms}
+                disabled={!acceptTerms || isLoading}
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </div>
           </form>

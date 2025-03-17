@@ -1,21 +1,40 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck, MapPin, AlertCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import AddressSelector from "@/components/address/AddressSelector";
+import { AddressProvider, useAddress } from "@/context/AddressContext";
+import OrderTracker from "@/components/order/OrderTracker";
 
-const Cart = () => {
+const CartContent = () => {
   const { items, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState<"card" | "upi" | "cod">("card");
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(!isAuthenticated);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState(15);
+  const [showAddressSelector, setShowAddressSelector] = useState(false);
+  
+  const { selectedAddress } = useAddress();
+  
+  // Check if user is authenticated on component mount and when auth status changes
+  useEffect(() => {
+    setShowLoginAlert(!isAuthenticated);
+  }, [isAuthenticated]);
   
   const form = useForm({
     defaultValues: {
@@ -33,13 +52,32 @@ const Cart = () => {
   const total = subtotal + deliveryFee + tax;
 
   const handleCheckout = async (values: any) => {
+    // Check if user is logged in
+    if (!isAuthenticated) {
+      toast.error("Please log in to continue");
+      navigate("/login");
+      return;
+    }
+    
+    // Check if address is selected
+    if (!selectedAddress) {
+      toast.error("Please select a delivery address");
+      setShowAddressSelector(true);
+      return;
+    }
+    
     setProcessingPayment(true);
     
     // Simulate payment processing
     await new Promise((resolve) => setTimeout(resolve, 2000));
     
     if (Math.random() > 0.1) { // 90% success rate for demo
+      const newOrderId = "ORD" + Math.floor(100000 + Math.random() * 900000);
+      setOrderId(newOrderId);
       setPaymentComplete(true);
+      setOrderPlaced(true);
+      // Generate random estimated delivery time between 10-30 minutes
+      setEstimatedDeliveryTime(Math.floor(Math.random() * 20) + 10);
       toast.success("Payment successful! Your order is confirmed.");
       clearCart();
     } else {
@@ -48,6 +86,39 @@ const Cart = () => {
     
     setProcessingPayment(false);
   };
+
+  if (orderPlaced) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8 px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-green-100 text-green-700 p-4 rounded-lg mb-6">
+              <div className="flex items-center">
+                <CheckCircle className="h-6 w-6 mr-2" />
+                <div>
+                  <h3 className="font-medium">Order Confirmed!</h3>
+                  <p className="text-sm">Order ID: {orderId}</p>
+                </div>
+              </div>
+            </div>
+            
+            <h1 className="text-2xl font-bold mb-6">Track Your Order</h1>
+            
+            <OrderTracker 
+              orderId={orderId || undefined} 
+              estimatedTime={estimatedDeliveryTime} 
+            />
+            
+            <div className="text-center mt-8">
+              <Button asChild className="bg-medical-500 hover:bg-medical-600 mb-4">
+                <Link to="/medicines">Continue Shopping</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (paymentComplete) {
     return (
@@ -64,8 +135,13 @@ const Cart = () => {
             <Button asChild className="bg-medical-500 hover:bg-medical-600 mb-4 w-full">
               <Link to="/medicines">Continue Shopping</Link>
             </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/orders">Track Your Order</Link>
+            <Button 
+              asChild 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setOrderPlaced(true)}
+            >
+              <Link to="#">Track Your Order</Link>
             </Button>
           </div>
         </div>
@@ -77,6 +153,23 @@ const Cart = () => {
     <Layout>
       <div className="container mx-auto py-8 px-4">
         <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+
+        {showLoginAlert && (
+          <Alert className="mb-6 border-yellow-300 bg-yellow-50">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              Please{" "}
+              <Link to="/login" className="font-medium underline text-yellow-800">
+                log in
+              </Link>{" "}
+              or{" "}
+              <Link to="/signup" className="font-medium underline text-yellow-800">
+                create an account
+              </Link>{" "}
+              to complete your purchase.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {items.length === 0 ? (
           <div className="text-center py-16 bg-gray-50 rounded-lg">
@@ -165,6 +258,53 @@ const Cart = () => {
                   ))}
                 </div>
               </div>
+              
+              {/* Address Selection */}
+              {isAuthenticated && (
+                <div className="mt-8">
+                  <Dialog open={showAddressSelector} onOpenChange={setShowAddressSelector}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full flex items-center justify-center"
+                        onClick={() => setShowAddressSelector(true)}
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        {selectedAddress ? "Change Delivery Address" : "Add Delivery Address"}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Select Delivery Address</DialogTitle>
+                      </DialogHeader>
+                      <AddressSelector />
+                    </DialogContent>
+                  </Dialog>
+                  
+                  {selectedAddress && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                      <div className="flex items-start">
+                        <MapPin className="h-5 w-5 text-medical-500 mt-0.5 mr-2" />
+                        <div>
+                          <div className="flex items-center">
+                            <h3 className="font-medium">{selectedAddress.name}</h3>
+                            {selectedAddress.isDefault && (
+                              <span className="ml-2 px-2 py-0.5 text-xs bg-medical-100 text-medical-700 rounded-full">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{selectedAddress.street}</p>
+                          <p className="text-sm text-gray-600">
+                            {selectedAddress.city}, {selectedAddress.state} {selectedAddress.pincode}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">Phone: {selectedAddress.phone}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="lg:col-span-1">
@@ -191,81 +331,73 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="w-full bg-medical-500 hover:bg-medical-600">
-                      Proceed to Checkout
+                {!isAuthenticated ? (
+                  <div className="space-y-4">
+                    <Button 
+                      asChild 
+                      className="w-full bg-medical-500 hover:bg-medical-600"
+                    >
+                      <Link to="/login">Login to Checkout</Link>
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle>Complete Your Payment</DialogTitle>
-                    </DialogHeader>
-                    
-                    <div className="flex space-x-2 mb-6">
-                      <Button
-                        variant={paymentMethod === "card" ? "default" : "outline"}
-                        className={paymentMethod === "card" ? "bg-medical-500 hover:bg-medical-600 flex-1" : "flex-1"}
-                        onClick={() => setPaymentMethod("card")}
+                    <p className="text-center text-sm text-gray-500">
+                      Don't have an account?{" "}
+                      <Link to="/signup" className="text-medical-500 hover:underline">
+                        Sign up now
+                      </Link>
+                    </p>
+                  </div>
+                ) : (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="w-full bg-medical-500 hover:bg-medical-600"
+                        disabled={!selectedAddress}
                       >
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Card
+                        {selectedAddress ? "Proceed to Checkout" : "Select Delivery Address"}
                       </Button>
-                      <Button
-                        variant={paymentMethod === "upi" ? "default" : "outline"}
-                        className={paymentMethod === "upi" ? "bg-medical-500 hover:bg-medical-600 flex-1" : "flex-1"}
-                        onClick={() => setPaymentMethod("upi")}
-                      >
-                        UPI
-                      </Button>
-                      <Button
-                        variant={paymentMethod === "cod" ? "default" : "outline"}
-                        className={paymentMethod === "cod" ? "bg-medical-500 hover:bg-medical-600 flex-1" : "flex-1"}
-                        onClick={() => setPaymentMethod("cod")}
-                      >
-                        Cash on Delivery
-                      </Button>
-                    </div>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Complete Your Payment</DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="flex space-x-2 mb-6">
+                        <Button
+                          variant={paymentMethod === "card" ? "default" : "outline"}
+                          className={paymentMethod === "card" ? "bg-medical-500 hover:bg-medical-600 flex-1" : "flex-1"}
+                          onClick={() => setPaymentMethod("card")}
+                        >
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Card
+                        </Button>
+                        <Button
+                          variant={paymentMethod === "upi" ? "default" : "outline"}
+                          className={paymentMethod === "upi" ? "bg-medical-500 hover:bg-medical-600 flex-1" : "flex-1"}
+                          onClick={() => setPaymentMethod("upi")}
+                        >
+                          UPI
+                        </Button>
+                        <Button
+                          variant={paymentMethod === "cod" ? "default" : "outline"}
+                          className={paymentMethod === "cod" ? "bg-medical-500 hover:bg-medical-600 flex-1" : "flex-1"}
+                          onClick={() => setPaymentMethod("cod")}
+                        >
+                          Cash on Delivery
+                        </Button>
+                      </div>
 
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(handleCheckout)} className="space-y-4">
-                        {paymentMethod === "card" && (
-                          <>
-                            <FormField
-                              control={form.control}
-                              name="cardNumber"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Card Number</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="1234 5678 9012 3456" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="cardName"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Cardholder Name</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="John Doe" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="grid grid-cols-2 gap-4">
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(handleCheckout)} className="space-y-4">
+                          {paymentMethod === "card" && (
+                            <>
                               <FormField
                                 control={form.control}
-                                name="expiry"
+                                name="cardNumber"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Expiry Date</FormLabel>
+                                    <FormLabel>Card Number</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="MM/YY" {...field} />
+                                      <Input placeholder="1234 5678 9012 3456" {...field} />
                                     </FormControl>
                                   </FormItem>
                                 )}
@@ -273,57 +405,85 @@ const Cart = () => {
                               
                               <FormField
                                 control={form.control}
-                                name="cvv"
+                                name="cardName"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>CVV</FormLabel>
+                                    <FormLabel>Cardholder Name</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="123" type="password" {...field} />
+                                      <Input placeholder="John Doe" {...field} />
                                     </FormControl>
                                   </FormItem>
                                 )}
                               />
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="expiry"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Expiry Date</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="MM/YY" {...field} />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={form.control}
+                                  name="cvv"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>CVV</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="123" type="password" {...field} />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </>
+                          )}
+                          
+                          {paymentMethod === "upi" && (
+                            <FormField
+                              control={form.control}
+                              name="upiId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>UPI ID</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="example@upi" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                          
+                          {paymentMethod === "cod" && (
+                            <div className="bg-yellow-50 p-4 rounded-lg">
+                              <p className="text-sm text-yellow-800">
+                                You'll pay ${total.toFixed(2)} when your order is delivered.
+                                A convenience fee may apply.
+                              </p>
                             </div>
-                          </>
-                        )}
-                        
-                        {paymentMethod === "upi" && (
-                          <FormField
-                            control={form.control}
-                            name="upiId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>UPI ID</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="example@upi" {...field} />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                        )}
-                        
-                        {paymentMethod === "cod" && (
-                          <div className="bg-yellow-50 p-4 rounded-lg">
-                            <p className="text-sm text-yellow-800">
-                              You'll pay ${total.toFixed(2)} when your order is delivered.
-                              A convenience fee may apply.
-                            </p>
+                          )}
+                          
+                          <div className="pt-4">
+                            <Button 
+                              type="submit" 
+                              className="w-full bg-medical-500 hover:bg-medical-600"
+                              disabled={processingPayment}
+                            >
+                              {processingPayment ? "Processing..." : `Pay $${total.toFixed(2)}`}
+                            </Button>
                           </div>
-                        )}
-                        
-                        <div className="pt-4">
-                          <Button 
-                            type="submit" 
-                            className="w-full bg-medical-500 hover:bg-medical-600"
-                            disabled={processingPayment}
-                          >
-                            {processingPayment ? "Processing..." : `Pay $${total.toFixed(2)}`}
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                )}
 
                 <div className="mt-6 text-center">
                   <Button asChild variant="link">
@@ -338,6 +498,14 @@ const Cart = () => {
         )}
       </div>
     </Layout>
+  );
+};
+
+const Cart = () => {
+  return (
+    <AddressProvider>
+      <CartContent />
+    </AddressProvider>
   );
 };
 

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,17 +12,47 @@ import {
   EyeOff 
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { toast } from "sonner";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Login attempt with:", { email, password, rememberMe });
-    // Future implementation: Handle login logic
+    
+    setIsLoading(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo purposes, we're simulating a successful login
+      // In a real app, this would validate against a backend
+      const userData = {
+        id: Date.now().toString(),
+        name: "Demo User",
+        email,
+        isLoggedIn: true
+      };
+      
+      localStorage.setItem("user", JSON.stringify(userData));
+      
+      toast.success("Logged in successfully!");
+      
+      // Redirect to home or the previous page
+      navigate(-1);
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Login failed. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -98,8 +128,12 @@ const Login = () => {
                 </Label>
               </div>
               
-              <Button type="submit" className="w-full bg-medical-500 hover:bg-medical-600">
-                Sign In
+              <Button 
+                type="submit" 
+                className="w-full bg-medical-500 hover:bg-medical-600"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </div>
           </form>
