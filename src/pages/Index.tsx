@@ -7,12 +7,19 @@ import FeaturedMedicines from "@/components/home/FeaturedMedicines";
 import DoctorsSection from "@/components/home/DoctorsSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import DownloadApp from "@/components/home/DownloadApp";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 
 // Lazy load the 3D animation component to improve initial page load
 const MedicalAnimation = lazy(() => import("@/components/home/MedicalAnimation"));
 
 const Index = () => {
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we only try to render the 3D component on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <Layout>
       <HeroSection />
@@ -21,9 +28,19 @@ const Index = () => {
         <p className="text-gray-600 text-center max-w-3xl mx-auto mb-10">
           Our state-of-the-art healthcare platform leverages the latest technology to provide you with seamless medical services.
         </p>
-        <Suspense fallback={<div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-2xl"></div>}>
-          <MedicalAnimation />
-        </Suspense>
+        {isClient ? (
+          <Suspense fallback={
+            <div className="h-[400px] w-full bg-gradient-to-b from-blue-50 to-indigo-50 flex items-center justify-center rounded-2xl">
+              <div className="animate-pulse text-blue-500 text-xl">Loading 3D Experience...</div>
+            </div>
+          }>
+            <MedicalAnimation />
+          </Suspense>
+        ) : (
+          <div className="h-[400px] w-full bg-gradient-to-b from-blue-50 to-indigo-50 flex items-center justify-center rounded-2xl">
+            <div className="text-blue-500 text-xl">Preparing MediSwift Visualization...</div>
+          </div>
+        )}
       </div>
       <ServiceFeatures />
       <EmergencyCall />

@@ -1,7 +1,7 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment, Float } from '@react-three/drei';
+import { OrbitControls, Float } from '@react-three/drei';
 import { Group } from 'three';
 
 function MedicalSymbol(props: any) {
@@ -65,7 +65,6 @@ export default function MedicalAnimation() {
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
         <MedicalSymbol position={[0, 0, 0]} scale={[0.75, 0.75, 0.75]} />
         <OrbitControls enableZoom={false} enablePan={false} autoRotate={true} autoRotateSpeed={0.5} />
-        <Environment preset="city" />
       </Canvas>
     </div>
   );

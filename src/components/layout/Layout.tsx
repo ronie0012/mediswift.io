@@ -18,7 +18,11 @@ const Layout = ({ children }: LayoutProps) => {
         transition={{ duration: 0.5 }}
         className="flex-grow"
       >
-        <Suspense fallback={<div className="w-full h-[50vh] flex items-center justify-center">Loading...</div>}>
+        <Suspense fallback={
+          <div className="w-full h-[50vh] flex items-center justify-center">
+            <div className="text-blue-500 text-xl animate-pulse">Loading MediSwift...</div>
+          </div>
+        }>
           {children}
         </Suspense>
       </motion.main>
