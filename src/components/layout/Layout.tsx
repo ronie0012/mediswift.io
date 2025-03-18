@@ -3,6 +3,7 @@ import { ReactNode, Suspense } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { motion } from "framer-motion";
+import { ErrorBoundary } from 'react-error-boundary';
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,13 +19,19 @@ const Layout = ({ children }: LayoutProps) => {
         transition={{ duration: 0.5 }}
         className="flex-grow"
       >
-        <Suspense fallback={
+        <ErrorBoundary fallback={
           <div className="w-full h-[50vh] flex items-center justify-center">
-            <div className="text-blue-500 text-xl animate-pulse">Loading MediSwift...</div>
+            <div className="text-blue-500 text-xl">Sorry, something went wrong. Please refresh the page.</div>
           </div>
         }>
-          {children}
-        </Suspense>
+          <Suspense fallback={
+            <div className="w-full h-[50vh] flex items-center justify-center">
+              <div className="text-blue-500 text-xl animate-pulse">Loading MediSwift...</div>
+            </div>
+          }>
+            {children}
+          </Suspense>
+        </ErrorBoundary>
       </motion.main>
       <Footer />
     </div>

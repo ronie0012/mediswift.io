@@ -57,15 +57,28 @@ function MedicalSymbol(props: any) {
 }
 
 export default function MedicalAnimation() {
-  return (
-    <div className="h-[400px] w-full rounded-2xl overflow-hidden bg-gradient-to-b from-blue-50 to-indigo-50 shadow-inner">
-      <Canvas shadows camera={{ position: [0, 0, 8], fov: 45 }}>
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        <MedicalSymbol position={[0, 0, 0]} scale={[0.75, 0.75, 0.75]} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate={true} autoRotateSpeed={0.5} />
-      </Canvas>
-    </div>
-  );
+  // Use error boundary to prevent crashed rendering
+  try {
+    return (
+      <div className="h-[400px] w-full rounded-2xl overflow-hidden bg-gradient-to-b from-blue-50 to-indigo-50 shadow-inner">
+        <Canvas shadows camera={{ position: [0, 0, 8], fov: 45 }}>
+          <ambientLight intensity={0.5} />
+          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+          <pointLight position={[-10, -10, -10]} intensity={0.5} />
+          <MedicalSymbol position={[0, 0, 0]} scale={[0.75, 0.75, 0.75]} />
+          <OrbitControls enableZoom={false} enablePan={false} autoRotate={true} autoRotateSpeed={0.5} />
+        </Canvas>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error rendering 3D scene:", error);
+    return (
+      <div className="h-[400px] w-full rounded-2xl flex items-center justify-center bg-gradient-to-b from-blue-50 to-indigo-50">
+        <div className="text-blue-600">
+          <p className="text-xl font-semibold">MediSwift Technology</p>
+          <p className="text-sm mt-2">Advanced healthcare visualization</p>
+        </div>
+      </div>
+    );
+  }
 }
