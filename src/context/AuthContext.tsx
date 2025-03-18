@@ -1,7 +1,9 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const userSchema = z.object({
   id: z.string(),
@@ -24,7 +26,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signup: (name: string, email: string, phone: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
   validatePassword: (password: string) => boolean;
 }
@@ -37,68 +39,95 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Check if user is logged in on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const checkUser = async () => {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        const validatedUser = userSchema.parse(parsedUser);
-        setUser({
-          id: validatedUser.id,
-          name: validatedUser.name,
-          email: validatedUser.email,
-          phone: validatedUser.phone,
-          isLoggedIn: validatedUser.isLoggedIn
-        });
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          const { data: userData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (userData) {
+            setUser({
+              id: session.user.id,
+              name: userData.name || session.user.email?.split('@')[0] || 'User',
+              email: session.user.email || '',
+              phone: userData.phone || '',
+              isLoggedIn: true
+            });
+          }
+        }
       } catch (error) {
-        console.error("Error parsing user data:", error);
-        localStorage.removeItem("user");
+        console.error("Error fetching user session:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+    
+    checkUser();
+    
+    // Setup auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          // User logged in
+          try {
+            const { data: userData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+              
+            if (userData) {
+              setUser({
+                id: session.user.id,
+                name: userData.name || session.user.email?.split('@')[0] || 'User',
+                email: session.user.email || '',
+                phone: userData.phone || '',
+                isLoggedIn: true
+              });
+            }
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+          }
+        } else {
+          // User logged out
+          setUser(null);
+        }
+        setIsLoading(false);
+      }
+    );
+    
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
   
   const validatePassword = (password: string): boolean => {
-    // Password must be at least 8 characters long and contain at least one number and one special character
-    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-    return passwordRegex.test(password);
+    // Password must be at least 8 characters long
+    // This is a simpler requirement compared to the previous one, which is fine for Supabase's default requirements
+    return password.length >= 8;
   };
   
   const login = async (email: string, password: string, rememberMe: boolean = false) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // Get stored user data if exists
-      const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-      const user = storedUsers.find((u: any) => u.email === email);
-      
-      if (!user) {
-        throw new Error("User not found");
-      }
-      
-      const userData: User = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        isLoggedIn: true
-      };
-      
-      setUser(userData);
-      
-      if (rememberMe) {
-        localStorage.setItem("user", JSON.stringify(userData));
-      } else {
-        sessionStorage.setItem("user", JSON.stringify(userData));
-      }
+      if (error) throw error;
       
       toast.success("Logged in successfully!");
-      
       return Promise.resolve();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please check your credentials.");
+      toast.error(error.message || "Login failed. Please check your credentials.");
       return Promise.reject(error);
     } finally {
       setIsLoading(false);
@@ -109,55 +138,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       if (!validatePassword(password)) {
-        throw new Error("Password must be at least 8 characters long and contain at least one number and one special character");
+        throw new Error("Password must be at least 8 characters long");
       }
       
-      // Get existing users
-      const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-      
-      // Check if email already exists
-      if (storedUsers.some((user: any) => user.email === email)) {
-        throw new Error("Email already registered");
-      }
-      
-      const newUser = {
-        id: Date.now().toString(),
-        name,
+      // Create the user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        phone,
-        password // In a real app, this should be hashed
-      };
+        password,
+      });
       
-      // Save user to storage
-      localStorage.setItem("users", JSON.stringify([...storedUsers, newUser]));
+      if (authError) throw authError;
       
-      const userData: User = {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        isLoggedIn: true
-      };
+      // If we have a user, update their profile with name and phone
+      if (authData.user) {
+        // Check if profile exists first
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authData.user.id)
+          .single();
+          
+        // If profile exists, update it. Otherwise, insert will happen via trigger
+        if (existingProfile) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+              name,
+              phone,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', authData.user.id);
+            
+          if (profileError) throw profileError;
+        }
+      }
       
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
       toast.success("Account created successfully!");
-      
       return Promise.resolve();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create account. Please try again.");
+      toast.error(error.message || "Failed to create account. Please try again.");
       return Promise.reject(error);
     } finally {
       setIsLoading(false);
     }
   };
   
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
-    toast.success("Logged out successfully");
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out. Please try again.");
+    }
   };
   
   return (
