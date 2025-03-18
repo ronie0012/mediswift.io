@@ -5,9 +5,10 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
+// Update the user schema to match our profile structure
 const userSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().optional(),
   email: z.string().email(),
   phone: z.string().optional(),
   isLoggedIn: z.boolean()
@@ -15,7 +16,7 @@ const userSchema = z.object({
 
 interface User {
   id: string;
-  name: string;
+  name?: string;
   email: string;
   phone?: string;
   isLoggedIn: boolean;
@@ -141,36 +142,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Password must be at least 8 characters long");
       }
       
-      // Create the user in Supabase Auth
+      // Create the user in Supabase Auth with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name,
+            phone
+          }
+        }
       });
       
       if (authError) throw authError;
       
-      // If we have a user, update their profile with name and phone
+      // If user creation was successful, update their profile
       if (authData.user) {
-        // Check if profile exists first
-        const { data: existingProfile } = await supabase
+        const { error: profileError } = await supabase
           .from('profiles')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single();
+          .update({
+            name,
+            phone,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', authData.user.id);
           
-        // If profile exists, update it. Otherwise, insert will happen via trigger
-        if (existingProfile) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({
-              name,
-              phone,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', authData.user.id);
-            
-          if (profileError) throw profileError;
-        }
+        if (profileError) console.error("Error updating profile:", profileError);
       }
       
       toast.success("Account created successfully!");

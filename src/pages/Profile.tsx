@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -6,15 +7,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { User, Mail, Phone, Save, Edit2 } from "lucide-react";
+import { updateUserProfile } from "@/integrations/supabase/client";
 
 const Profile = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || ""
   });
+  
+  // Update form data when user data changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || ""
+      });
+    }
+  }, [user]);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8 px-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Loading profile...</h1>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -36,12 +61,26 @@ const Profile = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would make an API call to update the user's profile
-    // For now, we'll just show a success message
-    toast.success("Profile updated successfully!");
-    setIsEditing(false);
+    
+    try {
+      // Only update name and phone (email cannot be changed this way)
+      const { error } = await updateUserProfile({
+        name: formData.name,
+        phone: formData.phone
+      });
+      
+      if (error) {
+        throw new Error(error);
+      }
+      
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
+      console.error("Profile update error:", error);
+    }
   };
 
   return (
@@ -92,11 +131,13 @@ const Profile = () => {
                     name="email"
                     type="email"
                     value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="pl-10"
+                    disabled={true} // Email cannot be changed
+                    className="pl-10 bg-gray-100"
                   />
                 </div>
+                {isEditing && (
+                  <p className="text-xs text-gray-500">Email cannot be changed.</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -129,4 +170,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;

@@ -22,3 +22,31 @@ export const getCurrentUserId = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   return session?.user?.id;
 };
+
+// Helper function to get user profile data
+export const getUserProfile = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+    
+  if (error || !data) return null;
+  return data;
+};
+
+// Helper function to update user profile
+export const updateUserProfile = async (profile: { name?: string; phone?: string; }) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { error: 'Not authenticated' };
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(profile)
+    .eq('id', session.user.id);
+    
+  return { data, error };
+};
