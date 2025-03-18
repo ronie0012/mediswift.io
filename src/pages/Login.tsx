@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,46 +12,30 @@ import {
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt with:", { email, password, rememberMe });
-    
-    setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, we're simulating a successful login
-      // In a real app, this would validate against a backend
-      const userData = {
-        id: Date.now().toString(),
-        name: "Demo User",
-        email,
-        isLoggedIn: true
-      };
-      
-      localStorage.setItem("user", JSON.stringify(userData));
-      
-      toast.success("Logged in successfully!");
-      
-      // Redirect to home or the previous page
-      navigate(-1);
+      await login(email, password, rememberMe);
+      navigate("/");
     } catch (error) {
+      // Error is already handled in the AuthContext
       console.error("Login error:", error);
-      toast.error("Login failed. Please check your credentials.");
-    } finally {
-      setIsLoading(false);
     }
+  };
+  
+  const handleSocialLogin = (provider: "google" | "facebook") => {
+    toast.info(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login is coming soon!`);
   };
   
   return (
@@ -158,10 +141,20 @@ const Login = () => {
             </div>
             
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button variant="outline" type="button" className="w-full">
+              <Button 
+                variant="outline" 
+                type="button" 
+                className="w-full"
+                onClick={() => handleSocialLogin("google")}
+              >
                 Google
               </Button>
-              <Button variant="outline" type="button" className="w-full">
+              <Button 
+                variant="outline" 
+                type="button" 
+                className="w-full"
+                onClick={() => handleSocialLogin("facebook")}
+              >
                 Facebook
               </Button>
             </div>

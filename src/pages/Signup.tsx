@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,16 +14,17 @@ import {
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { signup, isLoading, validatePassword } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,38 +34,22 @@ const Signup = () => {
       return;
     }
     
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters long");
+    if (!validatePassword(password)) {
+      toast.error("Password must be at least 8 characters long and contain at least one number and one special character");
       return;
     }
     
-    console.log("Signup attempt with:", { name, email, phone, password, acceptTerms });
-    
-    setIsLoading(true);
-    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store user data in localStorage
-      const userData = {
-        id: Date.now().toString(),
-        name,
-        email,
-        phone,
-        isLoggedIn: true
-      };
-      
-      localStorage.setItem("user", JSON.stringify(userData));
-      
-      toast.success("Account created successfully!");
+      await signup(name, email, phone, password);
       navigate("/");
     } catch (error) {
+      // Error is already handled in the AuthContext
       console.error("Signup error:", error);
-      toast.error("Failed to create account. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
+  };
+  
+  const handleSocialSignup = (provider: "google" | "facebook") => {
+    toast.info(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup is coming soon!`);
   };
   
   return (
@@ -157,7 +141,7 @@ const Signup = () => {
                 </p>
               </div>
               
-              <div className="flex items-start space-x-2">
+              <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="terms" 
                   checked={acceptTerms}
@@ -209,10 +193,20 @@ const Signup = () => {
             </div>
             
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button variant="outline" type="button" className="w-full">
+              <Button 
+                variant="outline" 
+                type="button" 
+                className="w-full"
+                onClick={() => handleSocialSignup("google")}
+              >
                 Google
               </Button>
-              <Button variant="outline" type="button" className="w-full">
+              <Button 
+                variant="outline" 
+                type="button" 
+                className="w-full"
+                onClick={() => handleSocialSignup("facebook")}
+              >
                 Facebook
               </Button>
             </div>

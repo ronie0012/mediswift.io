@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Heart, Star, ChevronRight, ChevronLeft } from "lucide-react";
+import { ShoppingCart, Heart, Star, ChevronRight, ChevronLeft, Minus, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -17,12 +16,16 @@ const medicineCategories = [
     name: "Antibiotics"
   },
   {
-    id: "vitamins",
-    name: "Vitamins & Supplements"
+    id: "cardiac",
+    name: "Heart & Blood Pressure"
   },
   {
-    id: "diabetes",
-    name: "Diabetes Care"
+    id: "gastro",
+    name: "Digestive Health"
+  },
+  {
+    id: "allergy",
+    name: "Allergy & Respiratory"
   }
 ];
 
@@ -30,153 +33,176 @@ const medicines = {
   "pain-relief": [
     {
       id: 1,
-      name: "Ibuprofen 400mg",
-      brand: "MediRelief",
-      price: 12.99,
-      discountPrice: 9.99,
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
-    },
-    {
-      id: 2,
       name: "Paracetamol 500mg",
-      brand: "LifeCare",
-      price: 8.99,
-      discountPrice: 6.49,
-      rating: 4.5,
-      image: "https://images.unsplash.com/photo-1550572017-edd951b55104?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      brand: "Generic",
+      price: 15,
+      discountPrice: 12,
+      rating: 4.8,
+      category: "Pain Relief",
+      quantity: "10 tablets",
+      image: "https://www.netmeds.com/images/product-v1/600x600/341517/paracetamol_tablets_ip_500mg_10s_0.jpg"
     },
     {
-      id: 3,
-      name: "Aspirin 325mg",
-      brand: "HealthPlus",
-      price: 7.99,
-      discountPrice: 5.99,
-      rating: 4.3,
-      image: "https://images.unsplash.com/photo-1626285869517-ce562e94e291?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
-    },
-    {
-      id: 4,
-      name: "Naproxen 220mg",
-      brand: "MediRelief",
-      price: 14.99,
-      discountPrice: 11.49,
+      id: 21,
+      name: "Aspirin 75mg",
+      brand: "Generic",
+      price: 10,
+      discountPrice: 8,
       rating: 4.6,
-      image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      category: "Pain Relief",
+      quantity: "14 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2021/1/KF/VF/XG/3823480/aspirin-tablets-500x500.jpg"
     }
   ],
   "antibiotics": [
     {
-      id: 5,
+      id: 2,
       name: "Amoxicillin 500mg",
-      brand: "MediCore",
-      price: 19.99,
-      discountPrice: 15.99,
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1631549916768-4119b4220f0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      brand: "Generic",
+      price: 50,
+      discountPrice: 45,
+      rating: 4.7,
+      category: "Antibiotics",
+      quantity: "10 capsules",
+      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/MI/CM/OC/142578078/amoxicillin-capsules-500x500.jpg"
     },
     {
-      id: 6,
-      name: "Azithromycin 250mg",
-      brand: "LifeCare",
-      price: 24.99,
-      discountPrice: 18.99,
+      id: 3,
+      name: "Azithromycin 500mg",
+      brand: "Generic",
+      price: 60,
+      discountPrice: 55,
+      rating: 4.7,
+      category: "Antibiotics",
+      quantity: "3 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/9/RL/ON/JI/162395100/azithromycin-500mg-tablets-500x500.jpg"
+    },
+    {
+      id: 4,
+      name: "Ciprofloxacin 500mg",
+      brand: "Generic",
+      price: 55,
+      discountPrice: 50,
+      rating: 4.5,
+      category: "Antibiotics",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/QR/ZE/JK/148371869/ciprofloxacin-tablets-500x500.jpg"
+    },
+    {
+      id: 24,
+      name: "Doxycycline 100mg",
+      brand: "Generic",
+      price: 40,
+      discountPrice: 35,
       rating: 4.6,
-      image: "https://images.unsplash.com/photo-1628771065518-0d82f1938462?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      category: "Antibiotics",
+      quantity: "10 capsules",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/1/ZN/VM/CR/144146006/doxycycline-100mg-capsule-500x500.jpg"
+    }
+  ],
+  "cardiac": [
+    {
+      id: 6,
+      name: "Amlodipine 5mg",
+      brand: "Generic",
+      price: 20,
+      discountPrice: 18,
+      rating: 4.8,
+      category: "Cardiac",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/UW/DP/OX/148371869/amlodipine-tablets-500x500.jpg"
     },
     {
       id: 7,
-      name: "Ciprofloxacin 500mg",
-      brand: "HealthPlus",
-      price: 22.99,
-      discountPrice: 17.99,
-      rating: 4.5,
-      image: "https://images.unsplash.com/photo-1622227922686-58cef409d5c8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      name: "Atorvastatin 10mg",
+      brand: "Generic",
+      price: 25,
+      discountPrice: 22,
+      rating: 4.7,
+      category: "Cardiac",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/UY/ON/MY/142578078/atorvastatin-tablets-500x500.jpg"
     },
     {
-      id: 8,
-      name: "Doxycycline 100mg",
-      brand: "MediCore",
-      price: 17.99,
-      discountPrice: 13.99,
+      id: 13,
+      name: "Losartan 50mg",
+      brand: "Generic",
+      price: 30,
+      discountPrice: 28,
+      rating: 4.6,
+      category: "Cardiac",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/1/OW/BK/DZ/144146006/losartan-potassium-tablets-500x500.jpg"
+    },
+    {
+      id: 20,
+      name: "Clopidogrel 75mg",
+      brand: "Generic",
+      price: 50,
+      discountPrice: 45,
       rating: 4.7,
-      image: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      category: "Cardiac",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/RU/ZE/ZH/142578078/clopidogrel-tablets-500x500.jpg"
     }
   ],
-  "vitamins": [
+  "gastro": [
     {
-      id: 9,
-      name: "Multivitamin Daily",
-      brand: "VitaLife",
-      price: 15.99,
-      discountPrice: 12.99,
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1577460551100-d94f68dc8706?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      id: 8,
+      name: "Omeprazole 20mg",
+      brand: "Generic",
+      price: 18,
+      discountPrice: 15,
+      rating: 4.7,
+      category: "Gastro",
+      quantity: "10 capsules",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/TH/BK/KX/148371869/omeprazole-capsules-500x500.jpg"
     },
     {
-      id: 10,
-      name: "Vitamin D3 1000IU",
-      brand: "NutriPlus",
-      price: 9.99,
-      discountPrice: 7.99,
+      id: 9,
+      name: "Pantoprazole 40mg",
+      brand: "Generic",
+      price: 35,
+      discountPrice: 30,
       rating: 4.6,
-      image: "https://images.unsplash.com/photo-1584308666974-95de95df7d6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      category: "Gastro",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/YC/QL/OT/142578078/pantoprazole-tablets-500x500.jpg"
+    }
+  ],
+  "allergy": [
+    {
+      id: 10,
+      name: "Cetirizine 10mg",
+      brand: "Generic",
+      price: 15,
+      discountPrice: 12,
+      rating: 4.8,
+      category: "Allergy",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/UO/FX/ZB/148371869/cetirizine-tablets-500x500.jpg"
     },
     {
       id: 11,
-      name: "Vitamin C 500mg",
-      brand: "VitaLife",
-      price: 11.99,
-      discountPrice: 8.99,
+      name: "Levocetirizine 5mg",
+      brand: "Generic",
+      price: 25,
+      discountPrice: 22,
       rating: 4.7,
-      image: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      category: "Allergy",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/NX/XC/XZ/142578078/levocetirizine-tablets-500x500.jpg"
     },
     {
       id: 12,
-      name: "Omega-3 Fish Oil",
-      brand: "NutriPlus",
-      price: 18.99,
-      discountPrice: 14.99,
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1626285869517-ce562e94e291?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
-    }
-  ],
-  "diabetes": [
-    {
-      id: 13,
-      name: "Blood Glucose Monitor",
-      brand: "DiaCare",
-      price: 39.99,
-      discountPrice: 29.99,
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1611073561609-cdc414ccd7a8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
-    },
-    {
-      id: 14,
-      name: "Insulin Syringes 100 Pack",
-      brand: "MediCore",
-      price: 24.99,
-      discountPrice: 19.99,
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1618089086953-c1b1a6413a81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
-    },
-    {
-      id: 15,
-      name: "Glucometer Test Strips",
-      brand: "DiaCare",
-      price: 19.99,
-      discountPrice: 15.99,
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1660227868332-93e0a0a8c67e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
-    },
-    {
-      id: 16,
-      name: "Diabetic Foot Cream",
-      brand: "HealthPlus",
-      price: 14.99,
-      discountPrice: 11.99,
+      name: "Montelukast 10mg",
+      brand: "Generic",
+      price: 70,
+      discountPrice: 65,
       rating: 4.6,
-      image: "https://images.unsplash.com/photo-1584308667839-77fbca23b2dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80"
+      category: "Allergy",
+      quantity: "10 tablets",
+      image: "https://5.imimg.com/data5/SELLER/Default/2022/1/XD/XK/XQ/144146006/montelukast-tablets-500x500.jpg"
     }
   ]
 };
@@ -184,13 +210,25 @@ const medicines = {
 const MedicineCard = ({ medicine }: { medicine: any }) => {
   const { addToCart } = useCart();
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   const handleAddToCart = () => {
-    addToCart(medicine, 1);
+    addToCart(medicine, quantity);
+    setQuantity(1); // Reset quantity after adding to cart
   };
 
   const handleToggleWishlist = () => {
     setIsWishlisted(!isWishlisted);
+  };
+
+  const incrementQuantity = () => {
+    setQuantity(prev => prev + 1);
+  };
+
+  const decrementQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
   };
 
   return (
@@ -225,14 +263,35 @@ const MedicineCard = ({ medicine }: { medicine: any }) => {
         </div>
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-sm font-bold text-gray-900">${medicine.discountPrice}</span>
+            <span className="text-sm font-bold text-gray-900">₹{medicine.discountPrice}</span>
             {medicine.discountPrice < medicine.price && (
-              <span className="text-xs text-gray-500 line-through ml-1">${medicine.price}</span>
+              <span className="text-xs text-gray-500 line-through ml-1">₹{medicine.price}</span>
             )}
           </div>
-          <Button size="sm" className="bg-medical-500 hover:bg-medical-600" onClick={handleAddToCart}>
-            <ShoppingCart className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center border rounded-md">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 hover:bg-gray-100"
+                onClick={decrementQuantity}
+              >
+                <Minus className="h-3 w-3" />
+              </Button>
+              <span className="w-8 text-center text-sm">{quantity}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 hover:bg-gray-100"
+                onClick={incrementQuantity}
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+            <Button size="sm" className="bg-medical-500 hover:bg-medical-600" onClick={handleAddToCart}>
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

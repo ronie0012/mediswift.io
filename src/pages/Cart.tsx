@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { useCart } from "@/context/CartContext";
@@ -217,7 +216,7 @@ const CartContent = () => {
                           <p className="text-sm text-gray-500">{item.brandName}</p>
                         )}
                         <div className="mt-1 text-sm font-bold text-gray-900">
-                          ${item.price.toFixed(2)}
+                          ₹{item.price.toFixed(2)}
                         </div>
                       </div>
 
@@ -243,7 +242,7 @@ const CartContent = () => {
 
                       <div className="ml-6 text-right">
                         <div className="font-bold">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ₹{(item.price * item.quantity).toFixed(2)}
                         </div>
                         <Button
                           variant="ghost"
@@ -313,20 +312,20 @@ const CartContent = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Delivery Fee</span>
-                    <span className="font-medium">${deliveryFee.toFixed(2)}</span>
+                    <span className="font-medium">₹{deliveryFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tax</span>
-                    <span className="font-medium">${tax.toFixed(2)}</span>
+                    <span className="font-medium">₹{tax.toFixed(2)}</span>
                   </div>
                   <div className="border-t pt-3 mt-3">
                     <div className="flex justify-between font-bold">
                       <span>Total</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>₹{total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -464,7 +463,7 @@ const CartContent = () => {
                           {paymentMethod === "cod" && (
                             <div className="bg-yellow-50 p-4 rounded-lg">
                               <p className="text-sm text-yellow-800">
-                                You'll pay ${total.toFixed(2)} when your order is delivered.
+                                You'll pay ₹{total.toFixed(2)} when your order is delivered.
                                 A convenience fee may apply.
                               </p>
                             </div>
@@ -476,7 +475,7 @@ const CartContent = () => {
                               className="w-full bg-medical-500 hover:bg-medical-600"
                               disabled={processingPayment}
                             >
-                              {processingPayment ? "Processing..." : `Pay $${total.toFixed(2)}`}
+                              {processingPayment ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
                             </Button>
                           </div>
                         </form>

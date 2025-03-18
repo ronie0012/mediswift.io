@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,8 +103,8 @@ const doctors = [
     consultationFee: 65,
     availableToday: false,
     availableForVideo: true,
-    availableForInClinic: false,
-    nextAvailable: "Day after tomorrow, 11:30 AM",
+    availableForInClinic: true,
+    nextAvailable: "Tomorrow, 11:30 AM",
     image: "https://randomuser.me/api/portraits/men/86.jpg",
     hospital: "Skin Care Clinic",
     location: "Houston, TX",
@@ -238,7 +237,7 @@ const DoctorCard = ({ doctor }: { doctor: any }) => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Consultation Fee</p>
-                <p className="font-bold text-gray-900">${doctor.consultationFee}</p>
+                <p className="font-bold text-gray-900">₹{doctor.consultationFee}</p>
               </div>
             </div>
           </div>
@@ -330,19 +329,19 @@ const Doctors = () => {
                   <div className="space-y-2">
                     <div className="flex items-center">
                       <input type="checkbox" id="fee-1" className="rounded text-medical-600 focus:ring-medical-500" />
-                      <label htmlFor="fee-1" className="ml-2 text-gray-600">Under $25</label>
+                      <label htmlFor="fee-1" className="ml-2 text-gray-600">Under ₹500</label>
                     </div>
                     <div className="flex items-center">
                       <input type="checkbox" id="fee-2" className="rounded text-medical-600 focus:ring-medical-500" />
-                      <label htmlFor="fee-2" className="ml-2 text-gray-600">$25 - $50</label>
+                      <label htmlFor="fee-2" className="ml-2 text-gray-600">₹500 - ₹1000</label>
                     </div>
                     <div className="flex items-center">
                       <input type="checkbox" id="fee-3" className="rounded text-medical-600 focus:ring-medical-500" />
-                      <label htmlFor="fee-3" className="ml-2 text-gray-600">$50 - $75</label>
+                      <label htmlFor="fee-3" className="ml-2 text-gray-600">₹1000 - ₹1500</label>
                     </div>
                     <div className="flex items-center">
                       <input type="checkbox" id="fee-4" className="rounded text-medical-600 focus:ring-medical-500" />
-                      <label htmlFor="fee-4" className="ml-2 text-gray-600">Above $75</label>
+                      <label htmlFor="fee-4" className="ml-2 text-gray-600">Above ₹1500</label>
                     </div>
                   </div>
                 </div>
