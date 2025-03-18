@@ -18,6 +18,7 @@ import { AppointmentProvider } from "./context/AppointmentContext";
 import MyAppointments from "./pages/MyAppointments";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
+import { Suspense } from "react";
 
 const queryClient = new QueryClient();
 
@@ -30,21 +31,22 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/medicines" element={<Medicines />} />
-                <Route path="/doctors" element={<Doctors />} />
-                <Route path="/doctors/:id" element={<DoctorAppointment />} />
-                <Route path="/ambulance" element={<AmbulanceBooking />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/my-appointments" element={<MyAppointments />} />
-                <Route path="/my-orders" element={<MyOrders />} />
-                <Route path="/profile" element={<Profile />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading MediSwift...</div>}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/medicines" element={<Medicines />} />
+                  <Route path="/doctors" element={<Doctors />} />
+                  <Route path="/doctors/:id" element={<DoctorAppointment />} />
+                  <Route path="/ambulance" element={<AmbulanceBooking />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/my-appointments" element={<MyAppointments />} />
+                  <Route path="/my-orders" element={<MyOrders />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </AppointmentProvider>
         </CartProvider>

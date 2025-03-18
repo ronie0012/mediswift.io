@@ -7,11 +7,24 @@ import FeaturedMedicines from "@/components/home/FeaturedMedicines";
 import DoctorsSection from "@/components/home/DoctorsSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import DownloadApp from "@/components/home/DownloadApp";
+import { lazy, Suspense } from "react";
+
+// Lazy load the 3D animation component to improve initial page load
+const MedicalAnimation = lazy(() => import("@/components/home/MedicalAnimation"));
 
 const Index = () => {
   return (
     <Layout>
       <HeroSection />
+      <div className="container mx-auto px-4 py-10">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">MediSwift Technology</h2>
+        <p className="text-gray-600 text-center max-w-3xl mx-auto mb-10">
+          Our state-of-the-art healthcare platform leverages the latest technology to provide you with seamless medical services.
+        </p>
+        <Suspense fallback={<div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-2xl"></div>}>
+          <MedicalAnimation />
+        </Suspense>
+      </div>
       <ServiceFeatures />
       <EmergencyCall />
       <FeaturedMedicines />

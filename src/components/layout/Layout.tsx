@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+
+import { ReactNode, Suspense } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { motion } from "framer-motion";
@@ -17,7 +18,9 @@ const Layout = ({ children }: LayoutProps) => {
         transition={{ duration: 0.5 }}
         className="flex-grow"
       >
-        {children}
+        <Suspense fallback={<div className="w-full h-[50vh] flex items-center justify-center">Loading...</div>}>
+          {children}
+        </Suspense>
       </motion.main>
       <Footer />
     </div>
