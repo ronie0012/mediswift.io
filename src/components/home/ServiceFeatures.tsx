@@ -1,4 +1,3 @@
-
 import { Pill, Stethoscope, Ambulance, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -22,7 +21,7 @@ const services = [
     description: "Book an ambulance for emergency situations with real-time tracking.",
     icon: Ambulance,
     link: "/ambulance",
-    image: "https://images.unsplash.com/photo-1587745416684-47953f11f22e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+    image: "/ambulance-neon.jpeg"
   },
   {
     title: "Health Packages",

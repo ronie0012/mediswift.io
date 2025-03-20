@@ -18,6 +18,7 @@ import { AppointmentProvider } from "./context/AppointmentContext";
 import MyAppointments from "./pages/MyAppointments";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
+import RescheduleAppointment from "./pages/RescheduleAppointment";
 import { Suspense } from "react";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
                   <Route path="/my-appointments" element={<MyAppointments />} />
                   <Route path="/my-orders" element={<MyOrders />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/reschedule-appointment/:id" element={<RescheduleAppointment />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronRight, Star } from "lucide-react";
@@ -8,41 +7,41 @@ import { Link } from "react-router-dom";
 const doctors = [
   {
     id: 1,
-    name: "Dr. Emily Watson",
-    specialty: "Cardiologist",
+    name: "Dr. Anil Sharma",
+    specialty: "General Physician",
     experience: "12 years",
-    rating: 4.9,
-    reviewCount: 124,
+    rating: 4.5,
+    reviewCount: 150,
     availability: "Available Today",
-    image: "https://randomuser.me/api/portraits/women/65.jpg"
+    image: "https://randomuser.me/api/portraits/men/65.jpg"
   },
   {
     id: 2,
-    name: "Dr. Michael Chen",
-    specialty: "Neurologist",
-    experience: "8 years",
+    name: "Dr. Vikram Patel",
+    specialty: "Cardiologist",
+    experience: "18 years",
     rating: 4.8,
-    reviewCount: 98,
+    reviewCount: 200,
     availability: "Available Tomorrow",
-    image: "https://randomuser.me/api/portraits/men/32.jpg"
+    image: "https://randomuser.me/api/portraits/men/45.jpg"
   },
   {
     id: 3,
-    name: "Dr. Sarah Johnson",
-    specialty: "Pediatrician",
+    name: "Dr. Sanjay Gupta",
+    specialty: "Neurologist",
     experience: "15 years",
-    rating: 4.9,
-    reviewCount: 156,
+    rating: 4.7,
+    reviewCount: 160,
     availability: "Available Today",
-    image: "https://randomuser.me/api/portraits/women/45.jpg"
+    image: "https://randomuser.me/api/portraits/men/32.jpg"
   },
   {
     id: 4,
-    name: "Dr. Robert Williams",
-    specialty: "Dermatologist",
-    experience: "10 years",
-    rating: 4.7,
-    reviewCount: 112,
+    name: "Dr. Rohan Joshi",
+    specialty: "Pediatrician",
+    experience: "14 years",
+    rating: 4.9,
+    reviewCount: 220,
     availability: "Available in 2 days",
     image: "https://randomuser.me/api/portraits/men/86.jpg"
   }

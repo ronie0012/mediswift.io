@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Sample medicine data
 const medicineCategories = [
@@ -46,7 +47,7 @@ const medicineData: Medicine[] = [
     rating: 4.8,
     category: "Pain Relief",
     quantity: "10 tablets",
-    image: "https://www.netmeds.com/images/product-v1/600x600/341517/paracetamol_tablets_ip_500mg_10s_0.jpg"
+    image: "/Paracetamol.webp"
   },
   {
     id: 2,
@@ -57,7 +58,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Antibiotics",
     quantity: "10 capsules",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/MI/CM/OC/142578078/amoxicillin-capsules-500x500.jpg"
+    image: "/Amoxicillin.webp"
   },
   {
     id: 3,
@@ -68,7 +69,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Antibiotics",
     quantity: "3 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/9/RL/ON/JI/162395100/azithromycin-500mg-tablets-500x500.jpg"
+    image: "/Azithromycin.webp"
   },
   {
     id: 4,
@@ -79,7 +80,7 @@ const medicineData: Medicine[] = [
     rating: 4.5,
     category: "Antibiotics",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/QR/ZE/JK/148371869/ciprofloxacin-tablets-500x500.jpg"
+    image: "/Ciprofloxacin.webp"
   },
   {
     id: 5,
@@ -90,7 +91,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Diabetes",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/VN/CE/OZ/148371869/metformin-tablets-500x500.jpg"
+    image: "/Metformin.webp"
   },
   {
     id: 6,
@@ -101,7 +102,7 @@ const medicineData: Medicine[] = [
     rating: 4.8,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/UW/DP/OX/148371869/amlodipine-tablets-500x500.jpg"
+    image: "/Amlodipine.webp"
   },
   {
     id: 7,
@@ -112,7 +113,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/UY/ON/MY/142578078/atorvastatin-tablets-500x500.jpg"
+    image: "/Atorvastatin.webp"
   },
   {
     id: 8,
@@ -123,7 +124,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Gastro",
     quantity: "10 capsules",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/TH/BK/KX/148371869/omeprazole-capsules-500x500.jpg"
+    image: "/Omeprazole.webp"
   },
   {
     id: 9,
@@ -134,7 +135,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Gastro",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/YC/QL/OT/142578078/pantoprazole-tablets-500x500.jpg"
+    image: "/Pantoprazole.webp"
   },
   {
     id: 10,
@@ -145,7 +146,7 @@ const medicineData: Medicine[] = [
     rating: 4.8,
     category: "Allergy",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/UO/FX/ZB/148371869/cetirizine-tablets-500x500.jpg"
+    image: "/Cetirizine.webp"
   },
   {
     id: 11,
@@ -156,7 +157,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Allergy",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/NX/XC/XZ/142578078/levocetirizine-tablets-500x500.jpg"
+    image: "/Levocetirizine.webp"
   },
   {
     id: 12,
@@ -167,7 +168,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Allergy",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/1/XD/XK/XQ/144146006/montelukast-tablets-500x500.jpg"
+    image: "/Montelukast.webp"
   },
   {
     id: 13,
@@ -178,7 +179,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/1/OW/BK/DZ/144146006/losartan-potassium-tablets-500x500.jpg"
+    image: "/Losartan.webp"
   },
   {
     id: 14,
@@ -189,7 +190,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/PQ/WC/VZ/142578078/telmisartan-tablets-500x500.jpg"
+    image: "/Telmisartan.webp"
   },
   {
     id: 15,
@@ -200,7 +201,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/KL/VQ/XZ/148371869/metoprolol-tablets-500x500.jpg"
+    image: "/Metoprolol.webp"
   },
   {
     id: 16,
@@ -211,7 +212,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Cardiac",
     quantity: "14 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/WE/XC/ZK/142578078/atenolol-tablets-500x500.jpg"
+    image: "/Atenolol.webp"
   },
   {
     id: 17,
@@ -222,7 +223,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/1/QW/YC/XZ/144146006/furosemide-tablets-500x500.jpg"
+    image: "/Furosemide.webp"
   },
   {
     id: 18,
@@ -233,7 +234,7 @@ const medicineData: Medicine[] = [
     rating: 4.5,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/TH/QW/ZX/142578078/hydrochlorothiazide-tablets-500x500.jpg"
+    image: "/Hydrochlorothiazide.webp"
   },
   {
     id: 19,
@@ -244,7 +245,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/PO/QW/XC/148371869/spironolactone-tablets-500x500.jpg"
+    image: "/Spironolactone.webp"
   },
   {
     id: 20,
@@ -255,7 +256,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/RU/ZE/ZH/142578078/clopidogrel-tablets-500x500.jpg"
+    image: "/Clopidogrel.webp"
   },
   {
     id: 21,
@@ -266,7 +267,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Pain Relief",
     quantity: "14 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/1/KF/VF/XG/3823480/aspirin-tablets-500x500.jpg"
+    image: "/Aspirin.webp"
   },
   {
     id: 22,
@@ -277,7 +278,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/1/KL/WQ/XZ/144146006/rosuvastatin-tablets-500x500.jpg"
+    image: "/Rosuvastatin.webp"
   },
   {
     id: 23,
@@ -288,7 +289,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Cardiac",
     quantity: "10 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2021/12/YU/IO/PQ/142578078/simvastatin-tablets-500x500.jpg"
+    image: "/Simvastatin.webp"
   },
   {
     id: 24,
@@ -299,7 +300,7 @@ const medicineData: Medicine[] = [
     rating: 4.6,
     category: "Antibiotics",
     quantity: "10 capsules",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/1/ZN/VM/CR/144146006/doxycycline-100mg-capsule-500x500.jpg"
+    image: "/Doxycycline.webp"
   },
   {
     id: 25,
@@ -310,7 +311,7 @@ const medicineData: Medicine[] = [
     rating: 4.7,
     category: "Antibiotics",
     quantity: "5 tablets",
-    image: "https://5.imimg.com/data5/SELLER/Default/2022/3/JK/LM/NO/148371869/levofloxacin-tablets-500x500.jpg"
+    image: "/Levofloxacin.jpg"
   }
 ];
 
@@ -329,9 +330,16 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
   const { addToCart } = useCart();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleAddToCart = () => {
     addToCart(medicine, quantity);
+    toast({
+      title: "Added to cart",
+      description: `${medicine.name} has been added to your cart.`,
+      variant: "default",
+    });
     setQuantity(1); // Reset quantity after adding to cart
   };
 
@@ -353,84 +361,80 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
     }
   };
 
+  // Fallback image if the main image fails to load
+  const fallbackImage = "/Paracetamol.webp";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: -5 }}
-      className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all"
+      className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition-all border border-gray-100"
     >
-      <motion.div 
-        className="relative h-48 overflow-hidden"
-        whileHover={{ scale: 1.05 }}
-        transition={{ duration: 0.2 }}
-      >
+      <div className="relative h-48 overflow-hidden bg-gray-50">
+        {!imageLoaded && !imageError && (
+          <Skeleton className="h-full w-full absolute top-0 left-0" />
+        )}
+        
         {medicine.discountPrice < medicine.price && (
-          <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+          <Badge className="absolute top-2 left-2 z-10 bg-red-500 hover:bg-red-600">
             {Math.round(((medicine.price - medicine.discountPrice) / medicine.price) * 100)}% OFF
           </Badge>
         )}
+        
         <button 
-          className="absolute top-2 right-2 z-10 p-1.5 bg-white/80 rounded-full hover:bg-white"
+          className="absolute top-2 right-2 z-10 p-1.5 bg-white/80 rounded-full hover:bg-white transition-colors"
           onClick={handleToggleWishlist}
         >
-          <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+          <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-500'} transition-colors`} />
         </button>
+        
         <img 
-          src={medicine.image} 
+          src={imageError ? fallbackImage : medicine.image}
           alt={medicine.name} 
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-contain p-2 transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            setImageError(true);
+            setImageLoaded(true);
+          }}
         />
-      </motion.div>
-      <div className="p-4">
-        <div className="text-xs text-gray-500 mb-1">{medicine.brand}</div>
-        <h3 className="font-medium text-gray-900 mb-1">{medicine.name}</h3>
-        <div className="flex items-center mb-2">
-          <div className="flex items-center mr-2">
-            <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
-            <span className="text-sm font-medium ml-1">{medicine.rating}</span>
-          </div>
-          <span className="text-xs text-gray-500">({Math.floor(Math.random() * 500) + 100} reviews)</span>
+      </div>
+      
+      <div className="p-4 space-y-3">
+        <div>
+          <div className="text-xs text-gray-500 mb-1 font-medium">{medicine.brand}</div>
+          <h3 className="font-semibold text-gray-900 text-base line-clamp-2 h-12">{medicine.name}</h3>
         </div>
-        <div className="flex justify-between items-center">
+        
+        <div className="flex items-center">
+          <div className="flex items-center bg-green-50 px-2 py-0.5 rounded-full">
+            <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+            <span className="text-sm font-medium ml-1 text-green-700">{medicine.rating}</span>
+          </div>
+          <span className="text-xs text-gray-500 ml-2">({Math.floor(Math.random() * 500) + 100})</span>
+        </div>
+        
+        <div className="flex justify-between items-end">
           <div>
-            <span className="text-sm font-bold text-gray-900">₹{medicine.discountPrice}</span>
-            {medicine.discountPrice < medicine.price && (
-              <span className="text-xs text-gray-500 line-through ml-1">₹{medicine.price}</span>
-            )}
-            <div className="text-xs text-gray-500 mt-1">{medicine.quantity}</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border rounded-md">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 hover:bg-gray-100"
-                onClick={decrementQuantity}
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <span className="w-8 text-center text-sm">{quantity}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 hover:bg-gray-100"
-                onClick={incrementQuantity}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
+            <div className="flex items-center gap-1.5">
+              <span className="text-lg font-bold text-gray-900">₹{medicine.discountPrice}</span>
+              {medicine.discountPrice < medicine.price && (
+                <span className="text-sm text-gray-500 line-through">₹{medicine.price}</span>
+              )}
             </div>
-            <motion.div whileTap={{ scale: 0.95 }}>
-              <Button 
-                size="sm" 
-                className="bg-medical-500 hover:bg-medical-600" 
-                onClick={handleAddToCart}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
-            </motion.div>
+            <div className="text-xs text-gray-600 mt-0.5">{medicine.quantity}</div>
           </div>
+          
+          <Button 
+            size="sm" 
+            className="bg-medical-600 hover:bg-medical-700 text-white h-9 px-3"
+            onClick={handleAddToCart}
+          >
+            <ShoppingCart className="h-4 w-4 mr-1" />
+            <span>Add</span>
+          </Button>
         </div>
       </div>
     </motion.div>
@@ -440,6 +444,15 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
 const Medicines = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredMedicines = medicineData.filter((medicine) => {
     const matchesCategory = activeCategory === "All" || medicine.category === activeCategory;
@@ -450,116 +463,127 @@ const Medicines = () => {
 
   return (
     <Layout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="container mx-auto px-4 py-8"
-      >
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
-        >
-          <div className="mb-4 md:mb-0">
-            <motion.h1 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-2xl font-bold text-gray-900"
-            >
-              Medicines
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-gray-500"
-            >
-              Browse our wide range of medicines
-            </motion.p>
+      <div className="bg-gradient-to-b from-medical-50 to-white pb-6">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-screen-xl mx-auto">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 space-y-4 md:space-y-0">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Online Medicines</h1>
+                <p className="text-gray-600 max-w-2xl">
+                  Browse our wide range of medicines with fast delivery and attractive discounts
+                </p>
+              </div>
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type="text"
+                  placeholder="Search medicines..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-full border-gray-200 focus:border-medical-500"
+                />
+              </div>
+            </div>
+            
+            {/* Categories */}
+            <div className="flex overflow-x-auto gap-2 pb-4 mb-6 scrollbar-hide">
+              {categories.map((category, index) => (
+                <Button
+                  key={category}
+                  variant={activeCategory === category ? "default" : "outline"}
+                  onClick={() => setActiveCategory(category)}
+                  className={`whitespace-nowrap rounded-full px-4 ${
+                    activeCategory === category 
+                      ? 'bg-medical-600 hover:bg-medical-700' 
+                      : 'text-gray-700 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Results info */}
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-sm text-gray-600">
+                Showing {filteredMedicines.length} {filteredMedicines.length === 1 ? 'medicine' : 'medicines'}
+                {activeCategory !== "All" && ` in ${activeCategory}`}
+                {searchQuery && ` matching "${searchQuery}"`}
+              </p>
+            </div>
+
+            {/* Medicine Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div key={index} className="bg-white rounded-xl overflow-hidden shadow animate-pulse">
+                    <div className="h-48 bg-gray-200"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                      <div className="h-5 bg-gray-200 rounded w-2/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                      <div className="flex justify-between items-end">
+                        <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+                        <div className="h-8 bg-gray-200 rounded-md w-1/4"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredMedicines.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-lg shadow-sm">
+                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <Search className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No medicines found</h3>
+                <p className="text-gray-500 max-w-md mx-auto mb-6">
+                  We couldn't find any medicines matching your criteria. Try adjusting your filters or search terms.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setActiveCategory("All");
+                    setSearchQuery("");
+                  }}
+                  className="border-medical-500 text-medical-600 hover:bg-medical-50"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredMedicines.map((medicine) => (
+                  <MedicineCard key={medicine.id} medicine={medicine} />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination placeholder for future */}
+            {filteredMedicines.length > 0 && (
+              <div className="mt-12 flex justify-center">
+                <nav className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" disabled className="text-gray-400 border-gray-200">
+                    Previous
+                  </Button>
+                  <Button variant="default" size="sm" className="bg-medical-600 hover:bg-medical-700">
+                    1
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                    2
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                    3
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                    Next
+                  </Button>
+                </nav>
+              </div>
+            )}
           </div>
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative"
-          >
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Search medicines..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full md:w-64"
-            />
-          </motion.div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="flex overflow-x-auto space-x-2 mb-6 pb-2"
-        >
-          {categories.map((category, index) => (
-            <motion.div
-              key={category}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 * index }}
-            >
-              <Button
-                variant={activeCategory === category ? "default" : "outline"}
-                onClick={() => setActiveCategory(category)}
-                className="whitespace-nowrap"
-              >
-                {category}
-              </Button>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {filteredMedicines.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-center py-12"
-          >
-            <p className="text-gray-500">No medicines found matching your criteria.</p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setActiveCategory("All");
-                setSearchQuery("");
-              }}
-              className="mt-4"
-            >
-              Clear Filters
-            </Button>
-          </motion.div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          >
-            {filteredMedicines.map((medicine, index) => (
-              <motion.div
-                key={medicine.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <MedicineCard medicine={medicine} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </motion.div>
+        </div>
+      </div>
     </Layout>
   );
 };

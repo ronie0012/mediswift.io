@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 interface Appointment {
   id: number;
   doctorId: number;
+  doctorName: string;
   patientName: string;
   patientAge: string;
   patientPhone: string;

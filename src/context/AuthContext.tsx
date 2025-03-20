@@ -1,9 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 
 // Update the user schema to match our profile structure
 const userSchema = z.object({
@@ -34,95 +31,38 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Simple in-memory storage for users
+const users: { [email: string]: { user: User; password: string } } = {};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Check if user is logged in on initial load
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (userData) {
-            setUser({
-              id: session.user.id,
-              name: userData.name || session.user.email?.split('@')[0] || 'User',
-              email: session.user.email || '',
-              phone: userData.phone || '',
-              isLoggedIn: true
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user session:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkUser();
-    
-    // Setup auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          // User logged in
-          try {
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-              
-            if (userData) {
-              setUser({
-                id: session.user.id,
-                name: userData.name || session.user.email?.split('@')[0] || 'User',
-                email: session.user.email || '',
-                phone: userData.phone || '',
-                isLoggedIn: true
-              });
-            }
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-          }
-        } else {
-          // User logged out
-          setUser(null);
-        }
-        setIsLoading(false);
-      }
-    );
-    
-    // Cleanup subscription on unmount
-    return () => {
-      subscription.unsubscribe();
-    };
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, []);
   
   const validatePassword = (password: string): boolean => {
-    // Password must be at least 8 characters long
-    // This is a simpler requirement compared to the previous one, which is fine for Supabase's default requirements
     return password.length >= 8;
   };
   
   const login = async (email: string, password: string, rememberMe: boolean = false) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const userAccount = users[email];
       
-      if (error) throw error;
+      if (!userAccount || userAccount.password !== password) {
+        throw new Error("Invalid email or password");
+      }
+      
+      setUser(userAccount.user);
+      if (rememberMe) {
+        localStorage.setItem('user', JSON.stringify(userAccount.user));
+      }
       
       toast.success("Logged in successfully!");
       return Promise.resolve();
@@ -142,33 +82,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Password must be at least 8 characters long");
       }
       
-      // Create the user in Supabase Auth with metadata
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            phone
-          }
-        }
-      });
-      
-      if (authError) throw authError;
-      
-      // If user creation was successful, update their profile
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            name,
-            phone,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', authData.user.id);
-          
-        if (profileError) console.error("Error updating profile:", profileError);
+      if (users[email]) {
+        throw new Error("Email already registered");
       }
+      
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        email,
+        phone,
+        isLoggedIn: true
+      };
+      
+      users[email] = {
+        user: newUser,
+        password
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
       
       toast.success("Account created successfully!");
       return Promise.resolve();
@@ -183,9 +115,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
       setUser(null);
+      localStorage.removeItem('user');
       toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout error:", error);
