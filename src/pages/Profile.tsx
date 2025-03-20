@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
@@ -69,13 +70,14 @@ const Profile = () => {
       });
       
       if (error) {
-        throw new Error(error);
+        throw error;
       }
       
       toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (error: any) {
-      toast.error(typeof error === 'string' ? error : error.message);
+      const errorMessage = typeof error === 'object' ? error.message || "Failed to update profile" : String(error);
+      toast.error(errorMessage);
       console.error("Profile update error:", error);
     }
   };
