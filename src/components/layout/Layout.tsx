@@ -9,6 +9,13 @@ interface LayoutProps {
   children: ReactNode;
 }
 
+// Create a fallback component for the ErrorBoundary
+const ErrorFallback = () => (
+  <div className="w-full h-[50vh] flex items-center justify-center">
+    <div className="text-blue-500 text-xl">Sorry, something went wrong. Please refresh the page.</div>
+  </div>
+);
+
 const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -19,11 +26,7 @@ const Layout = ({ children }: LayoutProps) => {
         transition={{ duration: 0.5 }}
         className="flex-grow"
       >
-        <ErrorBoundary fallback={
-          <div className="w-full h-[50vh] flex items-center justify-center">
-            <div className="text-blue-500 text-xl">Sorry, something went wrong. Please refresh the page.</div>
-          </div>
-        }>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={
             <div className="w-full h-[50vh] flex items-center justify-center">
               <div className="text-blue-500 text-xl animate-pulse">Loading MediSwift...</div>

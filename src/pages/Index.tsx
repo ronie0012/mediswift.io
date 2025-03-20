@@ -5,7 +5,6 @@ import ServiceFeatures from "@/components/home/ServiceFeatures";
 import EmergencyCall from "@/components/home/EmergencyCall";
 import FeaturedMedicines from "@/components/home/FeaturedMedicines";
 import DoctorsSection from "@/components/home/DoctorsSection";
-import DownloadApp from "@/components/home/DownloadApp";
 import StatisticsSection from "@/components/home/StatisticsSection";
 import NewsSection from "@/components/home/NewsSection";
 import { lazy, Suspense, useState, useEffect } from "react";
@@ -106,7 +105,6 @@ const Index = () => {
       <FeaturedMedicines />
       <DoctorsSection />
       <NewsSection />
-      <DownloadApp />
     </Layout>
   );
 };
