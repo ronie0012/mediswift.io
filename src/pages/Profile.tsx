@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
@@ -18,7 +17,6 @@ const Profile = () => {
     phone: user?.phone || ""
   });
   
-  // Update form data when user data changes
   useEffect(() => {
     if (user) {
       setFormData({
@@ -65,7 +63,6 @@ const Profile = () => {
     e.preventDefault();
     
     try {
-      // Only update name and phone (email cannot be changed this way)
       const { error } = await updateUserProfile({
         name: formData.name,
         phone: formData.phone
@@ -78,7 +75,7 @@ const Profile = () => {
       toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(typeof error === 'string' ? error : error.message);
       console.error("Profile update error:", error);
     }
   };
@@ -131,7 +128,7 @@ const Profile = () => {
                     name="email"
                     type="email"
                     value={formData.email}
-                    disabled={true} // Email cannot be changed
+                    disabled={true}
                     className="pl-10 bg-gray-100"
                   />
                 </div>
