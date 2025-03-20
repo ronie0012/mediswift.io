@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { 
   Heart, 
-  MessageCircleQuote, 
+  MessageCircle, 
   CheckCircle, 
   ArrowLeft, 
   ArrowRight, 
@@ -61,7 +60,7 @@ const testimonials = [
     image: "https://randomuser.me/api/portraits/women/28.jpg",
     quote: "I had to book an ambulance for my grandfather during an emergency, and MediSwift's quick response saved precious time. The tracking feature kept us updated on the ambulance's location.",
     rating: 4,
-    icon: MessageCircleQuote
+    icon: MessageCircle
   }
 ];
 
@@ -102,10 +101,10 @@ const TestimonialsSection = () => {
             SUCCESS STORIES
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Trusted by Thousands of Patients
+            What Our Customers Say
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Real stories from real people who have experienced the exceptional care and service that sets MediSwift apart.
+            Hear from people who have experienced the convenience and reliability of MediSwift's services.
           </p>
         </div>
         

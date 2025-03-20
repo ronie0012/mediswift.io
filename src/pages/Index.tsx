@@ -5,7 +5,6 @@ import ServiceFeatures from "@/components/home/ServiceFeatures";
 import EmergencyCall from "@/components/home/EmergencyCall";
 import FeaturedMedicines from "@/components/home/FeaturedMedicines";
 import DoctorsSection from "@/components/home/DoctorsSection";
-import TestimonialsSection from "@/components/home/TestimonialsSection";
 import DownloadApp from "@/components/home/DownloadApp";
 import StatisticsSection from "@/components/home/StatisticsSection";
 import NewsSection from "@/components/home/NewsSection";
@@ -64,7 +63,7 @@ const FallbackComponent = () => (
   </div>
 );
 
-// Fix the ErrorBoundary to use the correct prop (FallbackComponent instead of fallback)
+// Use the ErrorBoundary correctly with FallbackComponent prop
 const Index = () => {
   const [isClient, setIsClient] = useState(false);
 
@@ -86,7 +85,7 @@ const Index = () => {
             Our state-of-the-art healthcare platform leverages cutting-edge technology to provide you with seamless medical services.
           </p>
         </div>
-        <ErrorBoundary FallbackComponent={() => <FallbackComponent />}>
+        <ErrorBoundary FallbackComponent={FallbackComponent}>
           {isClient ? (
             <Suspense fallback={
               <div className="h-[400px] w-full bg-gradient-to-b from-blue-50 to-indigo-50 flex items-center justify-center rounded-2xl">
@@ -107,7 +106,6 @@ const Index = () => {
       <FeaturedMedicines />
       <DoctorsSection />
       <NewsSection />
-      <TestimonialsSection />
       <DownloadApp />
     </Layout>
   );
