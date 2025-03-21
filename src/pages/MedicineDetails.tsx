@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, ShoppingCart, Star, AlertCircle, Info, ChevronLeft, Plus, Minus, Truck, Shield, Clock, Calendar } from "lucide-react";
+import { Heart, ShoppingCart, Star, AlertCircle, Info, ChevronLeft, Plus, Minus, Truck, Shield, Clock, Calendar, Check } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
@@ -81,6 +81,7 @@ const MedicineDetails = () => {
   const [orderNumber, setOrderNumber] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
+  const [estimatedMinutes, setEstimatedMinutes] = useState(0);
 
   useEffect(() => {
     // In a real app, this would be an API call
@@ -93,15 +94,9 @@ const MedicineDetails = () => {
         if (foundMedicine) {
           setMedicine(foundMedicine);
           
-          // Set a random delivery date 2-5 days from now
-          const days = Math.floor(Math.random() * 4) + 2;
-          const date = new Date();
-          date.setDate(date.getDate() + days);
-          setDeliveryDate(date.toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long', 
-            day: 'numeric'
-          }));
+          // Generate random estimated delivery time between 10-20 minutes
+          const minutes = Math.floor(Math.random() * 11) + 10; // 10-20 minutes
+          setEstimatedMinutes(minutes);
         } else {
           // If medicine not found, go back to medicines page
           toast({
@@ -131,7 +126,7 @@ const MedicineDetails = () => {
       setQuantity(prev => prev + 1);
     } else {
       toast({
-        variant: "warning",
+        variant: "destructive", // Changed from "warning" to "destructive" to fix the error
         title: "Maximum quantity reached",
         description: "You've reached the maximum available quantity for this product."
       });
@@ -398,7 +393,7 @@ const MedicineDetails = () => {
                     <Clock className="h-5 w-5 text-medical-500 mr-2" />
                     <div>
                       <div className="text-sm font-medium">Express Delivery</div>
-                      <div className="text-xs text-gray-500">Expected by {deliveryDate}</div>
+                      <div className="text-xs text-gray-500">In {estimatedMinutes} minutes</div>
                     </div>
                   </div>
                 </div>
@@ -544,23 +539,15 @@ const MedicineDetails = () => {
               </div>
               
               <div className="space-y-1">
-                <Label>Delivery Options</Label>
-                <RadioGroup defaultValue="standard" className="space-y-2">
-                  <div className="flex items-center justify-between space-x-2 rounded-md border p-3">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="standard" id="standard" />
-                      <Label htmlFor="standard" className="font-normal">Standard Delivery</Label>
-                    </div>
-                    <div className="text-sm font-medium">{deliveryDate}</div>
+                <Label>Delivery Option</Label>
+                <div className="flex items-center justify-between space-x-2 rounded-md border p-3 bg-medical-50">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-medical-600" />
+                    <Label className="font-medium text-medical-700">Express Delivery</Label>
                   </div>
-                  <div className="flex items-center justify-between space-x-2 rounded-md border p-3">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="express" id="express" />
-                      <Label htmlFor="express" className="font-normal">Express Delivery</Label>
-                    </div>
-                    <div className="text-sm font-medium">Tomorrow</div>
-                  </div>
-                </RadioGroup>
+                  <div className="text-sm font-medium text-medical-700">In {estimatedMinutes} minutes</div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Our quick delivery service ensures your medicine will arrive in {estimatedMinutes} minutes or less</p>
               </div>
               
               <div className="space-y-1">
@@ -671,7 +658,7 @@ const MedicineDetails = () => {
                   <p className="font-medium text-lg">Thank you for your order!</p>
                   <p className="text-gray-600">Order #: {orderNumber}</p>
                   <p className="text-gray-600 text-sm mt-1">
-                    Expected delivery by {deliveryDate}
+                    Your order will arrive in approximately {estimatedMinutes} minutes
                   </p>
                 </div>
               </div>

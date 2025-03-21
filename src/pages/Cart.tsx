@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck, MapPin, AlertCircle, CheckCircle } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck, MapPin, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -75,8 +76,8 @@ const CartContent = () => {
       setOrderId(newOrderId);
       setPaymentComplete(true);
       setOrderPlaced(true);
-      // Generate random estimated delivery time between 10-30 minutes
-      setEstimatedDeliveryTime(Math.floor(Math.random() * 20) + 10);
+      // Generate random estimated delivery time between 10-20 minutes
+      setEstimatedDeliveryTime(Math.floor(Math.random() * 11) + 10);
       toast.success("Payment successful! Your order is confirmed.");
       clearCart();
     } else {
@@ -328,6 +329,15 @@ const CartContent = () => {
                       <span>₹{total.toFixed(2)}</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Delivery Time Indicator */}
+                <div className="mb-6 p-3 bg-medical-50 rounded-lg border border-medical-100">
+                  <div className="flex items-center mb-2">
+                    <Clock className="h-4 w-4 text-medical-600 mr-2" />
+                    <span className="font-medium text-medical-700">Express Delivery</span>
+                  </div>
+                  <p className="text-sm text-medical-600">Your order will be delivered in 10-20 minutes</p>
                 </div>
 
                 {!isAuthenticated ? (
