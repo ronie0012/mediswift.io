@@ -1,9 +1,12 @@
+
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Package, Calendar, IndianRupee, MapPin } from "lucide-react";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import OrderTracker from "@/components/order/OrderTracker";
 
 interface Order {
   id: string;
@@ -22,6 +25,8 @@ interface Order {
 const MyOrders = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
 
   // In a real app, this would come from an API
   const orders: Order[] = [
@@ -83,6 +88,11 @@ const MyOrders = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleTrackOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setIsTrackingOpen(true);
   };
 
   if (!user) {
@@ -178,7 +188,11 @@ const MyOrders = () => {
 
                 {(order.status === "processing" || order.status === "shipped") && (
                   <div className="mt-4">
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleTrackOrder(order)}
+                    >
                       Track Order
                     </Button>
                   </div>
@@ -194,8 +208,25 @@ const MyOrders = () => {
           </div>
         </div>
       </div>
+
+      {/* Order Tracking Dialog */}
+      <Dialog open={isTrackingOpen} onOpenChange={setIsTrackingOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Track Your Order</DialogTitle>
+          </DialogHeader>
+          {selectedOrder && (
+            <OrderTracker 
+              orderId={selectedOrder.id} 
+              currentStatus={selectedOrder.status}
+              estimatedTime={15} // Set a default delivery time of 15 minutes
+              orderDate={selectedOrder.orderDate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
 
-export default MyOrders; 
+export default MyOrders;
