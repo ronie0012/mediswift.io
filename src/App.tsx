@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +20,23 @@ import MyAppointments from "./pages/MyAppointments";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
 import RescheduleAppointment from "./pages/RescheduleAppointment";
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
+
+// Lazy load the new pages
+const About = lazy(() => import("./pages/About"));
+const HealthPackages = lazy(() => import("./pages/HealthPackages"));
+const Careers = lazy(() => import("./pages/Careers"));
+const MedicineDelivery = lazy(() => import("./pages/MedicineDelivery"));
+const OnlineConsultation = lazy(() => import("./pages/OnlineConsultation"));
+const EmergencyServices = lazy(() => import("./pages/EmergencyServices"));
+const HealthRecords = lazy(() => import("./pages/HealthRecords"));
+const LabTests = lazy(() => import("./pages/LabTests"));
+const HealthBlogs = lazy(() => import("./pages/HealthBlogs"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Support = lazy(() => import("./pages/Support"));
+const Refund = lazy(() => import("./pages/Refund"));
 
 const queryClient = new QueryClient();
 
@@ -46,6 +63,23 @@ const App = () => (
                   <Route path="/my-orders" element={<MyOrders />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/reschedule-appointment/:id" element={<RescheduleAppointment />} />
+                  
+                  {/* New routes for footer links */}
+                  <Route path="/about" element={<About />} />
+                  <Route path="/health-packages" element={<HealthPackages />} />
+                  <Route path="/careers" element={<Careers />} />
+                  <Route path="/medicine-delivery" element={<MedicineDelivery />} />
+                  <Route path="/online-consultation" element={<OnlineConsultation />} />
+                  <Route path="/emergency-services" element={<EmergencyServices />} />
+                  <Route path="/health-records" element={<HealthRecords />} />
+                  <Route path="/lab-tests" element={<LabTests />} />
+                  <Route path="/health-blogs" element={<HealthBlogs />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/support" element={<Support />} />
+                  <Route path="/refund" element={<Refund />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
