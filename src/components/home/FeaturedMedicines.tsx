@@ -40,7 +40,7 @@ const medicines = {
       rating: 4.8,
       category: "Pain Relief",
       quantity: "10 tablets",
-      image: "https://www.netmeds.com/images/product-v1/600x600/341517/paracetamol_tablets_ip_500mg_10s_0.jpg"
+      image: "/Paracetamol.webp"
     },
     {
       id: 21,
@@ -51,7 +51,7 @@ const medicines = {
       rating: 4.6,
       category: "Pain Relief",
       quantity: "14 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2021/1/KF/VF/XG/3823480/aspirin-tablets-500x500.jpg"
+      image: "/Aspirin.webp"
     }
   ],
   "antibiotics": [
@@ -64,7 +64,7 @@ const medicines = {
       rating: 4.7,
       category: "Antibiotics",
       quantity: "10 capsules",
-      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/MI/CM/OC/142578078/amoxicillin-capsules-500x500.jpg"
+      image: "/Amoxicillin.webp"
     },
     {
       id: 3,
@@ -75,7 +75,7 @@ const medicines = {
       rating: 4.7,
       category: "Antibiotics",
       quantity: "3 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/9/RL/ON/JI/162395100/azithromycin-500mg-tablets-500x500.jpg"
+      image: "/Azithromycin.webp"
     },
     {
       id: 4,
@@ -86,7 +86,7 @@ const medicines = {
       rating: 4.5,
       category: "Antibiotics",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/QR/ZE/JK/148371869/ciprofloxacin-tablets-500x500.jpg"
+      image: "/Ciprofloxacin.webp"
     },
     {
       id: 24,
@@ -97,7 +97,7 @@ const medicines = {
       rating: 4.6,
       category: "Antibiotics",
       quantity: "10 capsules",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/1/ZN/VM/CR/144146006/doxycycline-100mg-capsule-500x500.jpg"
+      image: "/Doxycycline.webp"
     }
   ],
   "cardiac": [
@@ -110,7 +110,7 @@ const medicines = {
       rating: 4.8,
       category: "Cardiac",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/UW/DP/OX/148371869/amlodipine-tablets-500x500.jpg"
+      image: "/Amlodipine.webp"
     },
     {
       id: 7,
@@ -121,7 +121,7 @@ const medicines = {
       rating: 4.7,
       category: "Cardiac",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/UY/ON/MY/142578078/atorvastatin-tablets-500x500.jpg"
+      image: "/Atorvastatin.webp"
     },
     {
       id: 13,
@@ -132,7 +132,7 @@ const medicines = {
       rating: 4.6,
       category: "Cardiac",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/1/OW/BK/DZ/144146006/losartan-potassium-tablets-500x500.jpg"
+      image: "/Losartan.webp"
     },
     {
       id: 20,
@@ -143,7 +143,7 @@ const medicines = {
       rating: 4.7,
       category: "Cardiac",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/RU/ZE/ZH/142578078/clopidogrel-tablets-500x500.jpg"
+      image: "/Clopidogrel.webp"
     }
   ],
   "gastro": [
@@ -156,7 +156,7 @@ const medicines = {
       rating: 4.7,
       category: "Gastro",
       quantity: "10 capsules",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/TH/BK/KX/148371869/omeprazole-capsules-500x500.jpg"
+      image: "/Omeprazole.webp"
     },
     {
       id: 9,
@@ -167,7 +167,7 @@ const medicines = {
       rating: 4.6,
       category: "Gastro",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/YC/QL/OT/142578078/pantoprazole-tablets-500x500.jpg"
+      image: "/Pantoprazole.webp"
     }
   ],
   "allergy": [
@@ -180,7 +180,7 @@ const medicines = {
       rating: 4.8,
       category: "Allergy",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/3/UO/FX/ZB/148371869/cetirizine-tablets-500x500.jpg"
+      image: "/Cetirizine.webp"
     },
     {
       id: 11,
@@ -191,7 +191,7 @@ const medicines = {
       rating: 4.7,
       category: "Allergy",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2021/12/NX/XC/XZ/142578078/levocetirizine-tablets-500x500.jpg"
+      image: "/Levocetirizine.webp"
     },
     {
       id: 12,
@@ -202,7 +202,7 @@ const medicines = {
       rating: 4.6,
       category: "Allergy",
       quantity: "10 tablets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/1/XD/XK/XQ/144146006/montelukast-tablets-500x500.jpg"
+      image: "/Montelukast.webp"
     }
   ]
 };

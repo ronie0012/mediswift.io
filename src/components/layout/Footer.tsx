@@ -1,8 +1,7 @@
-
 import { Link } from "react-router-dom";
 import { 
   Phone, Mail, MapPin, Facebook, Twitter, Instagram, 
-  Linkedin, Youtube, Download, ArrowRight 
+  Linkedin, Youtube, ArrowRight 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -10,35 +9,19 @@ const Footer = () => {
   return (
     <footer className="bg-gray-50 pt-12 pb-8 border-t">
       <div className="container mx-auto px-4">
-        {/* Newsletter and app download */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8 border-b border-gray-200">
-          <div>
-            <h3 className="text-lg font-bold mb-3">Subscribe to our Newsletter</h3>
-            <p className="text-gray-600 mb-4">Get the latest updates on new medicines and health tips.</p>
-            <div className="flex">
-              <input 
-                type="email"
-                placeholder="Your email address" 
-                className="flex-grow px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-transparent"
-              />
-              <Button className="rounded-l-none bg-medical-500 hover:bg-medical-600">
-                Subscribe
-              </Button>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold mb-3">Download our App</h3>
-            <p className="text-gray-600 mb-4">Get faster, convenient access to MediSwift services.</p>
-            <div className="flex space-x-3">
-              <Button variant="outline" className="border-gray-300 hover:bg-gray-100 flex items-center">
-                <Download className="h-4 w-4 mr-2" />
-                Google Play
-              </Button>
-              <Button variant="outline" className="border-gray-300 hover:bg-gray-100 flex items-center">
-                <Download className="h-4 w-4 mr-2" />
-                App Store
-              </Button>
-            </div>
+        {/* Newsletter subscription */}
+        <div className="max-w-lg mx-auto pb-8 border-b border-gray-200">
+          <h3 className="text-lg font-bold mb-3">Subscribe to our Newsletter</h3>
+          <p className="text-gray-600 mb-4">Get the latest updates on new medicines and health tips.</p>
+          <div className="flex">
+            <input 
+              type="email"
+              placeholder="Your email address" 
+              className="flex-grow px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-transparent"
+            />
+            <Button className="rounded-l-none bg-medical-500 hover:bg-medical-600">
+              Subscribe
+            </Button>
           </div>
         </div>
 
