@@ -20,6 +20,7 @@ import MyAppointments from "./pages/MyAppointments";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
 import RescheduleAppointment from "./pages/RescheduleAppointment";
+import MedicineDetails from "./pages/MedicineDetails";
 import { Suspense, lazy } from "react";
 
 // Lazy load the new pages
@@ -55,6 +56,7 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/medicines" element={<Medicines />} />
+                  <Route path="/medicines/:id" element={<MedicineDetails />} />
                   <Route path="/doctors" element={<Doctors />} />
                   <Route path="/doctors/:id" element={<DoctorAppointment />} />
                   <Route path="/ambulance" element={<AmbulanceBooking />} />

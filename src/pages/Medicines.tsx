@@ -5,13 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Search, Heart, ShoppingCart, Filter, ChevronDown, Star, Plus, Minus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Sample medicine data
 const medicineCategories = [
   "All",
   "Fever & Pain Relief",
@@ -328,27 +327,34 @@ const categories = [
 const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
   const { toast } = useToast();
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     addToCart(medicine, quantity);
     toast({
       title: "Added to cart",
       description: `${medicine.name} has been added to your cart.`,
       variant: "default",
     });
-    setQuantity(1); // Reset quantity after adding to cart
+    setQuantity(1);
   };
 
-  const handleToggleWishlist = () => {
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsWishlisted(!isWishlisted);
     toast({
       title: isWishlisted ? "Removed from wishlist" : "Added to wishlist",
       description: `${medicine.name} has been ${isWishlisted ? "removed from" : "added to"} your wishlist.`,
     });
+  };
+
+  const handleNavigateToDetails = () => {
+    navigate(`/medicines/${medicine.id}`);
   };
 
   const incrementQuantity = () => {
@@ -361,7 +367,6 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
     }
   };
 
-  // Fallback image if the main image fails to load
   const fallbackImage = "/Paracetamol.webp";
 
   return (
@@ -370,7 +375,8 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: -5 }}
-      className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition-all border border-gray-100"
+      className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition-all border border-gray-100 cursor-pointer"
+      onClick={handleNavigateToDetails}
     >
       <div className="relative h-48 overflow-hidden bg-gray-50">
         {!imageLoaded && !imageError && (
@@ -446,7 +452,6 @@ const Medicines = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -466,7 +471,6 @@ const Medicines = () => {
       <div className="bg-gradient-to-b from-medical-50 to-white pb-6">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-screen-xl mx-auto">
-            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 space-y-4 md:space-y-0">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Online Medicines</h1>
@@ -486,7 +490,6 @@ const Medicines = () => {
               </div>
             </div>
             
-            {/* Categories */}
             <div className="flex overflow-x-auto gap-2 pb-4 mb-6 scrollbar-hide">
               {categories.map((category, index) => (
                 <Button
@@ -504,7 +507,6 @@ const Medicines = () => {
               ))}
             </div>
             
-            {/* Results info */}
             <div className="flex justify-between items-center mb-6">
               <p className="text-sm text-gray-600">
                 Showing {filteredMedicines.length} {filteredMedicines.length === 1 ? 'medicine' : 'medicines'}
@@ -513,7 +515,6 @@ const Medicines = () => {
               </p>
             </div>
 
-            {/* Medicine Grid */}
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 8 }).map((_, index) => (
@@ -559,7 +560,6 @@ const Medicines = () => {
               </div>
             )}
 
-            {/* Pagination placeholder for future */}
             {filteredMedicines.length > 0 && (
               <div className="mt-12 flex justify-center">
                 <nav className="flex items-center space-x-2">

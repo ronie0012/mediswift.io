@@ -1,10 +1,10 @@
-
 import PageTemplate from "@/components/layout/PageTemplate";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Check, Search, FileText, TestTube } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Home, Flask, Calendar, AlertCircle, Badge, Beaker } from "lucide-react";
+import { useState } from "react";
 
 const LabTests = () => {
   const popularTests = [
@@ -118,7 +118,7 @@ const LabTests = () => {
                   <Card key={test.id} className="hover:shadow-md transition-shadow duration-300">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Flask className="h-5 w-5 text-medical-500" />
+                        <TestTube className="h-5 w-5 text-medical-500" />
                         {test.name}
                       </CardTitle>
                       <CardDescription>{test.description}</CardDescription>

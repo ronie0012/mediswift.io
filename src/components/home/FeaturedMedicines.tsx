@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart, Star, ChevronRight, ChevronLeft, Minus, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 
 // Sample medicine data
@@ -209,30 +210,42 @@ const medicines = {
 
 const MedicineCard = ({ medicine }: { medicine: any }) => {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation
     addToCart(medicine, quantity);
     setQuantity(1); // Reset quantity after adding to cart
   };
 
-  const handleToggleWishlist = () => {
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation
     setIsWishlisted(!isWishlisted);
   };
 
-  const incrementQuantity = () => {
+  const handleNavigateToDetails = () => {
+    navigate(`/medicines/${medicine.id}`);
+  };
+
+  const incrementQuantity = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation
     setQuantity(prev => prev + 1);
   };
 
-  const decrementQuantity = () => {
+  const decrementQuantity = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation
     if (quantity > 1) {
       setQuantity(prev => prev - 1);
     }
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleNavigateToDetails}
+    >
       <div className="relative">
         <img 
           src={medicine.image} 
