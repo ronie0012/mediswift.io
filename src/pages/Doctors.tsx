@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,7 +19,7 @@ import {
   Heart
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Sample data
@@ -394,15 +394,48 @@ const DoctorCard = ({ doctor }: { doctor: any }) => {
 };
 
 const Doctors = () => {
-  const [activeSpecialty, setActiveSpecialty] = useState("All Specialties");
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSpecialty, setActiveSpecialty] = useState("All Specialties");
+  const [activeTab, setActiveTab] = useState("all");
   const [sortOption, setSortOption] = useState("relevance");
+  
+  useEffect(() => {
+    // Get search query from URL parameters
+    const searchParams = new URLSearchParams(location.search);
+    const searchFromUrl = searchParams.get("search");
+    
+    if (searchFromUrl) {
+      setSearchQuery(searchFromUrl);
+      
+      // Check if search is related to a specialty and set it
+      const lowerSearch = searchFromUrl.toLowerCase();
+      const matchingSpecialty = specialties.find(
+        specialty => specialty !== "All Specialties" && 
+                    lowerSearch.includes(specialty.toLowerCase())
+      );
+      
+      if (matchingSpecialty) {
+        setActiveSpecialty(matchingSpecialty);
+      }
+    }
+  }, [location.search]);
   
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSpecialty = activeSpecialty === "All Specialties" || doctor.specialty === activeSpecialty;
     const matchesSearch = doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSpecialty && matchesSearch;
+                          doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          doctor.hospital.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          doctor.location.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // For tab filtering
+    const matchesTab = 
+      activeTab === "all" || 
+      (activeTab === "available-today" && doctor.availableToday) ||
+      (activeTab === "video-consult" && doctor.availableForVideo) ||
+      (activeTab === "in-clinic" && doctor.availableForInClinic);
+    
+    return matchesSpecialty && matchesSearch && matchesTab;
   });
   
   const sortedDoctors = [...filteredDoctors].sort((a, b) => {
@@ -434,7 +467,7 @@ const Doctors = () => {
             </div>
           </div>
           
-          <Tabs defaultValue="all" className="w-full mb-8">
+          <Tabs defaultValue="all" className="w-full mb-8" onValueChange={value => setActiveTab(value)}>
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="available-today">Available Today</TabsTrigger>

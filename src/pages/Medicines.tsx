@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Search, Heart, ShoppingCart, Filter, ChevronDown, Star, Plus, Minus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
@@ -448,21 +448,31 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
 };
 
 const Medicines = () => {
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Get search query from URL parameters
+    const searchParams = new URLSearchParams(location.search);
+    const searchFromUrl = searchParams.get("search");
+    
+    if (searchFromUrl) {
+      setSearchQuery(searchFromUrl);
+    }
+    
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 800);
     return () => clearTimeout(timer);
-  }, []);
+  }, [location.search]);
 
   const filteredMedicines = medicineData.filter((medicine) => {
     const matchesCategory = activeCategory === "All" || medicine.category === activeCategory;
     const matchesSearch = medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         medicine.brand.toLowerCase().includes(searchQuery.toLowerCase());
+                         medicine.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         medicine.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 

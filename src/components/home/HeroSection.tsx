@@ -1,9 +1,94 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, MapPin, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check if device is mobile for video autoplay decisions
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    // Determine which section to navigate to based on search query
+    const query = searchQuery.toLowerCase();
+    
+    // Enhanced keyword matching for better navigation
+    if (
+      query.includes("medicine") || 
+      query.includes("drug") || 
+      query.includes("tablet") || 
+      query.includes("pill") ||
+      query.includes("capsule") ||
+      query.includes("syrup") ||
+      query.includes("injection") ||
+      query.includes("pharmacy")
+    ) {
+      navigate(`/medicines?search=${encodeURIComponent(searchQuery)}`);
+    } else if (
+      query.includes("doctor") || 
+      query.includes("specialist") || 
+      query.includes("consult") ||
+      query.includes("appointment") ||
+      query.includes("consultation") ||
+      query.includes("physician") ||
+      query.includes("surgeon") ||
+      query.includes("cardiologist") ||
+      query.includes("neurologist") ||
+      query.includes("pediatrician") ||
+      query.includes("dermatologist") ||
+      query.includes("gynecologist") ||
+      query.includes("orthopedic")
+    ) {
+      navigate(`/doctors?search=${encodeURIComponent(searchQuery)}`);
+    } else if (
+      query.includes("ambulance") || 
+      query.includes("emergency") ||
+      query.includes("urgent") ||
+      query.includes("critical") ||
+      query.includes("accident")
+    ) {
+      navigate("/ambulance");
+    } else if (
+      query.includes("package") || 
+      query.includes("health package") || 
+      query.includes("checkup") ||
+      query.includes("health check") ||
+      query.includes("full body") ||
+      query.includes("screening") ||
+      query.includes("diagnostic")
+    ) {
+      navigate("/health-packages");
+    } else {
+      // If no specific keywords match, use a smarter approach:
+      // - Check for medical conditions that might need a doctor
+      const medicalConditions = ["fever", "cough", "cold", "headache", "pain", "allergy", "diabetes", "heart", "blood pressure"];
+      const needsDoctor = medicalConditions.some(condition => query.includes(condition));
+      
+      if (needsDoctor) {
+        navigate(`/doctors?search=${encodeURIComponent(searchQuery)}`);
+      } else {
+        // Default to medicines search as fallback
+        navigate(`/medicines?search=${encodeURIComponent(searchQuery)}`);
+      }
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-medical-50 via-blue-50 to-indigo-50 py-16 md:py-24 relative overflow-hidden">
       {/* Background decorative elements */}
@@ -79,12 +164,22 @@ const HeroSection = () => {
           >
             <div className="relative">
               <div className="absolute -inset-4 bg-medical-500 rounded-2xl opacity-20 blur-xl"></div>
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1584982751601-97dcc096659c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80" 
-                  alt="Healthcare Professionals" 
-                  className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
-                />
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-100">
+                <span className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-medical-600 text-xs font-medium px-2 py-1 rounded-md z-10">
+                  Online Medicine Delivery
+                </span>
+                <video 
+                  autoPlay={!isMobile}
+                  muted 
+                  loop 
+                  preload="metadata"
+                  playsInline
+                  className="w-full"
+                  style={{ display: 'block' }}
+                >
+                  <source src="/Buying Medicine Online-vmake.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </motion.div>
@@ -98,19 +193,24 @@ const HeroSection = () => {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-100">
-            <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
               <div className="relative flex-grow">
-                <Search className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input 
                   type="text"
                   placeholder="Search for medicines, doctors, or services..." 
                   className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-transparent text-lg"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button className="bg-medical-500 hover:bg-medical-600 py-4 px-8 text-lg">
+              <Button 
+                type="submit" 
+                className="bg-medical-500 hover:bg-medical-600 py-4 px-8 text-lg h-auto min-w-[120px]"
+              >
                 Search
               </Button>
-            </div>
+            </form>
           </div>
         </motion.div>
       </div>

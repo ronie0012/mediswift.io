@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -58,6 +57,462 @@ const medicineData = [
     reviews: [
       { id: 1, user: "Emily P.", rating: 5, comment: "Cleared my infection within days.", date: "2023-04-18" },
       { id: 2, user: "Michael R.", rating: 4, comment: "Effective but caused some stomach upset.", date: "2023-05-30" }
+    ]
+  },
+  {
+    id: 3,
+    name: "Azithromycin 500mg",
+    brand: "Generic",
+    price: 60,
+    discountPrice: 55,
+    rating: 4.7,
+    category: "Antibiotics",
+    quantity: "3 tablets",
+    image: "/Azithromycin.webp",
+    description: "Azithromycin is used to treat a wide variety of bacterial infections. It works by stopping the growth of bacteria.",
+    usage: "Take as directed by your doctor, usually once daily with or without food. Complete the full course even if symptoms improve.",
+    sideEffects: "Common side effects include diarrhea, nausea, abdominal pain, and vomiting. Serious allergic reactions are rare.",
+    contraindications: "Do not use if allergic to azithromycin or similar antibiotics. Inform your doctor about liver or kidney problems.",
+    stock: 20,
+    reviews: [
+      { id: 1, user: "Alex T.", rating: 5, comment: "Quick and effective for my sinus infection.", date: "2023-06-05" }
+    ]
+  },
+  {
+    id: 4,
+    name: "Ciprofloxacin 500mg",
+    brand: "Generic",
+    price: 55,
+    discountPrice: 50,
+    rating: 4.5,
+    category: "Antibiotics",
+    quantity: "10 tablets",
+    image: "/Ciprofloxacin.webp",
+    description: "Ciprofloxacin is used to treat a variety of bacterial infections. It belongs to a class of drugs called fluoroquinolone antibiotics.",
+    usage: "Take as prescribed, usually twice daily. Take with or without food. Drink plenty of fluids while taking this medication.",
+    sideEffects: "May cause nausea, diarrhea, headache, or dizziness. Serious side effects include tendon problems, nerve damage, and allergic reactions.",
+    contraindications: "Not recommended for pregnant women, children, or people with certain medical conditions. Avoid taking with dairy products or antacids.",
+    stock: 15,
+    reviews: [
+      { id: 1, user: "Patricia L.", rating: 4, comment: "Worked well for my UTI but caused some stomach issues.", date: "2023-05-22" }
+    ]
+  },
+  {
+    id: 5,
+    name: "Metformin 500mg",
+    brand: "Generic",
+    price: 12,
+    discountPrice: 10,
+    rating: 4.6,
+    category: "Diabetes",
+    quantity: "10 tablets",
+    image: "/Metformin.webp",
+    description: "Metformin is used to treat type 2 diabetes by improving blood sugar control. It helps your body respond better to insulin.",
+    usage: "Take with meals to decrease stomach upset. Start with a low dose and gradually increase as directed by your doctor.",
+    sideEffects: "Common side effects include nausea, vomiting, stomach upset, diarrhea, and metallic taste in mouth. These usually improve with time.",
+    contraindications: "Not suitable for people with severe kidney disease, liver disease, or metabolic acidosis.",
+    stock: 45,
+    reviews: [
+      { id: 1, user: "David K.", rating: 5, comment: "Helps control my blood sugar without major side effects.", date: "2023-07-01" },
+      { id: 2, user: "Linda M.", rating: 4, comment: "Effective but causes some stomach discomfort when first starting.", date: "2023-05-11" }
+    ]
+  },
+  {
+    id: 6,
+    name: "Amlodipine 5mg",
+    brand: "Generic",
+    price: 20,
+    discountPrice: 18,
+    rating: 4.8,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Amlodipine.webp",
+    description: "Amlodipine is a calcium channel blocker used to treat high blood pressure and certain types of chest pain (angina).",
+    usage: "Take once daily with or without food. Take at the same time each day for best results.",
+    sideEffects: "May cause dizziness, flushing, headache, swelling of ankles/feet, or fatigue. These effects usually improve with continued use.",
+    contraindications: "Tell your doctor if you have liver disease, heart disease, or are pregnant or planning to become pregnant.",
+    stock: 30,
+    reviews: [
+      { id: 1, user: "Thomas B.", rating: 5, comment: "Keeps my blood pressure well controlled.", date: "2023-06-18" }
+    ]
+  },
+  {
+    id: 7,
+    name: "Atorvastatin 10mg",
+    brand: "Generic",
+    price: 25,
+    discountPrice: 22,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Atorvastatin.webp",
+    description: "Atorvastatin is used to lower cholesterol and triglycerides in the blood, reducing the risk of heart disease, stroke, and heart attacks.",
+    usage: "Take once daily, with or without food. Evening doses may be more effective. Follow a cholesterol-lowering diet for best results.",
+    sideEffects: "May cause muscle pain, diarrhea, or upset stomach. Report unexplained muscle pain, tenderness, or weakness to your doctor immediately.",
+    contraindications: "Not recommended during pregnancy. Tell your doctor if you have liver disease or drink large amounts of alcohol.",
+    stock: 25,
+    reviews: [
+      { id: 1, user: "James W.", rating: 5, comment: "Effectively lowered my cholesterol with minimal side effects.", date: "2023-07-05" },
+      { id: 2, user: "Mary L.", rating: 4, comment: "Works great but occasionally causes muscle soreness.", date: "2023-06-10" }
+    ]
+  },
+  {
+    id: 8,
+    name: "Omeprazole 20mg",
+    brand: "Generic",
+    price: 18,
+    discountPrice: 15,
+    rating: 4.7,
+    category: "Gastro",
+    quantity: "10 capsules",
+    image: "/Omeprazole.webp",
+    description: "Omeprazole reduces stomach acid production and is used to treat conditions like heartburn, acid reflux, and ulcers.",
+    usage: "Take before meals, preferably in the morning. Swallow whole with water, do not crush or chew.",
+    sideEffects: "May cause headache, stomach pain, nausea, vomiting, or diarrhea. Long-term use may increase risk of certain infections.",
+    contraindications: "Tell your doctor if you have liver problems or low magnesium levels. May interact with certain medications.",
+    stock: 40,
+    reviews: [
+      { id: 1, user: "Susan R.", rating: 5, comment: "Complete relief from my acid reflux.", date: "2023-05-25" },
+      { id: 2, user: "Mark D.", rating: 4, comment: "Works well but takes a few days to reach full effect.", date: "2023-06-30" }
+    ]
+  },
+  {
+    id: 9,
+    name: "Pantoprazole 40mg",
+    brand: "Generic",
+    price: 35,
+    discountPrice: 30,
+    rating: 4.6,
+    category: "Gastro",
+    quantity: "10 tablets",
+    image: "/Pantoprazole.webp",
+    description: "Pantoprazole is a proton pump inhibitor that decreases stomach acid production. Used to treat conditions like GERD and stomach ulcers.",
+    usage: "Take once daily, with or without food. Swallow whole, do not crush or chew tablets.",
+    sideEffects: "Side effects may include headache, diarrhea, and stomach pain. Long-term use may increase risk of vitamin B12 deficiency.",
+    contraindications: "Inform your doctor if you have liver disease or osteoporosis. May interact with certain HIV medications and blood thinners.",
+    stock: 25,
+    reviews: [
+      { id: 1, user: "Jennifer K.", rating: 4, comment: "Effective for my stomach issues with minimal side effects.", date: "2023-06-15" }
+    ]
+  },
+  {
+    id: 10,
+    name: "Cetirizine 10mg",
+    brand: "Generic",
+    price: 15,
+    discountPrice: 12,
+    rating: 4.8,
+    category: "Allergy",
+    quantity: "10 tablets",
+    image: "/Cetirizine.webp",
+    description: "Cetirizine is an antihistamine used to relieve allergy symptoms such as watery eyes, runny nose, itching, sneezing, hives, and other symptoms of allergies.",
+    usage: "Take once daily with or without food. Best taken at the same time each day.",
+    sideEffects: "May cause drowsiness, dry mouth, or fatigue. These effects usually improve as your body adjusts to the medication.",
+    contraindications: "Tell your doctor if you have kidney or liver disease. May increase the effects of alcohol.",
+    stock: 55,
+    reviews: [
+      { id: 1, user: "Rachel G.", rating: 5, comment: "Works great for my seasonal allergies without making me too drowsy.", date: "2023-07-20" },
+      { id: 2, user: "Daniel P.", rating: 4, comment: "Effective, but does cause some dry mouth.", date: "2023-08-15" }
+    ]
+  },
+  {
+    id: 11,
+    name: "Levocetirizine 5mg",
+    brand: "Generic",
+    price: 25,
+    discountPrice: 22,
+    rating: 4.7,
+    category: "Allergy",
+    quantity: "10 tablets",
+    image: "/Levocetirizine.webp",
+    description: "Levocetirizine is an antihistamine used to relieve allergy symptoms such as watery eyes, runny nose, itching, and sneezing.",
+    usage: "Take once daily in the evening with or without food. Do not take more than recommended dose.",
+    sideEffects: "May cause drowsiness, dry mouth, or fatigue. Serious side effects are rare but may include rapid heartbeat or vision changes.",
+    contraindications: "Not recommended for people with severe kidney disease. Use caution if you have asthma or breathing problems.",
+    stock: 35,
+    reviews: [
+      { id: 1, user: "Jessica T.", rating: 5, comment: "More effective than regular cetirizine for my severe allergies.", date: "2023-06-28" },
+      { id: 2, user: "Kevin R.", rating: 4, comment: "Works overnight and lasts all day long.", date: "2023-05-17" }
+    ]
+  },
+  {
+    id: 12,
+    name: "Montelukast 10mg",
+    brand: "Generic",
+    price: 70,
+    discountPrice: 65,
+    rating: 4.6,
+    category: "Allergy",
+    quantity: "10 tablets",
+    image: "/Montelukast.webp",
+    description: "Montelukast is a leukotriene receptor antagonist used to prevent wheezing, difficulty breathing, chest tightness, and coughing caused by asthma.",
+    usage: "Take once daily in the evening with or without food. For asthma, continue to take even when you have no symptoms.",
+    sideEffects: "May cause headache, dizziness, or stomach pain. Can rarely cause serious mood or behavior changes - contact your doctor if these occur.",
+    contraindications: "Tell your doctor if you have liver disease or if you're pregnant or breastfeeding. May interact with other medications.",
+    stock: 20,
+    reviews: [
+      { id: 1, user: "Michael B.", rating: 5, comment: "Greatly improved my asthma symptoms and seasonal allergies.", date: "2023-07-12" },
+      { id: 2, user: "Amanda S.", rating: 4, comment: "Works well but a bit expensive compared to other allergy medications.", date: "2023-08-03" }
+    ]
+  },
+  {
+    id: 13,
+    name: "Losartan 50mg",
+    brand: "Generic",
+    price: 30,
+    discountPrice: 28,
+    rating: 4.6,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Losartan.webp",
+    description: "Losartan is an angiotensin II receptor blocker (ARB) that treats high blood pressure and protects the kidneys from damage due to diabetes.",
+    usage: "Take once daily with or without food. Take at the same time each day. Do not stop taking without consulting your doctor.",
+    sideEffects: "May cause dizziness, fatigue, or diarrhea. Serious side effects include fainting, swelling of face/throat, or changes in kidney function.",
+    contraindications: "Not safe during pregnancy. Tell your doctor if you have liver or kidney disease, or if you're taking potassium supplements.",
+    stock: 30,
+    reviews: [
+      { id: 1, user: "Robert J.", rating: 5, comment: "Effectively controls my blood pressure with fewer side effects than other medications I've tried.", date: "2023-06-10" },
+      { id: 2, user: "Carol W.", rating: 4, comment: "Works well but occasionally causes mild dizziness when I stand up quickly.", date: "2023-07-25" }
+    ]
+  },
+  {
+    id: 14,
+    name: "Telmisartan 40mg",
+    brand: "Generic",
+    price: 45,
+    discountPrice: 40,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Telmisartan.webp",
+    description: "Telmisartan is an angiotensin II receptor blocker (ARB) used to treat high blood pressure and reduce the risk of cardiovascular events.",
+    usage: "Take once daily with or without food. Can be taken morning or evening, but at the same time each day.",
+    sideEffects: "May cause dizziness, lightheadedness, or back pain. Serious side effects are rare but may include fainting or swelling.",
+    contraindications: "Not recommended during pregnancy. Use with caution if you have liver or kidney problems.",
+    stock: 28,
+    reviews: [
+      { id: 1, user: "Peter S.", rating: 5, comment: "Great medication for controlling my blood pressure with very few side effects.", date: "2023-08-10" },
+      { id: 2, user: "Nancy F.", rating: 4, comment: "Works better than other blood pressure medications I've tried.", date: "2023-07-15" }
+    ]
+  },
+  {
+    id: 15,
+    name: "Metoprolol 50mg",
+    brand: "Generic",
+    price: 25,
+    discountPrice: 22,
+    rating: 4.6,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Metoprolol.webp",
+    description: "Metoprolol is a beta-blocker that treats high blood pressure, angina, and heart failure. It works by blocking the action of certain natural chemicals that affect the heart and blood vessels.",
+    usage: "Take with or immediately after meals. Take at the same times each day. Do not suddenly stop taking this medication without consulting your doctor.",
+    sideEffects: "May cause dizziness, tiredness, or slow heartbeat. Contact your doctor if you experience shortness of breath or swelling of the feet.",
+    contraindications: "Tell your doctor if you have asthma, diabetes, or thyroid problems before taking this medication.",
+    stock: 35,
+    reviews: [
+      { id: 1, user: "George H.", rating: 4, comment: "Effectively manages my heart rhythm issues but does cause some fatigue.", date: "2023-06-22" },
+      { id: 2, user: "Barbara K.", rating: 5, comment: "This medication has been life-changing for my heart condition.", date: "2023-07-30" }
+    ]
+  },
+  {
+    id: 16,
+    name: "Atenolol 50mg",
+    brand: "Generic",
+    price: 20,
+    discountPrice: 18,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "14 tablets",
+    image: "/Atenolol.webp",
+    description: "Atenolol is a beta-blocker that affects the heart and circulation. It is used to treat angina and hypertension, and to improve survival after a heart attack.",
+    usage: "Take once daily with or without food. Take at the same time each day for best results.",
+    sideEffects: "May cause dizziness, fatigue, or slow heartbeat. Less likely to cause sleep problems than some other beta-blockers.",
+    contraindications: "Not recommended for people with certain heart rhythm disorders, heart failure, or asthma. Use with caution in diabetes.",
+    stock: 42,
+    reviews: [
+      { id: 1, user: "Sandra M.", rating: 5, comment: "Very effective at controlling my blood pressure with minimal side effects.", date: "2023-05-14" },
+      { id: 2, user: "William T.", rating: 4, comment: "Works well but caused some cold hands and feet initially.", date: "2023-06-20" }
+    ]
+  },
+  {
+    id: 17,
+    name: "Furosemide 40mg",
+    brand: "Generic",
+    price: 15,
+    discountPrice: 12,
+    rating: 4.6,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Furosemide.webp",
+    description: "Furosemide is a loop diuretic that treats fluid retention and swelling caused by congestive heart failure, liver disease, or kidney disease.",
+    usage: "Take in the morning to prevent nighttime urination. Take with food if stomach upset occurs. May increase urination frequency.",
+    sideEffects: "May cause increased urination, thirst, muscle cramps, or dizziness. Can cause electrolyte imbalances that need monitoring.",
+    contraindications: "Tell your doctor if you have kidney disease, liver disease, gout, or diabetes. May interact with many medications.",
+    stock: 50,
+    reviews: [
+      { id: 1, user: "Dorothy L.", rating: 4, comment: "Effective at reducing my swelling, but I do need to stay near a bathroom.", date: "2023-08-05" },
+      { id: 2, user: "Richard B.", rating: 5, comment: "Works quickly and effectively for my heart failure symptoms.", date: "2023-07-12" }
+    ]
+  },
+  {
+    id: 18,
+    name: "Hydrochlorothiazide 25mg",
+    brand: "Generic",
+    price: 12,
+    discountPrice: 10,
+    rating: 4.5,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Hydrochlorothiazide.webp",
+    description: "Hydrochlorothiazide is a thiazide diuretic that treats high blood pressure and fluid retention by helping your body get rid of excess salt and water.",
+    usage: "Take once daily in the morning with food. May increase urination frequency, so best taken early in the day.",
+    sideEffects: "May cause increased urination, dizziness, headache, or increased sensitivity to sunlight. May affect blood sugar and cholesterol levels.",
+    contraindications: "Tell your doctor if you have kidney or liver disease, gout, diabetes, or lupus. May interact with many medications.",
+    stock: 45,
+    reviews: [
+      { id: 1, user: "Elizabeth W.", rating: 4, comment: "Simple and effective for controlling my blood pressure.", date: "2023-06-30" },
+      { id: 2, user: "Joseph C.", rating: 4, comment: "Works well but does require staying hydrated throughout the day.", date: "2023-05-25" }
+    ]
+  },
+  {
+    id: 19,
+    name: "Spironolactone 25mg",
+    brand: "Generic",
+    price: 30,
+    discountPrice: 28,
+    rating: 4.6,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Spironolactone.webp",
+    description: "Spironolactone is a potassium-sparing diuretic that treats high blood pressure, heart failure, and conditions that cause your body to make too much aldosterone.",
+    usage: "Take once or twice daily with food. Regular blood tests may be needed to monitor potassium levels.",
+    sideEffects: "May cause increased urination, dizziness, headache, or breast enlargement in men. May increase potassium levels in blood.",
+    contraindications: "Not recommended for people with high potassium levels, severe kidney disease, or Addison's disease. Don't take with potassium supplements.",
+    stock: 25,
+    reviews: [
+      { id: 1, user: "Margaret D.", rating: 5, comment: "Great for managing my edema from heart failure.", date: "2023-07-15" },
+      { id: 2, user: "Thomas J.", rating: 4, comment: "Effective but requires regular blood tests to monitor potassium.", date: "2023-08-02" }
+    ]
+  },
+  {
+    id: 20,
+    name: "Clopidogrel 75mg",
+    brand: "Generic",
+    price: 50,
+    discountPrice: 45,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Clopidogrel.webp",
+    description: "Clopidogrel is an antiplatelet medication that prevents blood clots. It's used to reduce the risk of heart attack and stroke in people at high risk.",
+    usage: "Take once daily with or without food. Do not stop taking without consulting your doctor, especially if you have a stent.",
+    sideEffects: "May cause bleeding more easily, bruising, or rash. Serious side effects include unusual bleeding or signs of blood in urine or stool.",
+    contraindications: "Use with caution if you have a history of bleeding disorders, recent surgery, or ulcers. May interact with many medications.",
+    stock: 30,
+    reviews: [
+      { id: 1, user: "Charles R.", rating: 5, comment: "Essential medication after my heart stent placement. No issues so far.", date: "2023-06-08" },
+      { id: 2, user: "Betty M.", rating: 4, comment: "Does cause some bruising but worth it for heart protection.", date: "2023-07-22" }
+    ]
+  },
+  {
+    id: 21,
+    name: "Aspirin 75mg",
+    brand: "Generic",
+    price: 10,
+    discountPrice: 8,
+    rating: 4.6,
+    category: "Pain Relief",
+    quantity: "14 tablets",
+    image: "/Aspirin.webp",
+    description: "Low-dose aspirin is used to prevent blood clots, reducing the risk of heart attack and stroke in high-risk individuals.",
+    usage: "Take once daily with food to reduce stomach irritation. Take with a full glass of water.",
+    sideEffects: "May cause stomach upset, heartburn, or easy bruising. Serious side effects include stomach bleeding or allergic reactions.",
+    contraindications: "Do not use if allergic to NSAIDs, have bleeding disorders, stomach ulcers, or are about to have surgery. Not recommended for children.",
+    stock: 60,
+    reviews: [
+      { id: 1, user: "Donald T.", rating: 5, comment: "Simple, affordable heart protection as recommended by my doctor.", date: "2023-07-05" },
+      { id: 2, user: "Helen P.", rating: 4, comment: "Takes some getting used to but an essential part of my heart health regimen.", date: "2023-06-15" }
+    ]
+  },
+  {
+    id: 22,
+    name: "Rosuvastatin 10mg",
+    brand: "Generic",
+    price: 50,
+    discountPrice: 45,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Rosuvastatin.webp",
+    description: "Rosuvastatin is a statin that lowers cholesterol and triglycerides in the blood, reducing the risk of heart disease, stroke, and vascular disease.",
+    usage: "Take once daily, at the same time each day, with or without food. Follow a low-cholesterol diet for best results.",
+    sideEffects: "May cause muscle pain, constipation, or mild stomach pain. Serious side effects include severe muscle pain or weakness with fever.",
+    contraindications: "Tell your doctor if you have liver disease, kidney disease, or thyroid disorder. May interact with certain medications.",
+    stock: 35,
+    reviews: [
+      { id: 1, user: "Steven R.", rating: 5, comment: "Significantly improved my cholesterol levels within two months.", date: "2023-08-10" },
+      { id: 2, user: "Linda G.", rating: 4, comment: "Very effective but occasionally causes some muscle soreness.", date: "2023-07-18" }
+    ]
+  },
+  {
+    id: 23,
+    name: "Simvastatin 20mg",
+    brand: "Generic",
+    price: 30,
+    discountPrice: 28,
+    rating: 4.6,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Simvastatin.webp",
+    description: "Simvastatin is a statin medication that lowers cholesterol and triglycerides in the blood, reducing the risk of heart disease and stroke.",
+    usage: "Take once daily in the evening. Avoid grapefruit products which can increase side effects. Follow a low-cholesterol diet.",
+    sideEffects: "May cause muscle pain, stomach pain, or constipation. Report any unexplained muscle pain, tenderness, or weakness promptly.",
+    contraindications: "Not recommended during pregnancy. Tell your doctor if you have liver disease or drink large amounts of alcohol.",
+    stock: 40,
+    reviews: [
+      { id: 1, user: "Edward F.", rating: 5, comment: "Effective and affordable for managing my cholesterol.", date: "2023-06-25" },
+      { id: 2, user: "Susan B.", rating: 4, comment: "Works well but I have to be careful about grapefruit juice interactions.", date: "2023-07-30" }
+    ]
+  },
+  {
+    id: 24,
+    name: "Doxycycline 100mg",
+    brand: "Generic",
+    price: 40,
+    discountPrice: 35,
+    rating: 4.6,
+    category: "Antibiotics",
+    quantity: "10 capsules",
+    image: "/Doxycycline.webp",
+    description: "Doxycycline is a tetracycline antibiotic that treats a wide variety of bacterial infections, including respiratory and urinary tract infections.",
+    usage: "Take with a full glass of water. Take with food if stomach upset occurs. Do not lie down for at least 30 minutes after taking.",
+    sideEffects: "May cause nausea, vomiting, diarrhea, or increased sensitivity to sunlight. Use sunscreen and protective clothing when outdoors.",
+    contraindications: "Not recommended during pregnancy or for children under 8. Tell your doctor if you have liver or kidney disease.",
+    stock: 25,
+    reviews: [
+      { id: 1, user: "Paul M.", rating: 4, comment: "Effective for my skin infection but did cause some stomach upset.", date: "2023-06-18" },
+      { id: 2, user: "Jennifer L.", rating: 5, comment: "Quickly resolved my respiratory infection.", date: "2023-08-05" }
+    ]
+  },
+  {
+    id: 25,
+    name: "Levofloxacin 500mg",
+    brand: "Generic",
+    price: 70,
+    discountPrice: 65,
+    rating: 4.7,
+    category: "Antibiotics",
+    quantity: "5 tablets",
+    image: "/Levofloxacin.jpg",
+    description: "Levofloxacin is a fluoroquinolone antibiotic used to treat bacterial infections of the sinuses, lungs, urinary tract, and skin.",
+    usage: "Take with a full glass of water. Can be taken with or without food. Take at least 2 hours before or after antacids, iron, or zinc products.",
+    sideEffects: "May cause nausea, diarrhea, headache, or dizziness. Serious side effects include tendon problems, nerve damage, and allergic reactions.",
+    contraindications: "Not recommended for people with myasthenia gravis or a history of tendon problems. Use with caution in elderly patients.",
+    stock: 20,
+    reviews: [
+      { id: 1, user: "Kenneth W.", rating: 5, comment: "Powerful antibiotic that quickly cleared my severe sinus infection.", date: "2023-07-15" },
+      { id: 2, user: "Maria S.", rating: 4, comment: "Effective but did cause some tendon discomfort while taking it.", date: "2023-08-03" }
     ]
   },
   // Add more medicines with details as needed

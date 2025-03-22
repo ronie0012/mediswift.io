@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -38,6 +37,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Support = lazy(() => import("./pages/Support"));
 const Refund = lazy(() => import("./pages/Refund"));
+const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -64,6 +64,7 @@ const App = () => (
                   <Route path="/my-appointments" element={<MyAppointments />} />
                   <Route path="/my-orders" element={<MyOrders />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/reschedule-appointment/:id" element={<RescheduleAppointment />} />
                   
                   {/* New routes for footer links */}
