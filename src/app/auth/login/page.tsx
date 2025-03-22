@@ -1,8 +1,8 @@
+
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -26,8 +26,9 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
-  const router = useRouter();
+  const { signIn, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,15 +42,34 @@ export default function LoginPage() {
     },
   });
 
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      const intendedPath = sessionStorage.getItem('intendedPath');
+      navigate(intendedPath || '/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
   const onSubmit = async (values: LoginValues) => {
     setIsLoading(true);
     try {
-      await signIn(values.email, values.password, values.rememberMe);
-      toast({
-        title: "Login successful",
-        description: "Welcome back to MediSwift!",
-      });
-      router.push('/dashboard');
+      const result = await signIn(values.email, values.password);
+      if (result.success) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back to MediSwift!",
+        });
+        // Get intended path from session storage or default to dashboard
+        const intendedPath = sessionStorage.getItem('intendedPath');
+        sessionStorage.removeItem('intendedPath'); // Clear it after use
+        navigate(intendedPath || '/dashboard', { replace: true });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: result.error || "Invalid email or password. Please try again.",
+        });
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -144,7 +164,7 @@ export default function LoginPage() {
                   )}
                 />
                 <Link 
-                  href="/auth/reset-password" 
+                  to="/auth/reset-password" 
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   Forgot password?
@@ -164,7 +184,7 @@ export default function LoginPage() {
           <div className="mt-2 text-center text-sm">
             Don't have an account?{" "}
             <Link 
-              href="/auth/register" 
+              to="/auth/register" 
               className="font-semibold text-primary hover:underline"
             >
               Sign up
@@ -174,4 +194,4 @@ export default function LoginPage() {
       </Card>
     </div>
   );
-} 
+}

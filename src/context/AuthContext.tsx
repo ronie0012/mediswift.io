@@ -1,9 +1,9 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { authService, AuthUser, LoginData, SignUpData } from "@/services/auth.service";
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, isBrowser } from '@/lib/supabase';
 
 // Update the user schema to match our profile structure
 const userSchema = z.object({
@@ -34,53 +34,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    async function getSession() {
+    if (!isBrowser()) return;
+
+    async function initializeAuth() {
       setLoading(true);
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Set up auth state listener FIRST
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, newSession) => {
+            console.log(`Auth state changed: ${event}`, newSession);
+            setSession(newSession);
+            setUser(newSession?.user || null);
+            
+            // Check if user is admin
+            if (newSession?.user) {
+              const isUserAdmin = newSession.user.app_metadata?.role === 'admin';
+              setIsAdmin(isUserAdmin);
+              console.log(`User is admin: ${isUserAdmin}`);
+            } else {
+              setIsAdmin(false);
+            }
+            
+            setLoading(false);
+          }
+        );
+
+        // THEN check for existing session
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
         } else {
-          setSession(session);
-          setUser(session?.user || null);
+          setSession(initialSession);
+          setUser(initialSession?.user || null);
 
           // Check if user is admin
-          if (session?.user) {
-            const isUserAdmin = session.user.app_metadata?.role === 'admin';
+          if (initialSession?.user) {
+            const isUserAdmin = initialSession.user.app_metadata?.role === 'admin';
             setIsAdmin(isUserAdmin);
           }
         }
+
+        setLoading(false);
+        
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
-        console.error('Error in getSession:', error);
-      } finally {
+        console.error('Error initializing auth:', error);
         setLoading(false);
       }
     }
 
-    getSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user || null);
-        
-        // Check if user is admin
-        if (session?.user) {
-          const isUserAdmin = session.user.app_metadata?.role === 'admin';
-          setIsAdmin(isUserAdmin);
-        } else {
-          setIsAdmin(false);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    initializeAuth();
   }, []);
 
   async function signUp(email: string, password: string, userData?: object) {
@@ -122,6 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.user) {
         toast.success("Welcome back! You have successfully signed in");
+        if (data.user.app_metadata?.role === 'admin') {
+          localStorage.setItem('user-role', 'admin');
+        } else {
+          localStorage.setItem('user-role', 'user');
+        }
         return { success: true };
       }
 
@@ -135,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     try {
       await supabase.auth.signOut();
+      localStorage.removeItem('user-role');
       toast.success("You have been signed out successfully");
     } catch (error) {
       console.error('Error in signOut:', error);

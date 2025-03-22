@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -40,8 +41,8 @@ class AuthService {
       return {
         id: user.id,
         email: user.email!,
-        name: profile?.name || undefined,
-        phone: profile?.phone || undefined
+        name: profile?.name || user.user_metadata?.name,
+        phone: profile?.phone || user.user_metadata?.phone
       };
     } catch (error) {
       console.error('Error getting current user:', error);
@@ -64,18 +65,11 @@ class AuthService {
         throw new Error('No user returned from login');
       }
       
-      // Get user profile data
-      const { data: profile } = await supabase
-        .from('users')
-        .select('name, phone')
-        .eq('id', user.id)
-        .single();
-      
       return {
         id: user.id,
         email: user.email!,
-        name: profile?.name || undefined,
-        phone: profile?.phone || undefined
+        name: user.user_metadata?.name,
+        phone: user.user_metadata?.phone
       };
     } catch (error: any) {
       console.error('Login error:', error);
@@ -105,15 +99,6 @@ class AuthService {
         throw new Error('No user returned from signup');
       }
       
-      // Create user profile
-      await supabase.from('users').insert({
-        id: user.id,
-        email: email,
-        name: name,
-        phone: phone,
-        created_at: new Date().toISOString()
-      });
-      
       return {
         id: user.id,
         email,
@@ -129,6 +114,7 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       await supabase.auth.signOut();
+      localStorage.removeItem('user-role');
     } catch (error: any) {
       console.error('Logout error:', error);
       throw new Error(error.message || 'Failed to log out. Please try again.');
@@ -173,16 +159,12 @@ class AuthService {
         throw new Error('User ID is required');
       }
       
-      // Update user profile
-      const { error } = await supabase
-        .from('users')
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
+      // Update user metadata
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: profileData
+      });
       
-      if (error) throw error;
+      if (metadataError) throw metadataError;
       
       // Get updated profile
       const user = await this.getCurrentUser();
@@ -199,4 +181,4 @@ class AuthService {
   }
 }
 
-export const authService = new AuthService(); 
+export const authService = new AuthService();
