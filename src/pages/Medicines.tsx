@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/slider"
 import { medicineData, Medicine } from "@/data/medicines";
 
-const Medicines = () => {
+export default function Medicines() {
   const navigate = useNavigate();
   const cartContext = useContext(CartContext);
   const { toast } = useToast();
@@ -63,21 +63,7 @@ const Medicines = () => {
     return searchMatch && categoryMatch && priceMatch;
   });
 
-  const addToCart = (medicine: Medicine) => {
-    cartContext.addToCart({
-      id: medicine.id,
-      name: medicine.name,
-      price: medicine.discountPrice || medicine.price,
-      image: medicine.image,
-      quantity: 1,
-      brand: medicine.brand
-    });
-    
-    toast({
-      title: "Added to cart",
-      description: `${medicine.name} added to your cart.`,
-    });
-  };
+  const { addToCart } = useCart();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -191,7 +177,7 @@ const Medicines = () => {
               <CardFooter className="p-4 flex justify-between items-center">
                 <Button
                   size="sm"
-                  onClick={() => addToCart(medicine)}
+                  onClick={() => handleAddToCart(medicine)}
                 >
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Add to Cart
@@ -211,5 +197,3 @@ const Medicines = () => {
     </Layout>
   );
 };
-
-export default Medicines;

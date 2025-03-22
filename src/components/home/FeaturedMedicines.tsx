@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -46,6 +47,7 @@ export default function FeaturedMedicines() {
   }, [toast]);
 
   const handleAddToCart = (medicine: Medicine) => {
+    // Fixed: Removed the unused second parameter
     addToCart({
       id: medicine.id,
       name: medicine.name,

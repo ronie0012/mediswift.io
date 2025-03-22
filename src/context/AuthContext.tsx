@@ -13,7 +13,7 @@ interface AuthContextType {
   error: Error | null;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{success: boolean, error?: string}>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, userData: {name: string, phone?: string}) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   validatePassword: (password: string) => boolean;
@@ -23,6 +23,7 @@ interface AuthContextType {
   isLoading: boolean;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (token: string, newPassword: string) => Promise<void>;
+  updateUserProfile: (data: {[key: string]: any}) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -118,14 +119,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, userData: {name: string, phone?: string}) => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
-          data: { name }
+          data: userData
         }
       });
       
@@ -209,23 +210,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signup = async (email: string, password: string, name: string, phone?: string) => {
+    return signUp(email, password, { name, phone });
+  };
+
+  const updateUserProfile = async (data: {[key: string]: any}) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: { name, phone }
-        }
+      const { error } = await supabase.auth.updateUser({
+        data
       });
       
       if (error) throw error;
       
-      toast.success('Signed up successfully! Please check your email for verification.');
-      navigate('/auth/login');
+      // Update the local user state with the new data
+      if (user) {
+        setUser({
+          ...user,
+          user_metadata: {
+            ...user.user_metadata,
+            ...data
+          }
+        });
+      }
+      
     } catch (error: any) {
       setError(error);
-      toast.error(error.message || 'Failed to sign up. Please try again.');
       throw error;
     } finally {
       setLoading(false);
@@ -249,7 +258,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       signup,
       isLoading: loading,
       resetPassword,
-      updatePassword
+      updatePassword,
+      updateUserProfile
     }}>
       {children}
     </AuthContext.Provider>

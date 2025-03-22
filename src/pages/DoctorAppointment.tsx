@@ -85,7 +85,7 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedTime, setSelectedTime] = useState<TimeSlot | null>(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [appointmentConfirmation, setAppointmentConfirmation] = useState<{
     id: number;
@@ -108,7 +108,6 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
     },
   });
   
-  // Fetch doctor details
   useEffect(() => {
     async function fetchDoctorDetails() {
       try {
@@ -144,7 +143,6 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
     }
   }, [doctorId, toast]);
   
-  // Fetch available time slots for the selected date
   useEffect(() => {
     async function fetchAvailableSlots() {
       if (!doctor || !selectedDate) return;
@@ -168,7 +166,6 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
           return;
         }
         
-        // Fetch all time slots for the doctor
         const { data: allTimeSlotsData, error: allTimeSlotsError } = await supabase
           .from('time_slots')
           .select('*')
@@ -186,7 +183,6 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
         
         let availableTimeSlots = allTimeSlotsData as TimeSlot[];
         
-        // Filter out the booked time slots
         if (existingAppointments && existingAppointments.length > 0) {
           const bookedTimeSlotIds = existingAppointments.map(appointment => appointment.time_slot.id);
           availableTimeSlots = availableTimeSlots.filter(slot => !bookedTimeSlotIds.includes(slot.id));
@@ -206,46 +202,26 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
     fetchAvailableSlots();
   }, [doctor, selectedDate, toast]);
   
-  const onSubmit = async (values: AppointmentValues) => {
-    if (!selectedDate) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please select a date for your appointment."
-      });
-      return;
-    }
-    
-    if (!selectedTime) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please select a time slot for your appointment."
-      });
-      return;
-    }
-    
+  const formSubmit = async (formData: any) => {
     setIsSubmitting(true);
     
     try {
-      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      const appointmentData: Partial<AppointmentWithDetails> = {
+        doctor_id: parseInt(doctorId as string),
+        date: selectedDate,
+        time_slot: selectedTimeSlot,
+        symptoms: formData.symptoms,
+        notes: formData.additionalInfo,
+        patientName: formData.patientName,
+        patientAge: formData.patientAge,
+        patientPhone: formData.patientPhone,
+        consultationType: formData.consultationType
+      };
       
-      // Create appointment
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
         .insert([
-          {
-            doctor_id: doctor?.id,
-            user_id: user?.id,
-            date: formattedDate,
-            time_slot_id: selectedTime.id,
-            status: 'pending',
-            symptoms: values.symptoms,
-            patientName: values.patientName,
-            patientAge: values.patientAge,
-            patientPhone: values.patientPhone,
-            consultationType: values.consultationType,
-          }
+          appointmentData
         ])
         .select('*')
         .single();
@@ -260,11 +236,10 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
         return;
       }
       
-      // Update time slot availability (assuming you have an 'is_available' column)
       const { error: timeSlotError } = await supabase
         .from('time_slots')
         .update({ is_available: false })
-        .eq('id', selectedTime.id);
+        .eq('id', selectedTimeSlot.id);
       
       if (timeSlotError) {
         console.error("Error updating time slot:", timeSlotError);
@@ -277,8 +252,8 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
       
       setAppointmentConfirmation({
         id: appointmentData.id,
-        date: formattedDate,
-        time: selectedTime.start_time,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        time: selectedTimeSlot.start_time,
       });
       
       toast({
@@ -323,7 +298,7 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
               </div>
             ) : (
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(formSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="patientName"
@@ -435,7 +410,7 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
                       <Label>Select Time</Label>
                       <Select onValueChange={(value) => {
                         const selected = availableSlots.find(slot => slot.id === value);
-                        setSelectedTime(selected || null);
+                        setSelectedTimeSlot(selected || null);
                       }}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a time slot" />

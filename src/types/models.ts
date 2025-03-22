@@ -1,4 +1,3 @@
-
 import { Json } from './supabase';
 
 export interface User {
@@ -33,7 +32,6 @@ export interface Medicine {
   updated_at: string | null;
   dosage?: string;
   quantity_to_cart?: number;
-  // Add these for compatibility with different components
   discountPrice?: number;
   sideEffects?: string;
   reviews?: any[];
@@ -141,7 +139,7 @@ export interface OrderItem {
     image: string;
     description?: string;
     prescription_required?: boolean;
-  };
+  } | any;
 }
 
 export interface Order {
@@ -163,7 +161,7 @@ export interface Order {
     address_line2?: string;
     postal_code?: string;
     phone?: string;
-  };
+  } | any;
   items: OrderItem[] | any[];
   profiles?: {
     full_name: string;

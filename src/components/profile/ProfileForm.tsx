@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -7,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
 
 export default function ProfileForm() {
-  const { user, updateUserProfile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -34,10 +36,15 @@ export default function ProfileForm() {
         throw new Error("User not authenticated.");
       }
 
-      await updateUserProfile({
-        name: name,
-        phone: phone,
+      // Update the user profile using Supabase directly
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          name: name,
+          phone: phone,
+        }
       });
+
+      if (error) throw error;
 
       toast({
         title: "Profile updated",

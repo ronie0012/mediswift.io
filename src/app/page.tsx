@@ -14,6 +14,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Badge } from '@/components/ui/badge';
 import { Medicine } from '@/components/medicines/MedicineCard';
 import { supabase } from '@/lib/supabase';
+import { useCart } from '@/lib/cart';
+import { toast } from 'react-toastify';
 
 // Animation variants
 const fadeIn = {
@@ -39,7 +41,8 @@ interface Doctor {
   rating: number;
 }
 
-export default function HomePage() {
+export default function Home() {
+  const { addToCart } = useCart();
   const [featuredMedicines, setFeaturedMedicines] = useState<Medicine[]>([]);
   const [popularDoctors, setPopularDoctors] = useState<Doctor[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,9 +93,14 @@ export default function HomePage() {
       id: medicine.id,
       name: medicine.name,
       price: medicine.discount_price,
-      quantity: 1,
       image: medicine.image,
-      brand: medicine.brand
+      quantity: 1,
+      brand: medicine.brand || ''
+    });
+    
+    toast({
+      title: "Added to cart",
+      description: `${medicine.name} added to your cart`,
     });
   };
 
