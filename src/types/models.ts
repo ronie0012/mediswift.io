@@ -31,6 +31,7 @@ export interface Medicine {
   prescription_required?: boolean;
   created_at: string;
   updated_at: string | null;
+  dosage?: string; // Added for MedicineCard
 }
 
 export interface CartItem {
@@ -63,8 +64,10 @@ export interface Doctor {
   education: string;
   languages: string[];
   available_slots: Record<string, string[]>;
+  availableSlots?: Record<string, string[]>; // Added for compatibility
   created_at: string;
   updated_at: string | null;
+  phone?: string; // Added for Appointment.doctor
 }
 
 export interface TimeSlot {

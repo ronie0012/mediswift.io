@@ -14,7 +14,7 @@ interface CartContextType {
   getItemsCount: () => number;
   totalPrice: number;
   removeFromCart: (id: number) => void;
-  addToCart: (item: CartItem) => void;
+  addToCart: (item: Partial<CartItem> & { id: number; name: string; price: number; image: string }) => void;
   isInCart: (id: number) => boolean;
 }
 
@@ -100,6 +100,22 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     return items.some(item => item.id === id);
   };
 
+  // Enhanced addToCart function to handle missing properties
+  const addToCart = (item: Partial<CartItem> & { id: number; name: string; price: number; image: string }) => {
+    const fullItem: CartItem = {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity || 1,
+      image: item.image,
+      brand: item.brand || 'Generic', // Default value for required brand property
+      stock: item.stock,
+      prescription_required: item.prescription_required
+    };
+    
+    addItem(fullItem);
+  };
+
   return (
     <CartContext.Provider value={{
       items,
@@ -112,7 +128,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       getItemsCount,
       totalPrice: getCartTotal(),
       removeFromCart: removeItem,
-      addToCart: addItem,
+      addToCart,
       isInCart
     }}>
       {children}
