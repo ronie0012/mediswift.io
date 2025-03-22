@@ -146,9 +146,22 @@ export default function MyAppointmentsPage() {
       if (error) throw error;
       
       if (data) {
-        setAppointments(data);
+        // Transform data to match the Appointment interface
+        const formattedAppointments = data.map(apt => ({
+          ...apt,
+          // Ensure time_slot is properly formatted as an object, not an array
+          time_slot: Array.isArray(apt.time_slot) && apt.time_slot.length > 0 
+            ? apt.time_slot[0] 
+            : apt.time_slot || { id: '', start_time: '', end_time: '' },
+          // Ensure doctor is properly formatted as an object, not an array
+          doctor: Array.isArray(apt.doctor) && apt.doctor.length > 0 
+            ? apt.doctor[0] 
+            : apt.doctor || { id: 0, name: '', specialty: '', experience: '', rating: 0, image: '', phone: '' }
+        })) as Appointment[];
+        
+        setAppointments(formattedAppointments);
         // Default to upcoming appointments
-        setFilteredAppointments(filterAppointments(data, 'upcoming'));
+        setFilteredAppointments(filterAppointments(formattedAppointments, 'upcoming'));
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);

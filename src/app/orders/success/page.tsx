@@ -93,7 +93,23 @@ export default function OrderSuccessPage() {
         if (error) throw error;
         
         if (data) {
-          setOrder(data as Order);
+          // Transform the data to match our Order interface
+          const formattedOrder = {
+            ...data,
+            // Transform items to match OrderItem interface
+            items: (data.items || []).map(item => ({
+              ...item,
+              // Transform medicine from array to object
+              medicine: Array.isArray(item.medicine) && item.medicine.length > 0
+                ? {
+                    name: item.medicine[0]?.name || '',
+                    image: item.medicine[0]?.image || ''
+                  }
+                : (item.medicine || { name: '', image: '' })
+            }))
+          } as Order;
+          
+          setOrder(formattedOrder);
         }
       } catch (error) {
         console.error('Error fetching order details:', error);
@@ -322,4 +338,4 @@ export default function OrderSuccessPage() {
       </div>
     </motion.div>
   );
-} 
+}

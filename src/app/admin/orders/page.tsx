@@ -63,7 +63,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 
-// Order interface
 interface Order {
   id: string;
   created_at: string;
@@ -88,7 +87,6 @@ interface Order {
   items_count: number;
 }
 
-// Order status options
 const ORDER_STATUSES = [
   { value: 'pending_payment', label: 'Pending Payment' },
   { value: 'processing', label: 'Processing' },
@@ -102,12 +100,10 @@ export default function AdminOrdersPage() {
   const { toast } = useToast();
   const { user, isAdmin } = useAuth();
   
-  // State for orders
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // State for filters and pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
@@ -117,14 +113,12 @@ export default function AdminOrdersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const ITEMS_PER_PAGE = 10;
   
-  // State for update status dialog
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [newStatus, setNewStatus] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    // Verify user is authenticated and has admin privileges
     if (!user) {
       router.push('/auth/login');
       return;
@@ -143,7 +137,6 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [user, isAdmin, router]);
 
-  // Apply filters and sorting whenever filter state changes
   useEffect(() => {
     applyFiltersAndSort();
   }, [searchQuery, statusFilter, paymentMethodFilter, sortBy, orders]);
@@ -171,11 +164,16 @@ export default function AdminOrdersPage() {
       if (error) throw error;
       
       if (data) {
-        // Transform data to match Order interface
         const formattedOrders = data.map(order => ({
           ...order,
-          items_count: order.items_count?.length || 0
-        }));
+          items_count: order.items_count?.length || 0,
+          profiles: order.profiles && order.profiles.length > 0 
+            ? { 
+                full_name: order.profiles[0]?.full_name || '', 
+                email: order.profiles[0]?.email || '' 
+              }
+            : { full_name: '', email: '' }
+        })) as Order[];
         
         setOrders(formattedOrders);
         setFilteredOrders(formattedOrders);
@@ -196,7 +194,6 @@ export default function AdminOrdersPage() {
   const applyFiltersAndSort = () => {
     let result = [...orders];
     
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(order => 
@@ -207,22 +204,19 @@ export default function AdminOrdersPage() {
       );
     }
     
-    // Apply status filter
     if (statusFilter !== 'all') {
       result = result.filter(order => order.status === statusFilter);
     }
     
-    // Apply payment method filter
     if (paymentMethodFilter !== 'all') {
       result = result.filter(order => order.payment_method === paymentMethodFilter);
     }
     
-    // Apply sorting
     result = sortOrders(result, sortBy);
     
     setFilteredOrders(result);
     calculateTotalPages(result.length);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   };
 
   const sortOrders = (orders: Order[], sortBy: string): Order[] => {
@@ -285,7 +279,6 @@ export default function AdminOrdersPage() {
       
       if (error) throw error;
       
-      // Update orders list
       setOrders(orders.map(order => 
         order.id === selectedOrder.id 
           ? { ...order, status: newStatus, updated_at: new Date().toISOString() } 
@@ -310,17 +303,14 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // Format currency
   const formatCurrency = (amount: number) => {
     return `₹${amount.toFixed(2)}`;
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'dd MMM yyyy, h:mm a');
   };
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'processing':
@@ -338,7 +328,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // Get payment method text
   const getPaymentMethodText = (method: string) => {
     switch (method) {
       case 'card':
@@ -352,13 +341,11 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // Get status label
   const getStatusLabel = (status: string) => {
     const statusObj = ORDER_STATUSES.find(s => s.value === status);
     return statusObj ? statusObj.label : status;
   };
 
-  // Get next status icon
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending_payment':
@@ -406,7 +393,6 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Orders</h1>
@@ -421,7 +407,6 @@ export default function AdminOrdersPage() {
         </div>
       </div>
       
-      {/* Orders Table */}
       <Card>
         <CardHeader>
           <CardTitle>Order Management</CardTitle>
@@ -431,7 +416,6 @@ export default function AdminOrdersPage() {
         </CardHeader>
         
         <CardContent>
-          {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
@@ -488,7 +472,6 @@ export default function AdminOrdersPage() {
             </div>
           </div>
           
-          {/* Table */}
           {filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <ClipboardList className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -587,7 +570,6 @@ export default function AdminOrdersPage() {
             </div>
           )}
           
-          {/* Pagination */}
           {filteredOrders.length > 0 && (
             <div className="mt-6 flex justify-center">
               <Pagination
@@ -601,7 +583,6 @@ export default function AdminOrdersPage() {
         </CardContent>
       </Card>
       
-      {/* Update Status Dialog */}
       <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -670,3 +651,4 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
+

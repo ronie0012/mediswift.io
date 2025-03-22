@@ -32,6 +32,8 @@ export interface Medicine {
   created_at: string;
   updated_at: string | null;
   dosage?: string; // Added for MedicineCard
+  // Add quantity property for home page
+  quantity_to_cart?: number;
 }
 
 export interface CartItem {
@@ -74,6 +76,7 @@ export interface TimeSlot {
   id: string;
   start_time: string;
   end_time: string;
+  is_available?: boolean;
 }
 
 export interface AppointmentWithDetails {
@@ -104,23 +107,23 @@ export interface AppointmentWithDetails {
 }
 
 export interface Appointment {
-  id: number;
-  doctor_id: number;
+  id: string | number;
+  doctor_id: string | number;
   user_id: string;
   date: string;
   time_slot: TimeSlot;
   status: string;
   created_at: string;
-  symptoms: string;
-  notes: string | null;
+  symptoms?: string;
+  notes?: string | null;
   doctor: {
-    id: number;
+    id: string | number;
     name: string;
     specialty: string;
-    experience: string;
+    experience: string | number;
     rating: number;
     image: string;
-    phone: string;
+    phone?: string;
   };
 }
 
@@ -139,7 +142,7 @@ export interface OrderItem {
 }
 
 export interface Order {
-  id: number;
+  id: string | number;
   created_at: string;
   updated_at?: string;
   user_id: string;
@@ -147,11 +150,16 @@ export interface Order {
   status: string;
   payment_method: string;
   delivery_address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+    full_name?: string;
+    address_line1?: string;
+    address_line2?: string;
+    postal_code?: string;
+    phone?: string;
   };
   items: OrderItem[];
   profiles?: {

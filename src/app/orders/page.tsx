@@ -79,12 +79,10 @@ export default function OrdersPage() {
         `)
         .eq('user_id', user?.id);
       
-      // Apply status filter
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
       
-      // Apply sorting
       if (sortBy === 'newest') {
         query = query.order('created_at', { ascending: false });
       } else if (sortBy === 'oldest') {
@@ -100,7 +98,20 @@ export default function OrdersPage() {
       if (error) throw error;
       
       if (data) {
-        setOrders(data as Order[]);
+        const formattedOrders = data.map(order => ({
+          ...order,
+          items: (order.items || []).map(item => ({
+            ...item,
+            medicine: Array.isArray(item.medicine) && item.medicine.length > 0
+              ? {
+                  name: item.medicine[0]?.name || '',
+                  image: item.medicine[0]?.image || ''
+                }
+              : (item.medicine || { name: '', image: '' })
+          }))
+        })) as Order[];
+        
+        setOrders(formattedOrders);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -109,13 +120,11 @@ export default function OrdersPage() {
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, 'dd MMM yyyy');
   };
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'processing':
@@ -133,7 +142,6 @@ export default function OrdersPage() {
     }
   };
 
-  // Get payment method text
   const getPaymentMethodText = (method: string) => {
     switch (method) {
       case 'card':
@@ -147,16 +155,13 @@ export default function OrdersPage() {
     }
   };
 
-  // Filter orders by search query
   const filteredOrders = orders.filter(order => {
     if (!searchQuery) return true;
     
     const searchLower = searchQuery.toLowerCase();
     
-    // Search by order ID
     if (order.id.toLowerCase().includes(searchLower)) return true;
     
-    // Search by medicine name in order items
     const hasMatchingMedicine = order.items.some(item => 
       item.medicine?.name.toLowerCase().includes(searchLower)
     );
@@ -164,10 +169,8 @@ export default function OrdersPage() {
     return hasMatchingMedicine;
   });
 
-  // Render order cards
   const renderOrderCards = () => {
     if (loading) {
-      // Show skeleton while loading
       return Array.from({ length: 3 }).map((_, index) => (
         <Card key={`skeleton-${index}`} className="mb-4">
           <CardHeader className="pb-2">
@@ -287,7 +290,6 @@ export default function OrdersPage() {
     ));
   };
 
-  // Get active order status counts
   const getStatusCounts = () => {
     return {
       all: orders.length,
@@ -306,7 +308,6 @@ export default function OrdersPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          {/* Filters and Search */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -355,13 +356,11 @@ export default function OrdersPage() {
             </div>
           </div>
           
-          {/* Orders List */}
           <div>
             {renderOrderCards()}
           </div>
         </div>
         
-        {/* Side Section - Order Status Legend and Help */}
         <div>
           <Card className="mb-6 sticky top-4">
             <CardHeader>
@@ -422,4 +421,4 @@ export default function OrdersPage() {
       </div>
     </div>
   );
-} 
+}

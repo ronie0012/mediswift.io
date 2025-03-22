@@ -59,8 +59,10 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await signUp(values.email, values.password, {
-        name: values.name,
-        phone: values.phone,
+        data: {
+          name: values.name,
+          phone: values.phone,
+        }
       });
       
       toast({
@@ -68,7 +70,6 @@ export default function RegisterPage() {
         description: "Please check your email to verify your account",
       });
       
-      // Redirect to login page after successful registration
       router.push('/auth/login');
     } catch (error: any) {
       toast({
@@ -284,4 +285,4 @@ export default function RegisterPage() {
       </Card>
     </div>
   );
-} 
+}
