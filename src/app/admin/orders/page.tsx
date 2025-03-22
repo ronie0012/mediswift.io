@@ -14,7 +14,8 @@ import {
   PackageCheck, 
   AlertTriangle,
   RefreshCcw,
-  X
+  X,
+  CheckCircle
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -668,4 +669,4 @@ export default function AdminOrdersPage() {
       </Dialog>
     </div>
   );
-} 
+}

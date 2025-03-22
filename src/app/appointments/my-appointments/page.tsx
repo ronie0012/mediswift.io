@@ -15,7 +15,8 @@ import {
   RefreshCw,
   Eye,
   MessageSquare,
-  FileText
+  FileText,
+  Star
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -687,4 +688,4 @@ export default function MyAppointmentsPage() {
       </Dialog>
     </div>
   );
-} 
+}

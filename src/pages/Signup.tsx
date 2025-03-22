@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ const Signup = () => {
     }
     
     try {
-      await signup(name, email, phone, password);
+      await signup(email, password, name, phone);
       navigate("/");
     } catch (error) {
       // Error is already handled in the AuthContext

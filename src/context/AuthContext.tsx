@@ -12,15 +12,17 @@ interface AuthContextType {
   loading: boolean;
   error: Error | null;
   isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{success: boolean, error?: string}>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   validatePassword: (password: string) => boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{success: boolean, error?: string}>;
   logout: () => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, phone?: string) => Promise<void>;
   isLoading: boolean;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (token: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,6 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           email: session.user.email!, 
           name: session.user.user_metadata?.name,
           phone: session.user.user_metadata?.phone,
+          user_metadata: session.user.user_metadata
         } : null);
         setLoading(false);
         
@@ -67,6 +70,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email: session.user.email!,
         name: session.user.user_metadata?.name,
         phone: session.user.user_metadata?.phone,
+        user_metadata: session.user.user_metadata
       } : null);
       setLoading(false);
       
@@ -95,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<{success: boolean, error?: string}> => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -104,9 +108,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       toast.success('Signed in successfully!');
       navigate('/');
+      return { success: true };
     } catch (error: any) {
       setError(error);
       toast.error(error.message || 'Failed to sign in. Please check your credentials.');
+      return { success: false, error: error.message };
     } finally {
       setLoading(false);
     }
@@ -152,6 +158,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/new-password`,
+      });
+
+      if (error) throw error;
+      
+      toast.success('Password reset email sent successfully.');
+    } catch (error: any) {
+      setError(error);
+      toast.error(error.message || 'Failed to send reset email. Please try again.');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePassword = async (token: string, newPassword: string) => {
+    try {
+      setLoading(true);
+      
+      // Use token to update password
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Password updated successfully.');
+    } catch (error: any) {
+      setError(error);
+      toast.error(error.message || 'Failed to update password. Please try again.');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const validatePassword = (password: string) => {
     // Password must be at least 8 characters and contain at least one number, one uppercase, one lowercase
     const hasNumber = /\d/.test(password);
@@ -160,6 +206,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const isLongEnough = password.length >= 8;
     
     return hasNumber && hasUpper && hasLower && isLongEnough;
+  };
+
+  const signup = async (email: string, password: string, name: string, phone?: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: { name, phone }
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Signed up successfully! Please check your email for verification.');
+      navigate('/auth/login');
+    } catch (error: any) {
+      setError(error);
+      toast.error(error.message || 'Failed to sign up. Please try again.');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -176,8 +246,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       validatePassword,
       login: signIn,
       logout: signOut,
-      signup: signUp,
-      isLoading: loading
+      signup,
+      isLoading: loading,
+      resetPassword,
+      updatePassword
     }}>
       {children}
     </AuthContext.Provider>

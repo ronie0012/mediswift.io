@@ -6,6 +6,11 @@ export interface User {
   email: string;
   name?: string;
   phone?: string;
+  user_metadata?: {
+    name?: string;
+    phone?: string;
+    full_name?: string;
+  };
 }
 
 export interface Medicine {
@@ -23,6 +28,7 @@ export interface Medicine {
   side_effects: string | null;
   contraindications: string | null;
   stock: number | null;
+  prescription_required?: boolean;
   created_at: string;
   updated_at: string | null;
 }
@@ -35,6 +41,8 @@ export interface CartItem {
   image: string;
   brand: string;
   brandName?: string; // Added for compatibility with existing code
+  stock?: number;
+  prescription_required?: boolean;
 }
 
 export interface Doctor {
@@ -147,6 +155,7 @@ export interface Order {
     full_name: string;
     email: string;
   };
+  items_count?: number;
 }
 
 export interface Address {
