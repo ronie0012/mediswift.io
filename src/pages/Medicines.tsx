@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Star, ShoppingCart, Search } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
-import { CartContext } from "@/context/CartContext";
+import { useCart } from "@/lib/cart";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -24,7 +25,7 @@ import { medicineData, Medicine } from "@/data/medicines";
 
 export default function Medicines() {
   const navigate = useNavigate();
-  const cartContext = useContext(CartContext);
+  const { addToCart } = useCart();
   const { toast } = useToast();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +64,21 @@ export default function Medicines() {
     return searchMatch && categoryMatch && priceMatch;
   });
 
-  const { addToCart } = useCart();
+  const handleAddToCart = (medicine: Medicine) => {
+    addToCart({
+      id: medicine.id,
+      name: medicine.name,
+      price: medicine.discountPrice,
+      image: medicine.image,
+      quantity: 1,
+      brand: medicine.brand
+    });
+    
+    toast({
+      title: "Added to cart",
+      description: `${medicine.name} added to your cart`,
+    });
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);

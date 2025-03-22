@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { format, addDays, isSameDay, isValid } from 'date-fns';
-import { enGB } from 'date-fns/locale';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { useNavigate } from 'react-router-dom';
+import { format, addDays } from 'date-fns';
 import { 
   Calendar as CalendarIcon,
   Clock,
@@ -55,6 +51,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Doctor, TimeSlot, AppointmentWithDetails } from '@/types/models';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const appointmentSchema = z.object({
   patientName: z.string().min(2, { message: "Patient name must be at least 2 characters" }),
@@ -78,7 +77,7 @@ interface DoctorAppointmentProps {
 }
 
 export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -93,8 +92,8 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
     time: string;
   } | null>(null);
   
-  const disabledDays: (date: Date) => boolean = (date: Date) => {
-    return date < addDays(new Date(), 0)
+  const disabledDays = (date: Date) => {
+    return date < addDays(new Date(), 0);
   };
   
   const form = useForm<AppointmentValues>({
@@ -184,7 +183,10 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
         let availableTimeSlots = allTimeSlotsData as TimeSlot[];
         
         if (existingAppointments && existingAppointments.length > 0) {
-          const bookedTimeSlotIds = existingAppointments.map(appointment => appointment.time_slot.id);
+          const bookedTimeSlotIds = existingAppointments
+            .filter(appointment => appointment.time_slot && appointment.time_slot.id)
+            .map(appointment => appointment.time_slot.id);
+            
           availableTimeSlots = availableTimeSlots.filter(slot => !bookedTimeSlotIds.includes(slot.id));
         }
         
@@ -202,32 +204,41 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
     fetchAvailableSlots();
   }, [doctor, selectedDate, toast]);
   
-  const formSubmit = async (formData: any) => {
+  const formSubmit = async (formData: AppointmentValues) => {
     setIsSubmitting(true);
     
     try {
-      const appointmentData: Partial<AppointmentWithDetails> = {
+      if (!selectedDate || !selectedTimeSlot) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Please select a date and time slot."
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      
+      const appointment = {
         doctor_id: parseInt(doctorId as string),
-        date: selectedDate,
-        time_slot: selectedTimeSlot,
+        date: formattedDate,
+        time_slot: selectedTimeSlot.id,
         symptoms: formData.symptoms,
-        notes: formData.additionalInfo,
         patientName: formData.patientName,
         patientAge: formData.patientAge,
         patientPhone: formData.patientPhone,
         consultationType: formData.consultationType
       };
       
-      const { data: appointmentData, error: appointmentError } = await supabase
+      const { data, error } = await supabase
         .from('appointments')
-        .insert([
-          appointmentData
-        ])
-        .select('*')
+        .insert([appointment])
+        .select()
         .single();
       
-      if (appointmentError) {
-        console.error("Error creating appointment:", appointmentError);
+      if (error) {
+        console.error("Error creating appointment:", error);
         toast({
           variant: "destructive",
           title: "Error",
@@ -251,8 +262,8 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
       }
       
       setAppointmentConfirmation({
-        id: appointmentData.id,
-        date: format(selectedDate, 'yyyy-MM-dd'),
+        id: data.id,
+        date: formattedDate,
         time: selectedTimeSlot.start_time,
       });
       
@@ -273,7 +284,7 @@ export default function DoctorAppointment({ doctorId }: DoctorAppointmentProps) 
   };
   
   const handleGoToDashboard = () => {
-    router.push('/dashboard');
+    navigate('/dashboard');
   };
   
   return (

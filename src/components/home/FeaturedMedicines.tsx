@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
-import { useCart } from '@/context/CartContext';
+import { useCart } from '@/lib/cart';
 import { supabase } from '@/lib/supabase';
 import { Medicine } from '@/types/models';
 

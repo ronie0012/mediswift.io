@@ -18,7 +18,7 @@ interface CartContextType {
   isInCart: (id: number) => boolean;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 interface CartProviderProps {
   children: ReactNode;
