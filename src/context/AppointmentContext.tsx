@@ -1,110 +1,171 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { toast } from "sonner";
-import { 
-  appointmentService, 
-  Appointment, 
-  AppointmentWithDetails,
-  AppointmentStatus,
-  AppointmentType,
-  CreateAppointmentData
-} from "@/services/appointment.service";
-import { useAuth } from "./AuthContext";
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AppointmentWithDetails } from '@/types/models';
+import { toast } from 'sonner';
+import { useAuth } from './AuthContext';
+import { supabase } from '@/lib/supabase';
 
 interface AppointmentContextType {
   appointments: AppointmentWithDetails[];
-  loadingAppointments: boolean;
-  bookAppointment: (data: Omit<CreateAppointmentData, 'userId'>) => Promise<void>;
-  cancelAppointment: (id: number) => Promise<void>;
-  rescheduleAppointment: (id: number, newDate: string, newTime: string) => Promise<void>;
-  refreshAppointments: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  fetchAppointments: () => Promise<void>;
+  addAppointment: (appointment: Partial<AppointmentWithDetails>) => Promise<boolean>;
+  updateAppointmentStatus: (id: number, status: string) => Promise<boolean>;
+  cancelAppointment: (id: number) => Promise<boolean>;
+  rescheduleAppointment: (id: number, date: string, timeSlot: string) => Promise<boolean>;
 }
 
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined);
 
-export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AppointmentProviderProps {
+  children: ReactNode;
+}
+
+export const AppointmentProvider = ({ children }: AppointmentProviderProps) => {
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
-  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  
+
   useEffect(() => {
     if (user) {
-      refreshAppointments();
-    } else {
-      setAppointments([]);
+      fetchAppointments();
     }
   }, [user]);
-  
-  const refreshAppointments = async () => {
+
+  const fetchAppointments = async () => {
     if (!user) return;
     
-    setLoadingAppointments(true);
     try {
-      const userAppointments = await appointmentService.getUserAppointments(user.id);
-      setAppointments(userAppointments);
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          id, doctor_id, user_id, date, status, created_at, 
+          symptoms, notes, time_slot, doctor:doctors(*)
+        `)
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      
+      setAppointments(data as unknown as AppointmentWithDetails[]);
     } catch (error: any) {
-      console.error("Error fetching appointments:", error);
-      toast.error("Failed to load appointments");
+      console.error('Error fetching appointments:', error);
+      setError(error.message);
+      toast.error('Failed to load appointments');
     } finally {
-      setLoadingAppointments(false);
+      setLoading(false);
     }
   };
-  
-  const bookAppointment = async (data: Omit<CreateAppointmentData, 'userId'>) => {
+
+  const addAppointment = async (appointment: Partial<AppointmentWithDetails>): Promise<boolean> => {
     if (!user) {
-      toast.error("You must be logged in to book an appointment");
-      throw new Error("User not authenticated");
+      toast.error('You must be logged in to book an appointment');
+      return false;
     }
     
     try {
-      await appointmentService.createAppointment({
-        ...data,
-        userId: user.id
-      });
+      setLoading(true);
       
-      toast.success("Appointment booked successfully!");
-      await refreshAppointments();
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert({
+          user_id: user.id,
+          doctor_id: appointment.doctor_id,
+          date: appointment.date,
+          time_slot: appointment.time_slot,
+          status: 'upcoming',
+          symptoms: appointment.symptoms,
+          notes: appointment.notes || '',
+        })
+        .select();
+      
+      if (error) throw error;
+      
+      toast.success('Appointment booked successfully!');
+      await fetchAppointments();
+      return true;
     } catch (error: any) {
-      console.error("Error booking appointment:", error);
-      toast.error(error.message || "Failed to book appointment");
-      throw error;
+      console.error('Error booking appointment:', error);
+      setError(error.message);
+      toast.error('Failed to book appointment');
+      return false;
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const cancelAppointment = async (id: number) => {
+
+  const updateAppointmentStatus = async (id: number, status: string): Promise<boolean> => {
     try {
-      await appointmentService.cancelAppointment(id);
-      toast.success("Appointment cancelled successfully");
-      await refreshAppointments();
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status })
+        .eq('id', id)
+        .eq('user_id', user?.id);
+      
+      if (error) throw error;
+      
+      toast.success(`Appointment ${status} successfully!`);
+      await fetchAppointments();
+      return true;
     } catch (error: any) {
-      console.error("Error cancelling appointment:", error);
-      toast.error("Failed to cancel appointment");
-      throw error;
+      console.error(`Error updating appointment to ${status}:`, error);
+      setError(error.message);
+      toast.error(`Failed to update appointment status`);
+      return false;
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const rescheduleAppointment = async (id: number, newDate: string, newTime: string) => {
+
+  const cancelAppointment = async (id: number): Promise<boolean> => {
+    return updateAppointmentStatus(id, 'cancelled');
+  };
+
+  const rescheduleAppointment = async (id: number, date: string, timeSlot: string): Promise<boolean> => {
     try {
-      await appointmentService.rescheduleAppointment(id, newDate, newTime);
-      toast.success("Appointment rescheduled successfully");
-      await refreshAppointments();
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('appointments')
+        .update({ 
+          date,
+          time_slot: timeSlot,
+          status: 'rescheduled'
+        })
+        .eq('id', id)
+        .eq('user_id', user?.id);
+      
+      if (error) throw error;
+      
+      toast.success('Appointment rescheduled successfully!');
+      await fetchAppointments();
+      return true;
     } catch (error: any) {
-      console.error("Error rescheduling appointment:", error);
-      toast.error(error.message || "Failed to reschedule appointment");
-      throw error;
+      console.error('Error rescheduling appointment:', error);
+      setError(error.message);
+      toast.error('Failed to reschedule appointment');
+      return false;
+    } finally {
+      setLoading(false);
     }
   };
-  
+
   return (
-    <AppointmentContext.Provider
-      value={{
-        appointments,
-        loadingAppointments,
-        bookAppointment,
-        cancelAppointment,
-        rescheduleAppointment,
-        refreshAppointments
-      }}
-    >
+    <AppointmentContext.Provider value={{
+      appointments,
+      loading,
+      error,
+      fetchAppointments,
+      addAppointment,
+      updateAppointmentStatus,
+      cancelAppointment,
+      rescheduleAppointment
+    }}>
       {children}
     </AppointmentContext.Provider>
   );
@@ -113,7 +174,7 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
 export const useAppointments = () => {
   const context = useContext(AppointmentContext);
   if (context === undefined) {
-    throw new Error("useAppointments must be used within an AppointmentProvider");
+    throw new Error('useAppointments must be used within an AppointmentProvider');
   }
   return context;
-}; 
+};

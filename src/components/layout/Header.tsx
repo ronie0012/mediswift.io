@@ -1,252 +1,262 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { 
-  Search, 
-  Menu, 
-  X, 
-  User, 
-  ShoppingCart, 
-  Phone, 
-  ChevronDown,
-  LogOut,
-  Calendar,
-  Package
-} from "lucide-react";
-import { useCart } from "@/context/CartContext";
-import { useAuth } from "@/context/AuthContext";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
+
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
+import { Menu, X, ShoppingCart, User, Search, Bell } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { pathname } = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
   const { getItemsCount } = useCart();
-  const { user, logout, isAuthenticated } = useAuth();
-  const cartItemCount = getItemsCount();
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+  const isActive = (path: string) => pathname === path;
 
-  const handleLogout = () => {
-    logout();
-    setIsOpen(false);
-  };
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const closeMenu = () => setIsOpen(false);
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className="bg-white border-b border-gray-200 sticky top-0 z-50"
-    >
-      <nav className="container mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Link to="/" className="text-2xl font-bold text-medical-600">
-              MediSwift
-            </Link>
-          </motion.div>
+    <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <span className="text-xl font-bold text-primary">MediSwift</span>
+          </Link>
 
           {/* Desktop Navigation */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden md:flex items-center space-x-6"
-          >
-            <Link to="/medicines" className="text-gray-600 hover:text-medical-600">
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link 
+              to="/" 
+              className={`text-sm font-medium ${isActive('/') ? 'text-primary' : 'text-gray-600 hover:text-primary'}`}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/medicines" 
+              className={`text-sm font-medium ${isActive('/medicines') ? 'text-primary' : 'text-gray-600 hover:text-primary'}`}
+            >
               Medicines
             </Link>
-            <Link to="/doctors" className="text-gray-600 hover:text-medical-600">
+            <Link 
+              to="/doctors" 
+              className={`text-sm font-medium ${isActive('/doctors') ? 'text-primary' : 'text-gray-600 hover:text-primary'}`}
+            >
               Doctors
             </Link>
-            <Link to="/ambulance" className="text-gray-600 hover:text-medical-600">
-              Ambulance
+            <Link 
+              to="/lab-tests" 
+              className={`text-sm font-medium ${isActive('/lab-tests') ? 'text-primary' : 'text-gray-600 hover:text-primary'}`}
+            >
+              Lab Tests
             </Link>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="hidden md:flex items-center space-x-4"
-          >
-            <div className="flex items-center text-medical-600">
-              <Phone className="h-5 w-5 mr-2" />
-              <span>1800-123-1234</span>
-            </div>
-
-            <Link to="/cart" className="relative">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="ghost" size="icon">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartItemCount > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center"
-                    >
-                      {cartItemCount}
-                    </motion.span>
-                  )}
-                </Button>
-              </motion.div>
+            <Link 
+              to="/health-plans" 
+              className={`text-sm font-medium ${isActive('/health-plans') ? 'text-primary' : 'text-gray-600 hover:text-primary'}`}
+            >
+              Health Plans
             </Link>
+          </nav>
 
+          {/* Actions */}
+          <div className="flex items-center space-x-4">
+            <Link to="/search" className="text-gray-600 hover:text-primary p-1">
+              <Search className="h-5 w-5" />
+            </Link>
+            
+            <Link to="/cart" className="text-gray-600 hover:text-primary p-1 relative">
+              <ShoppingCart className="h-5 w-5" />
+              {getItemsCount() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {getItemsCount() > 9 ? '9+' : getItemsCount()}
+                </span>
+              )}
+            </Link>
+            
             {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button variant="outline" className="flex items-center space-x-2">
-                      <User className="h-4 w-4" />
-                      <span>{user?.name}</span>
-                    </Button>
-                  </motion.div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
-                      Profile
+              <>
+                <Link to="/notifications" className="text-gray-600 hover:text-primary p-1 relative hidden md:block">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    2
+                  </span>
+                </Link>
+                
+                <div className="relative group hidden md:block">
+                  <Link to="/profile" className="flex items-center text-gray-600 hover:text-primary">
+                    <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center mr-2">
+                      <User className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium">{user?.name || user?.email?.split('@')[0]}</span>
+                  </Link>
+                  
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block">
+                    <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Dashboard
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-appointments" className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      My Appointments
+                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      My Profile
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-orders" className="flex items-center">
-                      <Package className="h-4 w-4 mr-2" />
+                    <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       My Orders
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center text-red-600">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <Link to="/appointments" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      My Appointments
+                    </Link>
+                    <button 
+                      onClick={logout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : (
-              <div className="flex items-center space-x-2">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button variant="outline" asChild>
-                    <Link to="/login">Login</Link>
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button asChild>
-                    <Link to="/signup">Sign Up</Link>
-                  </Button>
-                </motion.div>
+              <div className="hidden md:block">
+                <Link 
+                  to="/login" 
+                  className="text-primary font-medium text-sm mr-4"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Sign Up
+                </Link>
               </div>
             )}
-          </motion.div>
-
-          {/* Mobile Menu Button */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="md:hidden"
-          >
-            <Button variant="ghost" size="icon" onClick={toggleMenu}>
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Mobile Navigation */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="md:hidden"
+            
+            {/* Mobile menu button */}
+            <button 
+              onClick={toggleMenu}
+              className="md:hidden text-gray-600 hover:text-primary p-1"
             >
-              <div className="pt-4 pb-3 space-y-3">
-                <Link
-                  to="/medicines"
-                  className="block px-3 py-2 text-gray-600 hover:text-medical-600 hover:bg-gray-50 rounded-md"
-                  onClick={() => setIsOpen(false)}
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-white border-t"
+          >
+            <div className="container mx-auto px-4 py-3">
+              <nav className="flex flex-col space-y-3">
+                <Link 
+                  to="/" 
+                  className={`text-sm font-medium py-2 ${isActive('/') ? 'text-primary' : 'text-gray-600'}`}
+                  onClick={closeMenu}
+                >
+                  Home
+                </Link>
+                <Link 
+                  to="/medicines" 
+                  className={`text-sm font-medium py-2 ${isActive('/medicines') ? 'text-primary' : 'text-gray-600'}`}
+                  onClick={closeMenu}
                 >
                   Medicines
                 </Link>
-                <Link
-                  to="/doctors"
-                  className="block px-3 py-2 text-gray-600 hover:text-medical-600 hover:bg-gray-50 rounded-md"
-                  onClick={() => setIsOpen(false)}
+                <Link 
+                  to="/doctors" 
+                  className={`text-sm font-medium py-2 ${isActive('/doctors') ? 'text-primary' : 'text-gray-600'}`}
+                  onClick={closeMenu}
                 >
                   Doctors
                 </Link>
-                <Link
-                  to="/ambulance"
-                  className="block px-3 py-2 text-gray-600 hover:text-medical-600 hover:bg-gray-50 rounded-md"
-                  onClick={() => setIsOpen(false)}
+                <Link 
+                  to="/lab-tests" 
+                  className={`text-sm font-medium py-2 ${isActive('/lab-tests') ? 'text-primary' : 'text-gray-600'}`}
+                  onClick={closeMenu}
                 >
-                  Ambulance
+                  Lab Tests
                 </Link>
-                {user ? (
+                <Link 
+                  to="/health-plans" 
+                  className={`text-sm font-medium py-2 ${isActive('/health-plans') ? 'text-primary' : 'text-gray-600'}`}
+                  onClick={closeMenu}
+                >
+                  Health Plans
+                </Link>
+                
+                {isAuthenticated ? (
                   <>
-                    <Link
-                      to="/profile"
-                      className="block px-3 py-2 text-gray-600 hover:text-medical-600 hover:bg-gray-50 rounded-md"
-                      onClick={() => setIsOpen(false)}
+                    <hr className="border-gray-200" />
+                    <Link 
+                      to="/dashboard" 
+                      className="text-sm font-medium py-2 text-gray-600"
+                      onClick={closeMenu}
                     >
-                      Profile
+                      Dashboard
                     </Link>
-                    <Link
-                      to="/my-appointments"
-                      className="block px-3 py-2 text-gray-600 hover:text-medical-600 hover:bg-gray-50 rounded-md"
-                      onClick={() => setIsOpen(false)}
+                    <Link 
+                      to="/profile" 
+                      className="text-sm font-medium py-2 text-gray-600"
+                      onClick={closeMenu}
                     >
-                      My Appointments
+                      My Profile
                     </Link>
-                    <Link
-                      to="/my-orders"
-                      className="block px-3 py-2 text-gray-600 hover:text-medical-600 hover:bg-gray-50 rounded-md"
-                      onClick={() => setIsOpen(false)}
+                    <Link 
+                      to="/orders" 
+                      className="text-sm font-medium py-2 text-gray-600"
+                      onClick={closeMenu}
                     >
                       My Orders
                     </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-50 rounded-md"
+                    <Link 
+                      to="/appointments" 
+                      className="text-sm font-medium py-2 text-gray-600"
+                      onClick={closeMenu}
                     >
-                      Logout
+                      My Appointments
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        logout();
+                        closeMenu();
+                      }}
+                      className="text-sm font-medium py-2 text-red-600 text-left"
+                    >
+                      Sign Out
                     </button>
                   </>
                 ) : (
-                  <div className="space-y-2 px-3">
-                    <Button asChild variant="outline" className="w-full" onClick={() => setIsOpen(false)}>
-                      <Link to="/login">Login</Link>
-                    </Button>
-                    <Button asChild className="w-full" onClick={() => setIsOpen(false)}>
-                      <Link to="/signup">Sign up</Link>
-                    </Button>
-                  </div>
+                  <>
+                    <hr className="border-gray-200" />
+                    <div className="flex space-x-4 pt-2">
+                      <Link 
+                        to="/login" 
+                        className="bg-white border border-primary text-primary px-4 py-2 rounded-md text-sm font-medium flex-1 text-center"
+                        onClick={closeMenu}
+                      >
+                        Sign In
+                      </Link>
+                      <Link 
+                        to="/signup" 
+                        className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium flex-1 text-center"
+                        onClick={closeMenu}
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  </>
                 )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
-    </motion.header>
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 };
 

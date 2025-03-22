@@ -20,3 +20,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 
 // Helper function to check if running in the browser
 export const isBrowser = () => typeof window !== 'undefined';
+
+// Re-export Database type
+export type { Database } from '@/types/supabase';
