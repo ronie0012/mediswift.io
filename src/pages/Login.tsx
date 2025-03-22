@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,12 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  // Changed from setLoading to isLoading state
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,8 +21,7 @@ export default function Login() {
     setErrorMessage('');
 
     try {
-      // Fixed: login expects only email and password
-      const result = await login(email, password);
+      const result = await signIn(email, password);
       
       if (!result.success) {
         setErrorMessage(result.error || 'Login failed. Please try again.');

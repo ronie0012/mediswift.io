@@ -1,3 +1,4 @@
+
 import { Json } from './supabase';
 
 export interface User {
@@ -20,7 +21,7 @@ export interface Medicine {
   discount_price: number;
   rating: number;
   category: string;
-  quantity: string;
+  quantity?: string;
   image: string;
   description: string | null;
   usage: string | null;
@@ -66,7 +67,7 @@ export interface Doctor {
   location: string;
   education: string;
   languages: string[];
-  available_slots: Record<string, string[]>;
+  available_slots?: Record<string, string[]>;
   availableSlots?: Record<string, string[]>;
   created_at: string;
   updated_at: string | null;

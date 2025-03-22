@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { Star, ShoppingCart } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { useCart } from '@/context/CartContext';
@@ -47,7 +46,6 @@ export default function FeaturedMedicines() {
   }, [toast]);
 
   const handleAddToCart = (medicine: Medicine) => {
-    // Fixed: Removed the unused second parameter
     addToCart({
       id: medicine.id,
       name: medicine.name,
@@ -92,11 +90,10 @@ export default function FeaturedMedicines() {
         <Card key={medicine.id} className="h-full hover:shadow-md transition-shadow">
           <CardContent className="p-0">
             <div className="relative h-[200px] bg-gray-100 rounded-t-lg">
-              <Image
+              <img
                 src={medicine.image || '/placeholder-medicine.jpg'}
                 alt={medicine.name}
-                fill
-                className="object-cover rounded-t-lg"
+                className="object-cover rounded-t-lg w-full h-full"
               />
               {medicine.discount_price < medicine.price && (
                 <Badge className="absolute top-2 right-2 bg-red-500">
