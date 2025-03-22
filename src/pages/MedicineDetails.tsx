@@ -38,21 +38,17 @@ const MedicineDetails = () => {
   const [estimatedMinutes, setEstimatedMinutes] = useState(0);
 
   useEffect(() => {
-    // In a real app, this would be an API call
     const loadMedicine = async () => {
       setLoading(true);
       try {
-        // Simulate API delay
         await new Promise((resolve) => setTimeout(resolve, 800));
         const foundMedicine = medicineData.find(m => m.id === Number(id));
         if (foundMedicine) {
           setMedicine(foundMedicine);
           
-          // Generate random estimated delivery time between 10-20 minutes
-          const minutes = Math.floor(Math.random() * 11) + 10; // 10-20 minutes
+          const minutes = Math.floor(Math.random() * 11) + 10;
           setEstimatedMinutes(minutes);
         } else {
-          // If medicine not found, go back to medicines page
           toast({
             variant: "destructive",
             title: "Medicine not found",
@@ -80,7 +76,7 @@ const MedicineDetails = () => {
       setQuantity(prev => prev + 1);
     } else {
       toast({
-        variant: "destructive", // Changed from "warning" to "destructive" to fix the error
+        variant: "destructive",
         title: "Maximum quantity reached",
         description: "You've reached the maximum available quantity for this product."
       });
@@ -95,7 +91,14 @@ const MedicineDetails = () => {
 
   const handleAddToCart = () => {
     if (medicine) {
-      addToCart(medicine, quantity);
+      addToCart({
+        id: medicine.id,
+        name: medicine.name,
+        price: medicine.discountPrice || 0,
+        image: medicine.image,
+        quantity,
+        brand: medicine.brand || ''
+      });
       toast({
         title: "Added to cart",
         description: `${quantity} ${quantity === 1 ? 'unit' : 'units'} of ${medicine.name} added to your cart.`
@@ -105,8 +108,14 @@ const MedicineDetails = () => {
 
   const handleOrderNow = () => {
     if (medicine) {
-      // Add to cart and then open checkout dialog
-      addToCart(medicine, quantity);
+      addToCart({
+        id: medicine.id,
+        name: medicine.name,
+        price: medicine.discountPrice || 0,
+        image: medicine.image,
+        quantity,
+        brand: medicine.brand || ''
+      });
       setShowCheckoutDialog(true);
     }
   };
@@ -136,14 +145,9 @@ const MedicineDetails = () => {
   };
 
   const handlePlaceOrder = () => {
-    // Simulate payment processing
     setCheckoutStep(3);
-    
-    // Generate random order number
     const randomOrderNumber = "MED" + Math.floor(100000 + Math.random() * 900000);
     setOrderNumber(randomOrderNumber);
-    
-    // Simulate order confirmation after 2 seconds
     setTimeout(() => {
       setOrderPlaced(true);
     }, 2000);
@@ -151,21 +155,18 @@ const MedicineDetails = () => {
 
   const handleCloseCheckout = () => {
     if (orderPlaced) {
-      // If order was placed, navigate to medicines page
       setShowCheckoutDialog(false);
       setOrderPlaced(false);
       setCheckoutStep(1);
       setDeliveryAddress("");
       navigate('/medicines');
     } else {
-      // Just close the dialog
       setShowCheckoutDialog(false);
       setCheckoutStep(1);
       setDeliveryAddress("");
     }
   };
 
-  // Loading skeleton
   if (loading) {
     return (
       <Layout>
@@ -221,7 +222,6 @@ const MedicineDetails = () => {
           </Button>
 
           <div className="flex flex-col md:flex-row gap-8">
-            {/* Product Image */}
             <div className="w-full md:w-2/5">
               <motion.div 
                 className="bg-white border rounded-lg overflow-hidden shadow-sm"
@@ -252,7 +252,6 @@ const MedicineDetails = () => {
               </motion.div>
             </div>
 
-            {/* Product Details */}
             <div className="w-full md:w-3/5">
               <div className="space-y-4">
                 <div>
@@ -455,7 +454,6 @@ const MedicineDetails = () => {
         </div>
       </div>
 
-      {/* Checkout Dialog */}
       <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

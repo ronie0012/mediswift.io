@@ -85,6 +85,17 @@ export default function HomePage() {
     }
   };
 
+  const handleAddToCart = (medicine: Medicine) => {
+    addToCart({
+      id: medicine.id,
+      name: medicine.name,
+      price: medicine.discount_price,
+      quantity: 1,
+      image: medicine.image,
+      brand: medicine.brand
+    });
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -409,4 +420,4 @@ export default function HomePage() {
       </section>
     </div>
   );
-} 
+}

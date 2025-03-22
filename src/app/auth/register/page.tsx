@@ -59,10 +59,8 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await signUp(values.email, values.password, {
-        data: {
-          name: values.name,
-          phone: values.phone,
-        }
+        name: values.name,
+        phone: values.phone,
       });
       
       toast({

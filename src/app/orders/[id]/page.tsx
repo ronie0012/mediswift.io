@@ -50,7 +50,7 @@ interface Order {
   items: OrderItem[];
 }
 
-export default function OrderDetailPage({ params }: { params: { id: string } }) {
+export default function OrderDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -58,7 +58,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
   const [cancellingOrder, setCancellingOrder] = useState(false);
 
-  const orderId = params.id;
+  const id = params.id;
 
   useEffect(() => {
     if (!user) {
@@ -66,68 +66,75 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       return;
     }
 
-    if (!orderId) {
+    if (!id) {
       router.push('/orders');
       return;
     }
 
-    fetchOrderDetails();
-  }, [orderId, user, router]);
-
-  const fetchOrderDetails = async () => {
-    try {
-      setLoading(true);
+    async function fetchOrderDetails() {
+      if (!id) return;
       
-      // Fetch order with items
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          id,
-          created_at,
-          updated_at,
-          total_amount,
-          status,
-          payment_method,
-          delivery_address,
-          items:order_items(
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('orders')
+          .select(`
             id,
-            medicine_id,
-            order_id,
-            quantity,
-            price,
-            medicine:medicines(
-              name, 
-              image,
-              description,
-              prescription_required
+            created_at,
+            updated_at,
+            total_amount,
+            status,
+            payment_method,
+            delivery_address,
+            items:order_items(
+              id,
+              medicine_id,
+              order_id,
+              quantity,
+              price,
+              medicine:medicines(
+                name, 
+                image,
+                description,
+                prescription_required
+              )
             )
-          )
-        `)
-        .eq('id', orderId)
-        .eq('user_id', user?.id)
-        .single();
+          `)
+          .eq('id', id)
+          .eq('user_id', user?.id)
+          .single();
 
-      if (error) throw error;
-      
-      if (data) {
-        setOrder(data as Order);
+        if (error) throw error;
+        
+        if (data) {
+          const orderData = {
+            ...data,
+            items: data.items.map((item: any) => ({
+              ...item,
+              medicine: item.medicine && item.medicine.length > 0 ? item.medicine[0] : null
+            }))
+          };
+          
+          setOrder(orderData as Order);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching order details:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load order details. Please try again.",
+        });
       }
-    } catch (error) {
-      console.error('Error fetching order details:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load order details. Please try again.",
-      });
-    } finally {
-      setLoading(false);
     }
-  };
+
+    fetchOrderDetails();
+  }, [id, user, router]);
 
   const handleCancelOrder = async () => {
     if (!order || !user) return;
     
-    // Only allow cancellation for orders that are not yet shipped
     if (order.status !== 'processing' && order.status !== 'pending_payment') {
       toast({
         variant: "destructive",
@@ -140,7 +147,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     try {
       setCancellingOrder(true);
       
-      // Update order status
       const { error } = await supabase
         .from('orders')
         .update({ status: 'cancelled' })
@@ -149,7 +155,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
 
       if (error) throw error;
       
-      // Update local state
       setOrder({ ...order, status: 'cancelled' });
       
       toast({
@@ -168,20 +173,17 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, 'dd MMM yyyy, h:mm a');
   };
 
-  // Estimated delivery date (7 days from order date)
   const getEstimatedDelivery = (dateString: string) => {
     const date = new Date(dateString);
     date.setDate(date.getDate() + 7);
     return format(date, 'dd MMM yyyy');
   };
 
-  // Get status badge with appropriate styling
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'processing':
@@ -199,7 +201,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     }
   };
 
-  // Get payment method text
   const getPaymentMethodText = (method: string) => {
     switch (method) {
       case 'card':
@@ -213,7 +214,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     }
   };
 
-  // Get order timeline steps based on status
   const getOrderTimeline = (order: Order) => {
     const steps = [
       {
@@ -335,9 +335,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Order Content */}
         <div className="lg:col-span-2">
-          {/* Order Status Timeline */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Order Progress</CardTitle>
@@ -388,7 +386,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             </CardContent>
           </Card>
           
-          {/* Order Items Tab */}
           <Card>
             <CardHeader>
               <CardTitle>Order Details</CardTitle>
@@ -564,7 +561,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </Card>
         </div>
         
-        {/* Order Summary Sidebar */}
         <div>
           <Card className="sticky top-4">
             <CardHeader>
@@ -615,4 +611,4 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       </div>
     </div>
   );
-} 
+}

@@ -31,9 +31,12 @@ export interface Medicine {
   prescription_required?: boolean;
   created_at: string;
   updated_at: string | null;
-  dosage?: string; // Added for MedicineCard
-  // Add quantity property for home page
+  dosage?: string;
   quantity_to_cart?: number;
+  // Add these for compatibility with different components
+  discountPrice?: number;
+  sideEffects?: string;
+  reviews?: any[];
 }
 
 export interface CartItem {
@@ -43,7 +46,7 @@ export interface CartItem {
   quantity: number;
   image: string;
   brand: string;
-  brandName?: string; // Added for compatibility with existing code
+  brandName?: string;
   stock?: number;
   prescription_required?: boolean;
 }
@@ -66,10 +69,10 @@ export interface Doctor {
   education: string;
   languages: string[];
   available_slots: Record<string, string[]>;
-  availableSlots?: Record<string, string[]>; // Added for compatibility
+  availableSlots?: Record<string, string[]>;
   created_at: string;
   updated_at: string | null;
-  phone?: string; // Added for Appointment.doctor
+  phone?: string;
 }
 
 export interface TimeSlot {
@@ -111,7 +114,7 @@ export interface Appointment {
   doctor_id: string | number;
   user_id: string;
   date: string;
-  time_slot: TimeSlot;
+  time_slot: TimeSlot | any;
   status: string;
   created_at: string;
   symptoms?: string;
@@ -124,7 +127,7 @@ export interface Appointment {
     rating: number;
     image: string;
     phone?: string;
-  };
+  } | any;
 }
 
 export interface OrderItem {
@@ -161,11 +164,11 @@ export interface Order {
     postal_code?: string;
     phone?: string;
   };
-  items: OrderItem[];
+  items: OrderItem[] | any[];
   profiles?: {
     full_name: string;
     email: string;
-  };
+  } | any;
   items_count?: number;
 }
 

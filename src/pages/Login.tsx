@@ -16,21 +16,23 @@ import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      await login(email, password, rememberMe);
+      setLoading(true);
+      await signIn(email, password);
       navigate("/");
     } catch (error) {
-      // Error is already handled in the AuthContext
       console.error("Login error:", error);
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -47,7 +49,7 @@ const Login = () => {
             <p className="text-gray-600">Login to access your MediSwift account</p>
           </div>
           
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleLogin}>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
