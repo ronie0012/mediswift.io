@@ -1,15 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState, ChangeEvent, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Search, Heart, ShoppingCart, Filter, ChevronDown, Star, Plus, Minus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious 
+} from "@/components/ui/pagination";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { medicineData, Medicine } from "@/data/medicines";
 
 const medicineCategories = [
   "All",
@@ -22,296 +43,6 @@ const medicineCategories = [
   "Diabetes Care",
   "Heart Health",
   "Baby Care",
-];
-
-interface Medicine {
-  id: number;
-  name: string;
-  brand: string;
-  price: number;
-  discountPrice: number;
-  rating: number;
-  image: string;
-  category: string;
-  quantity: string;
-}
-
-const medicineData: Medicine[] = [
-  {
-    id: 1,
-    name: "Paracetamol 500mg",
-    brand: "Generic",
-    price: 15,
-    discountPrice: 12,
-    rating: 4.8,
-    category: "Pain Relief",
-    quantity: "10 tablets",
-    image: "/Paracetamol.webp"
-  },
-  {
-    id: 2,
-    name: "Amoxicillin 500mg",
-    brand: "Generic",
-    price: 50,
-    discountPrice: 45,
-    rating: 4.7,
-    category: "Antibiotics",
-    quantity: "10 capsules",
-    image: "/Amoxicillin.webp"
-  },
-  {
-    id: 3,
-    name: "Azithromycin 500mg",
-    brand: "Generic",
-    price: 60,
-    discountPrice: 55,
-    rating: 4.7,
-    category: "Antibiotics",
-    quantity: "3 tablets",
-    image: "/Azithromycin.webp"
-  },
-  {
-    id: 4,
-    name: "Ciprofloxacin 500mg",
-    brand: "Generic",
-    price: 55,
-    discountPrice: 50,
-    rating: 4.5,
-    category: "Antibiotics",
-    quantity: "10 tablets",
-    image: "/Ciprofloxacin.webp"
-  },
-  {
-    id: 5,
-    name: "Metformin 500mg",
-    brand: "Generic",
-    price: 12,
-    discountPrice: 10,
-    rating: 4.6,
-    category: "Diabetes",
-    quantity: "10 tablets",
-    image: "/Metformin.webp"
-  },
-  {
-    id: 6,
-    name: "Amlodipine 5mg",
-    brand: "Generic",
-    price: 20,
-    discountPrice: 18,
-    rating: 4.8,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Amlodipine.webp"
-  },
-  {
-    id: 7,
-    name: "Atorvastatin 10mg",
-    brand: "Generic",
-    price: 25,
-    discountPrice: 22,
-    rating: 4.7,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Atorvastatin.webp"
-  },
-  {
-    id: 8,
-    name: "Omeprazole 20mg",
-    brand: "Generic",
-    price: 18,
-    discountPrice: 15,
-    rating: 4.7,
-    category: "Gastro",
-    quantity: "10 capsules",
-    image: "/Omeprazole.webp"
-  },
-  {
-    id: 9,
-    name: "Pantoprazole 40mg",
-    brand: "Generic",
-    price: 35,
-    discountPrice: 30,
-    rating: 4.6,
-    category: "Gastro",
-    quantity: "10 tablets",
-    image: "/Pantoprazole.webp"
-  },
-  {
-    id: 10,
-    name: "Cetirizine 10mg",
-    brand: "Generic",
-    price: 15,
-    discountPrice: 12,
-    rating: 4.8,
-    category: "Allergy",
-    quantity: "10 tablets",
-    image: "/Cetirizine.webp"
-  },
-  {
-    id: 11,
-    name: "Levocetirizine 5mg",
-    brand: "Generic",
-    price: 25,
-    discountPrice: 22,
-    rating: 4.7,
-    category: "Allergy",
-    quantity: "10 tablets",
-    image: "/Levocetirizine.webp"
-  },
-  {
-    id: 12,
-    name: "Montelukast 10mg",
-    brand: "Generic",
-    price: 70,
-    discountPrice: 65,
-    rating: 4.6,
-    category: "Allergy",
-    quantity: "10 tablets",
-    image: "/Montelukast.webp"
-  },
-  {
-    id: 13,
-    name: "Losartan 50mg",
-    brand: "Generic",
-    price: 30,
-    discountPrice: 28,
-    rating: 4.6,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Losartan.webp"
-  },
-  {
-    id: 14,
-    name: "Telmisartan 40mg",
-    brand: "Generic",
-    price: 45,
-    discountPrice: 40,
-    rating: 4.7,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Telmisartan.webp"
-  },
-  {
-    id: 15,
-    name: "Metoprolol 50mg",
-    brand: "Generic",
-    price: 25,
-    discountPrice: 22,
-    rating: 4.6,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Metoprolol.webp"
-  },
-  {
-    id: 16,
-    name: "Atenolol 50mg",
-    brand: "Generic",
-    price: 20,
-    discountPrice: 18,
-    rating: 4.7,
-    category: "Cardiac",
-    quantity: "14 tablets",
-    image: "/Atenolol.webp"
-  },
-  {
-    id: 17,
-    name: "Furosemide 40mg",
-    brand: "Generic",
-    price: 15,
-    discountPrice: 12,
-    rating: 4.6,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Furosemide.webp"
-  },
-  {
-    id: 18,
-    name: "Hydrochlorothiazide 25mg",
-    brand: "Generic",
-    price: 12,
-    discountPrice: 10,
-    rating: 4.5,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Hydrochlorothiazide.webp"
-  },
-  {
-    id: 19,
-    name: "Spironolactone 25mg",
-    brand: "Generic",
-    price: 30,
-    discountPrice: 28,
-    rating: 4.6,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Spironolactone.webp"
-  },
-  {
-    id: 20,
-    name: "Clopidogrel 75mg",
-    brand: "Generic",
-    price: 50,
-    discountPrice: 45,
-    rating: 4.7,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Clopidogrel.webp"
-  },
-  {
-    id: 21,
-    name: "Aspirin 75mg",
-    brand: "Generic",
-    price: 10,
-    discountPrice: 8,
-    rating: 4.6,
-    category: "Pain Relief",
-    quantity: "14 tablets",
-    image: "/Aspirin.webp"
-  },
-  {
-    id: 22,
-    name: "Rosuvastatin 10mg",
-    brand: "Generic",
-    price: 50,
-    discountPrice: 45,
-    rating: 4.7,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Rosuvastatin.webp"
-  },
-  {
-    id: 23,
-    name: "Simvastatin 20mg",
-    brand: "Generic",
-    price: 30,
-    discountPrice: 28,
-    rating: 4.6,
-    category: "Cardiac",
-    quantity: "10 tablets",
-    image: "/Simvastatin.webp"
-  },
-  {
-    id: 24,
-    name: "Doxycycline 100mg",
-    brand: "Generic",
-    price: 40,
-    discountPrice: 35,
-    rating: 4.6,
-    category: "Antibiotics",
-    quantity: "10 capsules",
-    image: "/Doxycycline.webp"
-  },
-  {
-    id: 25,
-    name: "Levofloxacin 500mg",
-    brand: "Generic",
-    price: 70,
-    discountPrice: 65,
-    rating: 4.7,
-    category: "Antibiotics",
-    quantity: "5 tablets",
-    image: "/Levofloxacin.jpg"
-  }
 ];
 
 const categories = [
@@ -448,7 +179,11 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
 };
 
 const Medicines = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const urlSearchQuery = searchParams.get('search') || '';
+  
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const [activeCategory, setActiveCategory] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -458,6 +193,11 @@ const Medicines = () => {
     }, 800);
     return () => clearTimeout(timer);
   }, []);
+  
+  // Update search query when URL parameter changes
+  useEffect(() => {
+    setSearchQuery(urlSearchQuery);
+  }, [urlSearchQuery]);
 
   const filteredMedicines = medicineData.filter((medicine) => {
     const matchesCategory = activeCategory === "All" || medicine.category === activeCategory;

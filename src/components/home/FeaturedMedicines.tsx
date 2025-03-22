@@ -1,10 +1,10 @@
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart, Star, ChevronRight, ChevronLeft, Minus, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
+import { medicineData, Medicine } from "@/data/medicines";
 
 // Sample medicine data
 const medicineCategories = [
@@ -30,185 +30,7 @@ const medicineCategories = [
   }
 ];
 
-const medicines = {
-  "pain-relief": [
-    {
-      id: 1,
-      name: "Paracetamol 500mg",
-      brand: "Generic",
-      price: 15,
-      discountPrice: 12,
-      rating: 4.8,
-      category: "Pain Relief",
-      quantity: "10 tablets",
-      image: "/Paracetamol.webp"
-    },
-    {
-      id: 21,
-      name: "Aspirin 75mg",
-      brand: "Generic",
-      price: 10,
-      discountPrice: 8,
-      rating: 4.6,
-      category: "Pain Relief",
-      quantity: "14 tablets",
-      image: "/Aspirin.webp"
-    }
-  ],
-  "antibiotics": [
-    {
-      id: 2,
-      name: "Amoxicillin 500mg",
-      brand: "Generic",
-      price: 50,
-      discountPrice: 45,
-      rating: 4.7,
-      category: "Antibiotics",
-      quantity: "10 capsules",
-      image: "/Amoxicillin.webp"
-    },
-    {
-      id: 3,
-      name: "Azithromycin 500mg",
-      brand: "Generic",
-      price: 60,
-      discountPrice: 55,
-      rating: 4.7,
-      category: "Antibiotics",
-      quantity: "3 tablets",
-      image: "/Azithromycin.webp"
-    },
-    {
-      id: 4,
-      name: "Ciprofloxacin 500mg",
-      brand: "Generic",
-      price: 55,
-      discountPrice: 50,
-      rating: 4.5,
-      category: "Antibiotics",
-      quantity: "10 tablets",
-      image: "/Ciprofloxacin.webp"
-    },
-    {
-      id: 24,
-      name: "Doxycycline 100mg",
-      brand: "Generic",
-      price: 40,
-      discountPrice: 35,
-      rating: 4.6,
-      category: "Antibiotics",
-      quantity: "10 capsules",
-      image: "/Doxycycline.webp"
-    }
-  ],
-  "cardiac": [
-    {
-      id: 6,
-      name: "Amlodipine 5mg",
-      brand: "Generic",
-      price: 20,
-      discountPrice: 18,
-      rating: 4.8,
-      category: "Cardiac",
-      quantity: "10 tablets",
-      image: "/Amlodipine.webp"
-    },
-    {
-      id: 7,
-      name: "Atorvastatin 10mg",
-      brand: "Generic",
-      price: 25,
-      discountPrice: 22,
-      rating: 4.7,
-      category: "Cardiac",
-      quantity: "10 tablets",
-      image: "/Atorvastatin.webp"
-    },
-    {
-      id: 13,
-      name: "Losartan 50mg",
-      brand: "Generic",
-      price: 30,
-      discountPrice: 28,
-      rating: 4.6,
-      category: "Cardiac",
-      quantity: "10 tablets",
-      image: "/Losartan.webp"
-    },
-    {
-      id: 20,
-      name: "Clopidogrel 75mg",
-      brand: "Generic",
-      price: 50,
-      discountPrice: 45,
-      rating: 4.7,
-      category: "Cardiac",
-      quantity: "10 tablets",
-      image: "/Clopidogrel.webp"
-    }
-  ],
-  "gastro": [
-    {
-      id: 8,
-      name: "Omeprazole 20mg",
-      brand: "Generic",
-      price: 18,
-      discountPrice: 15,
-      rating: 4.7,
-      category: "Gastro",
-      quantity: "10 capsules",
-      image: "/Omeprazole.webp"
-    },
-    {
-      id: 9,
-      name: "Pantoprazole 40mg",
-      brand: "Generic",
-      price: 35,
-      discountPrice: 30,
-      rating: 4.6,
-      category: "Gastro",
-      quantity: "10 tablets",
-      image: "/Pantoprazole.webp"
-    }
-  ],
-  "allergy": [
-    {
-      id: 10,
-      name: "Cetirizine 10mg",
-      brand: "Generic",
-      price: 15,
-      discountPrice: 12,
-      rating: 4.8,
-      category: "Allergy",
-      quantity: "10 tablets",
-      image: "/Cetirizine.webp"
-    },
-    {
-      id: 11,
-      name: "Levocetirizine 5mg",
-      brand: "Generic",
-      price: 25,
-      discountPrice: 22,
-      rating: 4.7,
-      category: "Allergy",
-      quantity: "10 tablets",
-      image: "/Levocetirizine.webp"
-    },
-    {
-      id: 12,
-      name: "Montelukast 10mg",
-      brand: "Generic",
-      price: 70,
-      discountPrice: 65,
-      rating: 4.6,
-      category: "Allergy",
-      quantity: "10 tablets",
-      image: "/Montelukast.webp"
-    }
-  ]
-};
-
-const MedicineCard = ({ medicine }: { medicine: any }) => {
+const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -314,6 +136,33 @@ const MedicineCard = ({ medicine }: { medicine: any }) => {
 const FeaturedMedicines = () => {
   const [activeTab, setActiveTab] = useState("pain-relief");
   
+  // Group medicines by category
+  const groupedMedicines = useMemo(() => {
+    const grouped: Record<string, Medicine[]> = {
+      "pain-relief": [],
+      "antibiotics": [],
+      "cardiac": [],
+      "gastro": [],
+      "allergy": []
+    };
+    
+    medicineData.forEach(medicine => {
+      if (medicine.category === "Pain Relief" && grouped["pain-relief"].length < 4) {
+        grouped["pain-relief"].push(medicine);
+      } else if (medicine.category === "Antibiotics" && grouped["antibiotics"].length < 4) {
+        grouped["antibiotics"].push(medicine);
+      } else if (medicine.category === "Cardiac" && grouped["cardiac"].length < 4) {
+        grouped["cardiac"].push(medicine);
+      } else if (medicine.category === "Gastro" && grouped["gastro"].length < 4) {
+        grouped["gastro"].push(medicine);
+      } else if (medicine.category === "Allergy" && grouped["allergy"].length < 4) {
+        grouped["allergy"].push(medicine);
+      }
+    });
+    
+    return grouped;
+  }, []);
+  
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -372,7 +221,7 @@ const FeaturedMedicines = () => {
           {medicineCategories.map((category) => (
             <TabsContent key={category.id} value={category.id} className="mt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {medicines[category.id as keyof typeof medicines].map((medicine) => (
+                {groupedMedicines[category.id].map((medicine) => (
                   <MedicineCard key={medicine.id} medicine={medicine} />
                 ))}
               </div>

@@ -1,84 +1,108 @@
-import React, { createContext, useContext, useState } from 'react';
-import { toast } from 'sonner';
-
-interface Appointment {
-  id: number;
-  doctorId: number;
-  doctorName: string;
-  patientName: string;
-  patientAge: string;
-  patientPhone: string;
-  symptoms: string;
-  date: string;
-  time: string;
-  consultationType: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  createdAt: string;
-}
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "sonner";
+import { 
+  appointmentService, 
+  Appointment, 
+  AppointmentWithDetails,
+  AppointmentStatus,
+  AppointmentType,
+  CreateAppointmentData
+} from "@/services/appointment.service";
+import { useAuth } from "./AuthContext";
 
 interface AppointmentContextType {
-  appointments: Appointment[];
-  addAppointment: (appointment: Omit<Appointment, 'id' | 'status' | 'createdAt'>) => Promise<void>;
-  cancelAppointment: (id: number) => void;
-  getAppointmentsByDoctor: (doctorId: number) => Appointment[];
-  getAppointmentsByPatient: (patientName: string) => Appointment[];
+  appointments: AppointmentWithDetails[];
+  loadingAppointments: boolean;
+  bookAppointment: (data: Omit<CreateAppointmentData, 'userId'>) => Promise<void>;
+  cancelAppointment: (id: number) => Promise<void>;
+  rescheduleAppointment: (id: number, newDate: string, newTime: string) => Promise<void>;
+  refreshAppointments: () => Promise<void>;
 }
 
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined);
 
 export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    const saved = localStorage.getItem('appointments');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const saveAppointments = (newAppointments: Appointment[]) => {
-    setAppointments(newAppointments);
-    localStorage.setItem('appointments', JSON.stringify(newAppointments));
-  };
-
-  const addAppointment = async (appointmentData: Omit<Appointment, 'id' | 'status' | 'createdAt'>) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const newAppointment: Appointment = {
-      ...appointmentData,
-      id: Date.now(),
-      status: 'confirmed',
-      createdAt: new Date().toISOString(),
-    };
-
-    saveAppointments([...appointments, newAppointment]);
+  const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    if (user) {
+      refreshAppointments();
+    } else {
+      setAppointments([]);
+    }
+  }, [user]);
+  
+  const refreshAppointments = async () => {
+    if (!user) return;
     
-    toast.success('Appointment booked successfully!', {
-      description: `Your appointment is confirmed for ${appointmentData.date} at ${appointmentData.time}`,
-    });
+    setLoadingAppointments(true);
+    try {
+      const userAppointments = await appointmentService.getUserAppointments(user.id);
+      setAppointments(userAppointments);
+    } catch (error: any) {
+      console.error("Error fetching appointments:", error);
+      toast.error("Failed to load appointments");
+    } finally {
+      setLoadingAppointments(false);
+    }
   };
-
-  const cancelAppointment = (id: number) => {
-    const updatedAppointments = appointments.map(apt =>
-      apt.id === id ? { ...apt, status: 'cancelled' as const } : apt
-    );
-    saveAppointments(updatedAppointments);
-    toast.success('Appointment cancelled successfully');
+  
+  const bookAppointment = async (data: Omit<CreateAppointmentData, 'userId'>) => {
+    if (!user) {
+      toast.error("You must be logged in to book an appointment");
+      throw new Error("User not authenticated");
+    }
+    
+    try {
+      await appointmentService.createAppointment({
+        ...data,
+        userId: user.id
+      });
+      
+      toast.success("Appointment booked successfully!");
+      await refreshAppointments();
+    } catch (error: any) {
+      console.error("Error booking appointment:", error);
+      toast.error(error.message || "Failed to book appointment");
+      throw error;
+    }
   };
-
-  const getAppointmentsByDoctor = (doctorId: number) => {
-    return appointments.filter(apt => apt.doctorId === doctorId);
+  
+  const cancelAppointment = async (id: number) => {
+    try {
+      await appointmentService.cancelAppointment(id);
+      toast.success("Appointment cancelled successfully");
+      await refreshAppointments();
+    } catch (error: any) {
+      console.error("Error cancelling appointment:", error);
+      toast.error("Failed to cancel appointment");
+      throw error;
+    }
   };
-
-  const getAppointmentsByPatient = (patientName: string) => {
-    return appointments.filter(apt => apt.patientName === patientName);
+  
+  const rescheduleAppointment = async (id: number, newDate: string, newTime: string) => {
+    try {
+      await appointmentService.rescheduleAppointment(id, newDate, newTime);
+      toast.success("Appointment rescheduled successfully");
+      await refreshAppointments();
+    } catch (error: any) {
+      console.error("Error rescheduling appointment:", error);
+      toast.error(error.message || "Failed to reschedule appointment");
+      throw error;
+    }
   };
-
+  
   return (
     <AppointmentContext.Provider
       value={{
         appointments,
-        addAppointment,
+        loadingAppointments,
+        bookAppointment,
         cancelAppointment,
-        getAppointmentsByDoctor,
-        getAppointmentsByPatient,
+        rescheduleAppointment,
+        refreshAppointments
       }}
     >
       {children}
@@ -89,7 +113,7 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
 export const useAppointments = () => {
   const context = useContext(AppointmentContext);
   if (context === undefined) {
-    throw new Error('useAppointments must be used within an AppointmentProvider');
+    throw new Error("useAppointments must be used within an AppointmentProvider");
   }
   return context;
 }; 

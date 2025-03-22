@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,59 +15,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-// Sample medicine data (in real app, this would come from an API or database)
-const medicineData = [
-  {
-    id: 1,
-    name: "Paracetamol 500mg",
-    brand: "Generic",
-    price: 15,
-    discountPrice: 12,
-    rating: 4.8,
-    category: "Pain Relief",
-    quantity: "10 tablets",
-    image: "/Paracetamol.webp",
-    description: "Paracetamol is used to treat headaches, muscle aches, arthritis, backache, toothaches, colds, and fevers.",
-    usage: "Take 1-2 tablets every 4-6 hours as needed. Do not exceed 8 tablets in 24 hours.",
-    sideEffects: "Rare side effects may include nausea, stomach pain, and rash. Seek medical attention if experiencing severe side effects.",
-    contraindications: "Do not use if allergic to paracetamol. Consult doctor if you have liver disease, kidney disease, or consume alcohol regularly.",
-    stock: 50,
-    reviews: [
-      { id: 1, user: "John D.", rating: 5, comment: "Works great for headaches!", date: "2023-05-15" },
-      { id: 2, user: "Sarah M.", rating: 4, comment: "Effective pain relief, but takes some time to kick in.", date: "2023-06-22" },
-      { id: 3, user: "Robert T.", rating: 5, comment: "Always keep this in my medicine cabinet.", date: "2023-07-10" }
-    ]
-  },
-  {
-    id: 2,
-    name: "Amoxicillin 500mg",
-    brand: "Generic",
-    price: 50,
-    discountPrice: 45,
-    rating: 4.7,
-    category: "Antibiotics",
-    quantity: "10 capsules",
-    image: "/Amoxicillin.webp",
-    description: "Amoxicillin is a penicillin antibiotic that fights bacteria in the body. It is used to treat bacterial infections such as bronchitis and pneumonia.",
-    usage: "Take as directed by your doctor, usually every 8 or 12 hours with or without food. Complete the full course even if you feel better.",
-    sideEffects: "Side effects may include diarrhea, stomach upset, or allergic reactions. Contact your doctor if experiencing severe rash, persistent diarrhea, or difficulty breathing.",
-    contraindications: "Do not use if allergic to penicillin antibiotics. Inform your doctor about your medical history, especially of kidney disease.",
-    stock: 35,
-    reviews: [
-      { id: 1, user: "Emily P.", rating: 5, comment: "Cleared my infection within days.", date: "2023-04-18" },
-      { id: 2, user: "Michael R.", rating: 4, comment: "Effective but caused some stomach upset.", date: "2023-05-30" }
-    ]
-  },
-  // Add more medicines with details as needed
-];
+import { medicineData, Medicine } from "@/data/medicines";
 
 const MedicineDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const [medicine, setMedicine] = useState<any>(null);
+  const [medicine, setMedicine] = useState<Medicine | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");

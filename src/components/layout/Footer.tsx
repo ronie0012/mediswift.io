@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { 
   Phone, Mail, MapPin, Facebook, Twitter, Instagram, 
@@ -74,7 +73,7 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center group">
                 <Phone className="h-5 w-5 text-medical-500 mr-3 group-hover:scale-110 transition-transform" />
-                <span className="text-gray-700">1-800-123-456</span>
+                <span className="text-gray-700">+91 9876 543 210</span>
               </div>
               <div className="flex items-center group">
                 <Mail className="h-5 w-5 text-medical-500 mr-3 group-hover:scale-110 transition-transform" />
@@ -82,7 +81,7 @@ const Footer = () => {
               </div>
               <div className="flex items-start group">
                 <MapPin className="h-5 w-5 text-medical-500 mr-3 mt-1 group-hover:scale-110 transition-transform" />
-                <span className="text-gray-700">123 Healthcare Ave, Medical District, NY 10001</span>
+                <span className="text-gray-700">402, Seaview Heights, Juhu Beach Road, Andheri West, Mumbai 400049</span>
               </div>
             </div>
           </motion.div>

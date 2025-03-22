@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
@@ -7,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { User, Mail, Phone, Save, Edit2 } from "lucide-react";
-import { updateUserProfile } from "@/integrations/supabase/client";
 
 const Profile = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -64,17 +62,20 @@ const Profile = () => {
     e.preventDefault();
     
     try {
-      const { error } = await updateUserProfile({
-        name: formData.name,
-        phone: formData.phone
-      });
-      
-      if (error) {
-        throw error;
+      // Update user profile in local storage
+      if (user) {
+        const updatedUser = {
+          ...user,
+          name: formData.name,
+          phone: formData.phone
+        };
+        
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
+        // This should be replaced with a proper API call in a real application
+        toast.success("Profile updated successfully!");
+        setIsEditing(false);
       }
-      
-      toast.success("Profile updated successfully!");
-      setIsEditing(false);
     } catch (error: any) {
       const errorMessage = typeof error === 'object' ? error.message || "Failed to update profile" : String(error);
       toast.error(errorMessage);
