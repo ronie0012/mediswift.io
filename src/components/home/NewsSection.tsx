@@ -6,7 +6,7 @@ const news = [
     date: "March 15, 2024",
     title: "New Telemedicine Features",
     description: "We've launched advanced video consultation features with HD quality and real-time chat support.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+    image: "/lovable-uploads/91062ee0-9c38-4dc0-87fb-7422f3920b42.png"
   },
   {
     date: "March 10, 2024",
@@ -82,4 +82,4 @@ const NewsSection = () => {
   );
 };
 
-export default NewsSection; 
+export default NewsSection;
