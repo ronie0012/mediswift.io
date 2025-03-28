@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Clock, MapPin, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import Lottie from "lottie-react";
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,9 +93,9 @@ const HeroSection = () => {
             <div className="relative">
               <div className="absolute -inset-4 bg-medical-500 rounded-2xl opacity-20 blur-xl"></div>
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1584982751601-97dcc096659c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80" 
-                  alt="Healthcare Professionals" 
+                <Lottie 
+                  animationData={"https://iconscout.com/lottie-animation/online-pharmacy-7010558_5699425"} 
+                  loop={true}
                   className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
                 />
               </div>
