@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -7,11 +6,8 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: true,
+    host: "::",
     port: 8080,
-    strictPort: false,
-    open: true,
-    allowedHosts: ["65f0e852-dd71-4f77-bd55-f098df31e2c9.lovableproject.com", "localhost", ".lovableproject.com"],
   },
   plugins: [
     react(),

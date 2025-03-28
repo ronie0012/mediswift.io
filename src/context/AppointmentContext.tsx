@@ -1,171 +1,86 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppointmentWithDetails } from '@/types/models';
+import React, { createContext, useContext, useState } from 'react';
 import { toast } from 'sonner';
-import { useAuth } from './AuthContext';
-import { supabase } from '@/lib/supabase';
+
+interface Appointment {
+  id: number;
+  doctorId: number;
+  doctorName: string;
+  patientName: string;
+  patientAge: string;
+  patientPhone: string;
+  symptoms: string;
+  date: string;
+  time: string;
+  consultationType: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  createdAt: string;
+}
 
 interface AppointmentContextType {
-  appointments: AppointmentWithDetails[];
-  loading: boolean;
-  error: string | null;
-  fetchAppointments: () => Promise<void>;
-  addAppointment: (appointment: Partial<AppointmentWithDetails>) => Promise<boolean>;
-  updateAppointmentStatus: (id: number, status: string) => Promise<boolean>;
-  cancelAppointment: (id: number) => Promise<boolean>;
-  rescheduleAppointment: (id: number, date: string, timeSlot: string) => Promise<boolean>;
+  appointments: Appointment[];
+  addAppointment: (appointment: Omit<Appointment, 'id' | 'status' | 'createdAt'>) => Promise<void>;
+  cancelAppointment: (id: number) => void;
+  getAppointmentsByDoctor: (doctorId: number) => Appointment[];
+  getAppointmentsByPatient: (patientName: string) => Appointment[];
 }
 
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined);
 
-interface AppointmentProviderProps {
-  children: ReactNode;
-}
+export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [appointments, setAppointments] = useState<Appointment[]>(() => {
+    const saved = localStorage.getItem('appointments');
+    return saved ? JSON.parse(saved) : [];
+  });
 
-export const AppointmentProvider = ({ children }: AppointmentProviderProps) => {
-  const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const saveAppointments = (newAppointments: Appointment[]) => {
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
+  };
 
-  useEffect(() => {
-    if (user) {
-      fetchAppointments();
-    }
-  }, [user]);
+  const addAppointment = async (appointmentData: Omit<Appointment, 'id' | 'status' | 'createdAt'>) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const fetchAppointments = async () => {
-    if (!user) return;
+    const newAppointment: Appointment = {
+      ...appointmentData,
+      id: Date.now(),
+      status: 'confirmed',
+      createdAt: new Date().toISOString(),
+    };
+
+    saveAppointments([...appointments, newAppointment]);
     
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          id, doctor_id, user_id, date, status, created_at, 
-          symptoms, notes, time_slot, doctor:doctors(*)
-        `)
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      
-      setAppointments(data as unknown as AppointmentWithDetails[]);
-    } catch (error: any) {
-      console.error('Error fetching appointments:', error);
-      setError(error.message);
-      toast.error('Failed to load appointments');
-    } finally {
-      setLoading(false);
-    }
+    toast.success('Appointment booked successfully!', {
+      description: `Your appointment is confirmed for ${appointmentData.date} at ${appointmentData.time}`,
+    });
   };
 
-  const addAppointment = async (appointment: Partial<AppointmentWithDetails>): Promise<boolean> => {
-    if (!user) {
-      toast.error('You must be logged in to book an appointment');
-      return false;
-    }
-    
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('appointments')
-        .insert({
-          user_id: user.id,
-          doctor_id: appointment.doctor_id,
-          date: appointment.date,
-          time_slot: appointment.time_slot,
-          status: 'upcoming',
-          symptoms: appointment.symptoms,
-          notes: appointment.notes || '',
-        })
-        .select();
-      
-      if (error) throw error;
-      
-      toast.success('Appointment booked successfully!');
-      await fetchAppointments();
-      return true;
-    } catch (error: any) {
-      console.error('Error booking appointment:', error);
-      setError(error.message);
-      toast.error('Failed to book appointment');
-      return false;
-    } finally {
-      setLoading(false);
-    }
+  const cancelAppointment = (id: number) => {
+    const updatedAppointments = appointments.map(apt =>
+      apt.id === id ? { ...apt, status: 'cancelled' as const } : apt
+    );
+    saveAppointments(updatedAppointments);
+    toast.success('Appointment cancelled successfully');
   };
 
-  const updateAppointmentStatus = async (id: number, status: string): Promise<boolean> => {
-    try {
-      setLoading(true);
-      
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status })
-        .eq('id', id)
-        .eq('user_id', user?.id);
-      
-      if (error) throw error;
-      
-      toast.success(`Appointment ${status} successfully!`);
-      await fetchAppointments();
-      return true;
-    } catch (error: any) {
-      console.error(`Error updating appointment to ${status}:`, error);
-      setError(error.message);
-      toast.error(`Failed to update appointment status`);
-      return false;
-    } finally {
-      setLoading(false);
-    }
+  const getAppointmentsByDoctor = (doctorId: number) => {
+    return appointments.filter(apt => apt.doctorId === doctorId);
   };
 
-  const cancelAppointment = async (id: number): Promise<boolean> => {
-    return updateAppointmentStatus(id, 'cancelled');
-  };
-
-  const rescheduleAppointment = async (id: number, date: string, timeSlot: string): Promise<boolean> => {
-    try {
-      setLoading(true);
-      
-      const { error } = await supabase
-        .from('appointments')
-        .update({ 
-          date,
-          time_slot: timeSlot,
-          status: 'rescheduled'
-        })
-        .eq('id', id)
-        .eq('user_id', user?.id);
-      
-      if (error) throw error;
-      
-      toast.success('Appointment rescheduled successfully!');
-      await fetchAppointments();
-      return true;
-    } catch (error: any) {
-      console.error('Error rescheduling appointment:', error);
-      setError(error.message);
-      toast.error('Failed to reschedule appointment');
-      return false;
-    } finally {
-      setLoading(false);
-    }
+  const getAppointmentsByPatient = (patientName: string) => {
+    return appointments.filter(apt => apt.patientName === patientName);
   };
 
   return (
-    <AppointmentContext.Provider value={{
-      appointments,
-      loading,
-      error,
-      fetchAppointments,
-      addAppointment,
-      updateAppointmentStatus,
-      cancelAppointment,
-      rescheduleAppointment
-    }}>
+    <AppointmentContext.Provider
+      value={{
+        appointments,
+        addAppointment,
+        cancelAppointment,
+        getAppointmentsByDoctor,
+        getAppointmentsByPatient,
+      }}
+    >
       {children}
     </AppointmentContext.Provider>
   );
@@ -177,4 +92,4 @@ export const useAppointments = () => {
     throw new Error('useAppointments must be used within an AppointmentProvider');
   }
   return context;
-};
+}; 

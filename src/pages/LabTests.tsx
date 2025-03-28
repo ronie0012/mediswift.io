@@ -1,8 +1,7 @@
-
 import PageTemplate from "@/components/layout/PageTemplate";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Search, FileText, TestTube, Home, AlertCircle, Calendar, Beaker, Badge } from "lucide-react";
+import { Check, Search, FileText, TestTube } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";

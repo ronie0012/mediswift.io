@@ -1,29 +1,24 @@
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 const news = [
   {
     date: "March 15, 2024",
     title: "New Telemedicine Features",
     description: "We've launched advanced video consultation features with HD quality and real-time chat support.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-    slug: "new-telemedicine-features"
+    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
   },
   {
     date: "March 10, 2024",
     title: "24/7 Emergency Support",
     description: "Our emergency support team is now available round the clock to assist you with any medical emergencies.",
-    image: "https://images.unsplash.com/photo-1584982751601-97dcc096659c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80",
-    slug: "24-7-emergency-support"
+    image: "https://images.unsplash.com/photo-1584982751601-97dcc096659c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80"
   },
   {
     date: "March 5, 2024",
     title: "New Medicine Categories",
     description: "We've expanded our medicine inventory with new categories including Ayurvedic and Homeopathic medicines.",
-    image: "/OIG3.jpeg",
-    slug: "new-medicine-categories"
+    image: "https://images.unsplash.com/photo-1585435557343-3b092092a831?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
   }
 ];
 
@@ -74,25 +69,13 @@ const NewsSection = () => {
                 <p className="text-gray-600 mb-4">
                   {item.description}
                 </p>
-                <Link 
-                  to={`/news/${item.slug}`} 
-                  className="flex items-center text-medical-500 hover:text-medical-600 font-medium group"
-                >
+                <button className="flex items-center text-medical-500 hover:text-medical-600 font-medium">
                   Read More
-                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </button>
               </div>
             </motion.article>
           ))}
-        </div>
-        
-        <div className="mt-12 text-center">
-          <Button asChild className="bg-medical-500 hover:bg-medical-600">
-            <Link to="/news" className="flex items-center">
-              View All News
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
         </div>
       </div>
     </section>

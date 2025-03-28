@@ -1,266 +1,141 @@
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
-import { User } from '@/types/models';
-import { Session } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+// Update the user schema to match our profile structure
+const userSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  isLoggedIn: z.boolean()
+});
+
+interface User {
+  id: string;
+  name?: string;
+  email: string;
+  phone?: string;
+  isLoggedIn: boolean;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  loading: boolean;
-  error: Error | null;
-  isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{success: boolean, error?: string}>;
-  signUp: (email: string, password: string, userData: {name: string, phone?: string}) => Promise<void>;
-  signOut: () => Promise<void>;
   isAuthenticated: boolean;
-  validatePassword: (password: string) => boolean;
-  login: (email: string, password: string) => Promise<{success: boolean, error?: string}>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  signup: (name: string, email: string, phone: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  signup: (email: string, password: string, name: string, phone?: string) => Promise<void>;
   isLoading: boolean;
-  resetPassword: (email: string) => Promise<void>;
-  updatePassword: (token: string, newPassword: string) => Promise<void>;
-  updateUserProfile: (data: {[key: string]: any}) => Promise<void>;
+  validatePassword: (password: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+// Simple in-memory storage for users
+const users: { [email: string]: { user: User; password: string } } = {};
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const navigate = useNavigate();
-
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Check if user is logged in on initial load
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ? {
-          id: session.user.id,
-          email: session.user.email!, 
-          name: session.user.user_metadata?.name,
-          phone: session.user.user_metadata?.phone,
-          user_metadata: session.user.user_metadata
-        } : null);
-        setLoading(false);
-        
-        // Check if the user is an admin
-        if (session?.user) {
-          checkAdminStatus(session.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ? {
-        id: session.user.id,
-        email: session.user.email!,
-        name: session.user.user_metadata?.name,
-        phone: session.user.user_metadata?.phone,
-        user_metadata: session.user.user_metadata
-      } : null);
-      setLoading(false);
-      
-      // Check if the user is an admin
-      if (session?.user) {
-        checkAdminStatus(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, []);
-
-  const checkAdminStatus = async (userId: string) => {
+  
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 8;
+  };
+  
+  const login = async (email: string, password: string, rememberMe: boolean = false) => {
+    setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
+      const userAccount = users[email];
       
-      if (error) throw error;
-      setIsAdmin(data?.role === 'admin');
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
-    }
-  };
-
-  const signIn = async (email: string, password: string): Promise<{success: boolean, error?: string}> => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) throw error;
-      
-      toast.success('Signed in successfully!');
-      navigate('/');
-      return { success: true };
-    } catch (error: any) {
-      setError(error);
-      toast.error(error.message || 'Failed to sign in. Please check your credentials.');
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signUp = async (email: string, password: string, userData: {name: string, phone?: string}) => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: userData
-        }
-      });
-      
-      if (error) throw error;
-      
-      toast.success('Signed up successfully! Please check your email for verification.');
-      navigate('/auth/login');
-    } catch (error: any) {
-      setError(error);
-      toast.error(error.message || 'Failed to sign up. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-      
-      toast.success('Signed out successfully!');
-      navigate('/');
-    } catch (error: any) {
-      setError(error);
-      toast.error(error.message || 'Failed to sign out. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/new-password`,
-      });
-
-      if (error) throw error;
-      
-      toast.success('Password reset email sent successfully.');
-    } catch (error: any) {
-      setError(error);
-      toast.error(error.message || 'Failed to send reset email. Please try again.');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updatePassword = async (token: string, newPassword: string) => {
-    try {
-      setLoading(true);
-      
-      // Use token to update password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      
-      if (error) throw error;
-      
-      toast.success('Password updated successfully.');
-    } catch (error: any) {
-      setError(error);
-      toast.error(error.message || 'Failed to update password. Please try again.');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const validatePassword = (password: string) => {
-    // Password must be at least 8 characters and contain at least one number, one uppercase, one lowercase
-    const hasNumber = /\d/.test(password);
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const isLongEnough = password.length >= 8;
-    
-    return hasNumber && hasUpper && hasLower && isLongEnough;
-  };
-
-  const signup = async (email: string, password: string, name: string, phone?: string) => {
-    return signUp(email, password, { name, phone });
-  };
-
-  const updateUserProfile = async (data: {[key: string]: any}) => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.updateUser({
-        data
-      });
-      
-      if (error) throw error;
-      
-      // Update the local user state with the new data
-      if (user) {
-        setUser({
-          ...user,
-          user_metadata: {
-            ...user.user_metadata,
-            ...data
-          }
-        });
+      if (!userAccount || userAccount.password !== password) {
+        throw new Error("Invalid email or password");
       }
       
+      setUser(userAccount.user);
+      if (rememberMe) {
+        localStorage.setItem('user', JSON.stringify(userAccount.user));
+      }
+      
+      toast.success("Logged in successfully!");
+      return Promise.resolve();
     } catch (error: any) {
-      setError(error);
-      throw error;
+      console.error("Login error:", error);
+      toast.error(error.message || "Login failed. Please check your credentials.");
+      return Promise.reject(error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
+  
+  const signup = async (name: string, email: string, phone: string, password: string) => {
+    setIsLoading(true);
+    try {
+      if (!validatePassword(password)) {
+        throw new Error("Password must be at least 8 characters long");
+      }
+      
+      if (users[email]) {
+        throw new Error("Email already registered");
+      }
+      
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        email,
+        phone,
+        isLoggedIn: true
+      };
+      
+      users[email] = {
+        user: newUser,
+        password
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      
+      toast.success("Account created successfully!");
+      return Promise.resolve();
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast.error(error.message || "Failed to create account. Please try again.");
+      return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const logout = async () => {
+    try {
+      setUser(null);
+      localStorage.removeItem('user');
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out. Please try again.");
+    }
+  };
+  
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      loading,
-      error,
-      isAdmin,
-      signIn,
-      signUp,
-      signOut,
-      isAuthenticated: !!user,
-      validatePassword,
-      login: signIn,
-      logout: signOut,
-      signup,
-      isLoading: loading,
-      resetPassword,
-      updatePassword,
-      updateUserProfile
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        signup,
+        logout,
+        isLoading,
+        validatePassword
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -269,7 +144,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ const RescheduleAppointment = () => {
   const currentAppointment = appointments.find(apt => apt.id === parseInt(id || "", 10));
 
   // Find the doctor data
-  const doctorData = doctorsData.find(doctor => doctor.id === currentAppointment?.doctor_id);
+  const doctorData = doctorsData.find(doctor => doctor.id === currentAppointment?.doctorId);
 
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
@@ -46,7 +45,7 @@ const RescheduleAppointment = () => {
       navigate("/my-appointments");
       return;
     }
-  }, [currentAppointment, doctorData, navigate]);
+  }, [currentAppointment, doctorData, navigate, toast]);
 
   useEffect(() => {
     if (doctorData && appointmentDate) {
@@ -89,7 +88,7 @@ const RescheduleAppointment = () => {
 
       // Create a new appointment with the updated date and time
       await addAppointment({
-        doctor_id: doctorData.id,
+        doctorId: doctorData.id,
         doctorName: doctorData.name,
         patientName: currentAppointment.patientName,
         patientAge: currentAppointment.patientAge,
@@ -185,4 +184,4 @@ const RescheduleAppointment = () => {
   );
 };
 
-export default RescheduleAppointment;
+export default RescheduleAppointment; 

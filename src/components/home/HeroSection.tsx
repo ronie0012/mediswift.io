@@ -1,43 +1,9 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, MapPin, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 const HeroSection = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // Check if search query contains medicine-related keywords
-      if (searchQuery.toLowerCase().includes("medicine") || 
-          searchQuery.toLowerCase().includes("drug") || 
-          searchQuery.toLowerCase().includes("tablet") || 
-          searchQuery.toLowerCase().includes("capsule")) {
-        navigate(`/medicines?search=${encodeURIComponent(searchQuery)}`);
-      } 
-      // Check if search query contains doctor-related keywords
-      else if (searchQuery.toLowerCase().includes("doctor") || 
-               searchQuery.toLowerCase().includes("physician") || 
-               searchQuery.toLowerCase().includes("specialist") || 
-               searchQuery.toLowerCase().includes("consultation")) {
-        navigate(`/doctors?search=${encodeURIComponent(searchQuery)}`);
-      }
-      // Check if search query contains news-related keywords
-      else if (searchQuery.toLowerCase().includes("news") || 
-               searchQuery.toLowerCase().includes("update") || 
-               searchQuery.toLowerCase().includes("article")) {
-        navigate(`/news?search=${encodeURIComponent(searchQuery)}`);
-      }
-      // Default to medicines page with search query
-      else {
-        navigate(`/medicines?search=${encodeURIComponent(searchQuery)}`);
-      }
-    }
-  };
-
   return (
     <div className="bg-gradient-to-br from-medical-50 via-blue-50 to-indigo-50 py-16 md:py-24 relative overflow-hidden">
       {/* Background decorative elements */}
@@ -114,12 +80,9 @@ const HeroSection = () => {
             <div className="relative">
               <div className="absolute -inset-4 bg-medical-500 rounded-2xl opacity-20 blur-xl"></div>
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <video 
-                  src="/Buying Medicine Online-vmake.mp4" 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline
+                <img 
+                  src="https://images.unsplash.com/photo-1584982751601-97dcc096659c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80" 
+                  alt="Healthcare Professionals" 
                   className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -134,7 +97,7 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <form onSubmit={handleSearch} className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-100">
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-100">
             <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
               <div className="relative flex-grow">
                 <Search className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
@@ -142,18 +105,13 @@ const HeroSection = () => {
                   type="text"
                   placeholder="Search for medicines, doctors, or services..." 
                   className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-transparent text-lg"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button 
-                type="submit"
-                className="bg-medical-500 hover:bg-medical-600 py-4 px-8 text-lg"
-              >
+              <Button className="bg-medical-500 hover:bg-medical-600 py-4 px-8 text-lg">
                 Search
               </Button>
             </div>
-          </form>
+          </div>
         </motion.div>
       </div>
     </div>
