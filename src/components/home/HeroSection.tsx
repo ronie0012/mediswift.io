@@ -1,11 +1,8 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, MapPin, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import Lottie from "lottie-react";
-import pharmacyAnimation from '@/assets/pharmacy-animation.json';
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +17,6 @@ const HeroSection = () => {
 
   return (
     <div className="bg-gradient-to-br from-medical-50 via-blue-50 to-indigo-50 py-16 md:py-24 relative overflow-hidden">
-      {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-medical-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
@@ -94,7 +90,6 @@ const HeroSection = () => {
             <div className="relative">
               <div className="absolute -inset-4 bg-medical-500 rounded-2xl opacity-20 blur-xl"></div>
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                {/* Replace problematic Lottie with a static image as fallback */}
                 <img
                   src="https://img.freepik.com/free-vector/online-pharmacy-abstract-concept-vector-illustration-online-medical-consultation-internet-drugstore-order-medication-through-website-pharmacy-application-medicine-shopping-abstract-metaphor_335657-1727.jpg"
                   alt="Online Pharmacy"
@@ -105,7 +100,6 @@ const HeroSection = () => {
           </motion.div>
         </div>
         
-        {/* Enhanced Search bar */}
         <motion.div 
           className="mt-12 md:mt-20 max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
