@@ -5,6 +5,7 @@ import { Search, Clock, MapPin, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Lottie from "lottie-react";
+import pharmacyAnimation from '@/assets/pharmacy-animation.json';
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,9 +94,10 @@ const HeroSection = () => {
             <div className="relative">
               <div className="absolute -inset-4 bg-medical-500 rounded-2xl opacity-20 blur-xl"></div>
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <Lottie 
-                  animationData={"https://iconscout.com/lottie-animation/online-pharmacy-7010558_5699425"} 
-                  loop={true}
+                {/* Replace problematic Lottie with a static image as fallback */}
+                <img
+                  src="https://img.freepik.com/free-vector/online-pharmacy-abstract-concept-vector-illustration-online-medical-consultation-internet-drugstore-order-medication-through-website-pharmacy-application-medicine-shopping-abstract-metaphor_335657-1727.jpg"
+                  alt="Online Pharmacy"
                   className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
                 />
               </div>

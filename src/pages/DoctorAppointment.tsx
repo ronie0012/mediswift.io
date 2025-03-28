@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MapPin, Star, Video } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Sample data - replace with actual data fetching later
 const doctors = [
@@ -328,7 +330,7 @@ const DoctorAppointment = () => {
         patientName: name,
         patientEmail: email,
         patientPhone: phone,
-        appointmentDate: date,
+        appointmentDate: date ? format(date, 'yyyy-MM-dd') : '', // Format the date as string
         appointmentTime: time,
         symptomDescription: symptoms,
         appointmentType: consultationType
