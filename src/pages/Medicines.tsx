@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Search, Heart, ShoppingCart, Filter, ChevronDown, Star, Plus, Minus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
@@ -448,16 +449,24 @@ const MedicineCard = ({ medicine }: { medicine: Medicine }) => {
 };
 
 const Medicines = () => {
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Parse search query from URL if present
+    const queryParams = new URLSearchParams(location.search);
+    const searchParam = queryParams.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 800);
     return () => clearTimeout(timer);
-  }, []);
+  }, [location.search]);
 
   const filteredMedicines = medicineData.filter((medicine) => {
     const matchesCategory = activeCategory === "All" || medicine.category === activeCategory;

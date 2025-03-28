@@ -1,9 +1,21 @@
-import { Link } from "react-router-dom";
+
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, MapPin, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 const HeroSection = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/medicines?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-medical-50 via-blue-50 to-indigo-50 py-16 md:py-24 relative overflow-hidden">
       {/* Background decorative elements */}
@@ -98,19 +110,21 @@ const HeroSection = () => {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-100">
-            <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
               <div className="relative flex-grow">
                 <Search className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                 <input 
                   type="text"
                   placeholder="Search for medicines, doctors, or services..." 
                   className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-transparent text-lg"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button className="bg-medical-500 hover:bg-medical-600 py-4 px-8 text-lg">
+              <Button type="submit" className="bg-medical-500 hover:bg-medical-600 py-4 px-8 text-lg">
                 Search
               </Button>
-            </div>
+            </form>
           </div>
         </motion.div>
       </div>

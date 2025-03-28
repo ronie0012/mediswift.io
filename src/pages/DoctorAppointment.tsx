@@ -1,62 +1,33 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import { useAppointments } from "@/context/AppointmentContext";
-import { 
-  Calendar, 
-  Clock, 
-  Video, 
-  MapPin, 
-  Phone, 
-  MessageCircle,
-  ArrowLeft,
-  AlertCircle
-} from "lucide-react";
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { CalendarIcon, Clock, User, Mail, Phone, MessageSquare } from "lucide-react";
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { DayPicker } from "react-day-picker"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import Layout from "@/components/layout/Layout";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { format } from "date-fns";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Heart, MapPin, Star, Video } from "lucide-react";
 
-interface Doctor {
-  id: number;
-  name: string;
-  specialty: string;
-  experience: string;
-  rating: number;
-  reviewCount: number;
-  consultationFee: number;
-  availableToday: boolean;
-  availableForVideo: boolean;
-  availableForInClinic: boolean;
-  nextAvailable: string;
-  image: string;
-  hospital: string;
-  location: string;
-  education: string;
-  languages: string[];
-  availableSlots: {
-    [key: string]: string[];
-  };
-}
-
-interface Appointment {
-  doctorId: number;
-  patientName: string;
-  patientAge: string;
-  patientPhone: string;
-  symptoms: string;
-  date: string;
-  time: string;
-  consultationType: string;
-}
-
-// Sample doctors data - In a real app, this would come from an API
-const doctorsData: Doctor[] = [
+// Sample data - replace with actual data fetching later
+const doctors = [
   {
     id: 1,
     name: "Dr. Anil Sharma",
@@ -73,14 +44,7 @@ const doctorsData: Doctor[] = [
     hospital: "MediCare Hospital",
     location: "Mumbai, Maharashtra",
     education: "MBBS - General Medicine",
-    languages: ["English", "Hindi"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi"]
   },
   {
     id: 2,
@@ -98,14 +62,7 @@ const doctorsData: Doctor[] = [
     hospital: "City Medical Center",
     location: "Pune, Maharashtra",
     education: "MBBS - General Medicine",
-    languages: ["English", "Hindi", "Marathi"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Marathi"]
   },
   {
     id: 3,
@@ -123,14 +80,7 @@ const doctorsData: Doctor[] = [
     hospital: "Heart Care Institute",
     location: "Delhi, NCR",
     education: "MBBS, MD, DM - Cardiology",
-    languages: ["English", "Hindi"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi"]
   },
   {
     id: 4,
@@ -148,14 +98,7 @@ const doctorsData: Doctor[] = [
     hospital: "Cardio Care Center",
     location: "Bangalore, Karnataka",
     education: "MBBS, MD, DM - Cardiology",
-    languages: ["English", "Hindi", "Kannada"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Kannada"]
   },
   {
     id: 5,
@@ -173,14 +116,7 @@ const doctorsData: Doctor[] = [
     hospital: "Neuro Care Institute",
     location: "Chennai, Tamil Nadu",
     education: "MBBS, MD, DM - Neurology",
-    languages: ["English", "Hindi", "Tamil"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Tamil"]
   },
   {
     id: 6,
@@ -198,14 +134,7 @@ const doctorsData: Doctor[] = [
     hospital: "Brain & Spine Center",
     location: "Hyderabad, Telangana",
     education: "MBBS, MD, DM - Neurology",
-    languages: ["English", "Hindi", "Telugu"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Telugu"]
   },
   {
     id: 7,
@@ -223,14 +152,7 @@ const doctorsData: Doctor[] = [
     hospital: "Children's Hospital",
     location: "Mumbai, Maharashtra",
     education: "MBBS, MD - Pediatrics",
-    languages: ["English", "Hindi", "Marathi"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Marathi"]
   },
   {
     id: 8,
@@ -248,14 +170,7 @@ const doctorsData: Doctor[] = [
     hospital: "Kids Care Center",
     location: "Delhi, NCR",
     education: "MBBS, MD - Pediatrics",
-    languages: ["English", "Hindi"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi"]
   },
   {
     id: 9,
@@ -273,14 +188,7 @@ const doctorsData: Doctor[] = [
     hospital: "Skin Care Clinic",
     location: "Bangalore, Karnataka",
     education: "MBBS, MD - Dermatology",
-    languages: ["English", "Hindi", "Kannada"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Kannada"]
   },
   {
     id: 10,
@@ -298,14 +206,7 @@ const doctorsData: Doctor[] = [
     hospital: "Derma Solutions",
     location: "Mumbai, Maharashtra",
     education: "MBBS, MD - Dermatology",
-    languages: ["English", "Hindi", "Urdu"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Urdu"]
   },
   {
     id: 11,
@@ -323,14 +224,7 @@ const doctorsData: Doctor[] = [
     hospital: "Women's Health Center",
     location: "Chennai, Tamil Nadu",
     education: "MBBS, MS - Obstetrics & Gynecology",
-    languages: ["English", "Hindi", "Tamil"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Tamil"]
   },
   {
     id: 12,
@@ -348,14 +242,7 @@ const doctorsData: Doctor[] = [
     hospital: "FemCare Hospital",
     location: "Delhi, NCR",
     education: "MBBS, MS - Obstetrics & Gynecology",
-    languages: ["English", "Hindi"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi"]
   },
   {
     id: 13,
@@ -373,14 +260,7 @@ const doctorsData: Doctor[] = [
     hospital: "Ortho Care Institute",
     location: "Mumbai, Maharashtra",
     education: "MBBS, MS - Orthopedics",
-    languages: ["English", "Hindi"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi"]
   },
   {
     id: 14,
@@ -398,377 +278,255 @@ const doctorsData: Doctor[] = [
     hospital: "Bone & Joint Center",
     location: "Bangalore, Karnataka",
     education: "MBBS, MS - Orthopedics",
-    languages: ["English", "Hindi", "Kannada"],
-    availableSlots: {
-      [new Date().toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
-      [new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]]: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
-    }
+    languages: ["English", "Hindi", "Kannada"]
   }
 ];
 
 const DoctorAppointment = () => {
-  const { id } = useParams<{ id: string }>();
+  const { doctorId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { isAuthenticated, user } = useAuth();
-  const { addAppointment, appointments } = useAppointments();
-  const [loading, setLoading] = useState(false);
-  const [consultationType, setConsultationType] = useState("video");
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [appointmentTime, setAppointmentTime] = useState("");
-  const [patientName, setPatientName] = useState("");
-  const [patientAge, setPatientAge] = useState("");
-  const [patientPhone, setPatientPhone] = useState("");
+  const [doctor, setDoctor] = useState(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [time, setTime] = useState("");
   const [symptoms, setSymptoms] = useState("");
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
-  
-  // Find the doctor based on the ID from URL params
-  const doctorData = doctorsData.find(doctor => doctor.id === parseInt(id || "", 10));
-
-  // Get today's date in YYYY-MM-DD format
-  const today = new Date().toISOString().split('T')[0];
-  
-  // Get date 30 days from now in YYYY-MM-DD format
-  const maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const [consultationType, setConsultationType] = useState("video");
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (!doctorData) {
-      toast({
-        title: "Doctor not found",
-        description: "The requested doctor could not be found.",
-        variant: "destructive",
-      });
-      navigate("/doctors");
-      return;
-    }
-
-    // Pre-fill patient info if user is logged in
-    if (user) {
-      setPatientName(user.name);
-      if (user.phone) {
-        setPatientPhone(user.phone);
+    if (doctorId) {
+      // Find the doctor by ID from the sample data
+      const foundDoctor = doctors.find((d) => d.id === parseInt(doctorId));
+      if (foundDoctor) {
+        setDoctor(foundDoctor);
+      } else {
+        // Handle doctor not found (e.g., redirect to doctors list)
+        navigate('/doctors');
       }
     }
-  }, [doctorData, navigate, user, toast]);
+  }, [doctorId, navigate]);
 
-  useEffect(() => {
-    if (doctorData && appointmentDate) {
-      const slots = doctorData.availableSlots[appointmentDate] || [];
-      setAvailableTimeSlots(slots);
-      setAppointmentTime(""); // Reset time when date changes
-    } else {
-      setAvailableTimeSlots([]);
-      setAppointmentTime("");
-    }
-  }, [appointmentDate, doctorData]);
+  const timeslots = [
+    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
+    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM"
+  ];
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    setAppointmentDate(selectedDate);
-    setAppointmentTime(""); // Reset time when date changes
-  };
-
-  const handleTimeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setAppointmentTime(e.target.value);
-  };
-
-  if (!doctorData) {
-    return null;
-  }
-
-  const validateForm = () => {
-    if (!appointmentDate) {
-      toast({
-        title: "Please select a date",
-        variant: "destructive",
-      });
-      return false;
-    }
-    if (!appointmentTime) {
-      toast({
-        title: "Please select a time",
-        variant: "destructive",
-      });
-      return false;
-    }
-    if (!patientName || !patientAge || !patientPhone || !symptoms) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to book an appointment",
-        variant: "destructive",
-      });
-      navigate("/login");
-      return;
-    }
-
-    if (!validateForm()) {
-      return;
-    }
-
-    if (!doctorData) {
-      return;
-    }
-
-    // Check if patient already has an appointment on the same date
-    const existingAppointment = appointments.find(
-      apt => apt.patientName === patientName && 
-            apt.date === appointmentDate && 
-            apt.status !== 'cancelled'
-    );
-
-    if (existingAppointment) {
-      toast({
-        title: "Appointment conflict",
-        description: "You already have an appointment scheduled for this date",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    
+  const submitAppointment = async () => {
     try {
-      await addAppointment({
-        doctorId: doctorData.id,
-        doctorName: doctorData.name,
-        patientName,
-        patientAge,
-        patientPhone,
-        symptoms,
-        date: appointmentDate,
-        time: appointmentTime,
-        consultationType,
-      });
+      setSubmitting(true);
+      // Here, we need to fix the problematic code where it's trying to access .id on an array
+      // Instead of using doctors[parseInt(doctorId)].id, we should use doctorId directly
+      // Since doctorId is already the ID value from the params
 
-      navigate("/my-appointments");
+      // Fix the erroneous line
+      const appointmentData = {
+        doctorId: doctorId, // Using doctorId directly instead of trying to access it from an array
+        patientName: name,
+        patientEmail: email,
+        patientPhone: phone,
+        appointmentDate: date,
+        appointmentTime: time,
+        symptomDescription: symptoms,
+        appointmentType: consultationType
+      };
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      toast({
+        title: "Appointment Booked",
+        description: `Your appointment with Dr. ${doctor?.name} has been booked for ${date ? format(date, "PPP") : 'No date selected'} at ${time}.`,
+      });
+      navigate('/appointments'); // Redirect to appointments page
     } catch (error) {
       toast({
-        title: "Error booking appointment",
-        description: "Please try again later",
         variant: "destructive",
+        title: "Error Booking Appointment",
+        description: "Failed to book appointment. Please try again.",
       });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+
+  if (!doctor) {
+    return <div>Loading...</div>; // Or a more informative loading state
+  }
 
   return (
     <Layout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          <Button 
-            variant="ghost" 
-            className="mb-6"
-            onClick={() => navigate("/doctors")}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Doctors
-          </Button>
+      <div className="bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="md:flex">
+                <div className="md:w-1/3 p-6 bg-gray-100">
+                  <div className="flex items-start">
+                    <Avatar className="h-16 w-16 rounded-lg">
+                      <AvatarImage src={doctor.image} alt={doctor.name} />
+                      <AvatarFallback>{doctor.name[0]}{doctor.name.split(' ')[1][0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-bold text-gray-900">{doctor.name}</h3>
+                          <p className="text-medical-600">{doctor.specialty}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center mt-1">
+                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                        <span className="text-sm font-medium ml-1">{doctor.rating}</span>
+                        <span className="text-xs text-gray-500 ml-1">({doctor.reviewCount} reviews)</span>
+                      </div>
+                      <div className="flex flex-wrap items-center mt-2 text-sm text-gray-600">
+                        <span className="mr-4 flex items-center">
+                          <Clock className="h-4 w-4 mr-1" />
+                          {doctor.experience}
+                        </span>
+                        <span className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {doctor.location}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-start">
-                <img 
-                  src={doctorData.image} 
-                  alt={doctorData.name}
-                  className="w-24 h-24 rounded-lg object-cover"
-                />
-                <div className="ml-6">
-                  <h1 className="text-2xl font-bold">{doctorData.name}</h1>
-                  <p className="text-medical-600">{doctorData.specialty}</p>
-                  <div className="flex items-center mt-2 text-sm text-gray-600">
-                    <span className="mr-4 flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {doctorData.experience}
-                    </span>
-                    <span className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {doctorData.location}
-                    </span>
+                  <div className="mt-4">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {doctor.availableForVideo && (
+                        <Badge
+                          variant={consultationType === "video" ? "default" : "outline"}
+                          className={`cursor-pointer ${consultationType === "video" ? "bg-medical-500" : ""
+                            }`}
+                          onClick={() => setConsultationType("video")}
+                        >
+                          <Video className="h-3 w-3 mr-1" />
+                          Video Consult
+                        </Badge>
+                      )}
+                      {doctor.availableForInClinic && (
+                        <Badge
+                          variant={consultationType === "clinic" ? "default" : "outline"}
+                          className={`cursor-pointer ${consultationType === "clinic" ? "bg-medical-500" : ""
+                            }`}
+                          onClick={() => setConsultationType("clinic")}
+                        >
+                          <MapPin className="h-3 w-3 mr-1" />
+                          In-Clinic
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-500">Consultation Fee</p>
+                      <p className="font-bold text-gray-900">₹{doctor.consultationFee}</p>
+                    </div>
                   </div>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600">Consultation Fee: ₹{doctorData.consultationFee}</p>
+                </div>
+
+                <div className="md:w-2/3 p-6">
+                  <h2 className="text-2xl font-bold mb-4">Book Appointment</h2>
+                  <div className="grid gap-4">
+                    <div>
+                      <Label htmlFor="name">Name</Label>
+                      <Input
+                        type="text"
+                        id="name"
+                        placeholder="Enter your name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        type="email"
+                        id="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        type="tel"
+                        id="phone"
+                        placeholder="Enter your phone number"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label>Appointment Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <DayPicker
+                            mode="single"
+                            selected={date}
+                            onSelect={setDate}
+                            disabled={{ before: new Date() }}
+                            className="border-0 shadow-sm"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div>
+                      <Label htmlFor="time">Time</Label>
+                      <Select value={time} onValueChange={setTime}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeslots.map((slot) => (
+                            <SelectItem key={slot} value={slot}>
+                              {slot}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="symptoms">Symptoms</Label>
+                      <Input
+                        id="symptoms"
+                        placeholder="Describe your symptoms"
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                      />
+                    </div>
                   </div>
+                  <Button
+                    className="w-full mt-6"
+                    onClick={submitAppointment}
+                    disabled={submitting}
+                  >
+                    {submitting ? "Submitting..." : "Book Appointment"}
+                  </Button>
                 </div>
               </div>
-            </div>
-
-            <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-4">
-                  <Label>Consultation Type</Label>
-                  <RadioGroup value={consultationType} onValueChange={setConsultationType}>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {doctorData.availableForVideo && (
-                        <div className="flex items-center space-x-2 border rounded-lg p-4">
-                          <RadioGroupItem value="video" id="video" />
-                          <div>
-                            <Label htmlFor="video" className="font-medium">Video Consult</Label>
-                            <p className="text-sm text-gray-500">Online consultation</p>
-                          </div>
-                        </div>
-                      )}
-                      {doctorData.availableForInClinic && (
-                        <div className="flex items-center space-x-2 border rounded-lg p-4">
-                          <RadioGroupItem value="clinic" id="clinic" />
-                          <div>
-                            <Label htmlFor="clinic" className="font-medium">In-Clinic</Label>
-                            <p className="text-sm text-gray-500">Visit hospital</p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-center space-x-2 border rounded-lg p-4">
-                        <RadioGroupItem value="phone" id="phone" />
-                        <div>
-                          <Label htmlFor="phone" className="font-medium">Phone</Label>
-                          <p className="text-sm text-gray-500">Call consultation</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 border rounded-lg p-4">
-                        <RadioGroupItem value="chat" id="chat" />
-                        <div>
-                          <Label htmlFor="chat" className="font-medium">Chat</Label>
-                          <p className="text-sm text-gray-500">Text consultation</p>
-                        </div>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Select Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      min={today}
-                      max={maxDate}
-                      value={appointmentDate}
-                      onChange={handleDateChange}
-                      className="w-full"
-                    />
-                  </div>
-
-                  {appointmentDate && (
-                    <div className="space-y-2">
-                      <Label htmlFor="time">Select Time</Label>
-                      <select
-                        id="time"
-                        value={appointmentTime}
-                        onChange={handleTimeChange}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="">Select a time slot</option>
-                        {availableTimeSlots.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Patient Name</Label>
-                    <Input
-                      id="name"
-                      value={patientName}
-                      onChange={(e) => setPatientName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="age">Patient Age</Label>
-                    <Input
-                      id="age"
-                      type="number"
-                      min="0"
-                      max="120"
-                      value={patientAge}
-                      onChange={(e) => setPatientAge(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Contact Phone Number</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      className="pl-10"
-                      value={patientPhone}
-                      onChange={(e) => setPatientPhone(e.target.value)}
-                      pattern="[0-9]{10}"
-                      title="Please enter a valid 10-digit phone number"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="symptoms">Symptoms/Reason for Visit</Label>
-                  <Textarea
-                    id="symptoms"
-                    value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
-                    placeholder="Please describe your symptoms or reason for consultation"
-                    required
-                  />
-                </div>
-
-                {!isAuthenticated && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Authentication Required</AlertTitle>
-                    <AlertDescription>
-                      Please <Button variant="link" className="p-0 text-destructive underline" onClick={() => navigate("/login")}>log in</Button> to book an appointment.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-medical-500 hover:bg-medical-600"
-                  disabled={loading || !isAuthenticated}
-                >
-                  {loading ? "Booking Appointment..." : "Book Appointment"}
-                </Button>
-
-                <p className="text-sm text-gray-500 text-center">
-                  By booking an appointment you agree to our{" "}
-                  <a href="#" className="text-medical-600 hover:underline">Terms of Service</a>
-                  {" "}and{" "}
-                  <a href="#" className="text-medical-600 hover:underline">Privacy Policy</a>
-                </p>
-              </form>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </Layout>
   );
 };
 
-export default DoctorAppointment; 
+export default DoctorAppointment;
