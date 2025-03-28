@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight } from "lucide-react";
 
@@ -12,7 +13,7 @@ const news = [
     date: "March 10, 2024",
     title: "24/7 Emergency Support",
     description: "Our emergency support team is now available round the clock to assist you with any medical emergencies.",
-    image: "https://images.unsplash.com/photo-1584982751601-97dcc096659c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80"
+    image: "/lovable-uploads/91062ee0-9c38-4dc0-87fb-7422f3920b42.png"
   },
   {
     date: "March 5, 2024",
