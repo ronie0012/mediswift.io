@@ -1,15 +1,40 @@
-
+import { useState } from "react";
 import PageTemplate from "@/components/layout/PageTemplate";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "@/components/ui/dialog";
+import { useAuth } from "@/context/AuthContext";
+
+// Define the Package type
+interface Package {
+  id: string;
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+}
 
 const HealthPackages = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
+
   const packages = [
     {
       id: "basic",
       name: "Basic Health Checkup",
-      price: "$99",
+      price: "₹1,999",
       description: "Essential health screening for individuals",
       features: [
         "Complete Blood Count (CBC)",
@@ -23,7 +48,7 @@ const HealthPackages = () => {
     {
       id: "comprehensive",
       name: "Comprehensive Health Checkup",
-      price: "$199",
+      price: "₹3,999",
       description: "Complete health assessment for adults",
       features: [
         "All Basic Health Checkup Tests",
@@ -38,7 +63,7 @@ const HealthPackages = () => {
     {
       id: "executive",
       name: "Executive Health Checkup",
-      price: "$349",
+      price: "₹6,999",
       description: "Premium health assessment for busy professionals",
       features: [
         "All Comprehensive Health Checkup Tests",
@@ -52,6 +77,37 @@ const HealthPackages = () => {
       ]
     }
   ];
+
+  const handleBookNow = (pkg: Package) => {
+    if (!user) {
+      toast.error("Please login to book a health package");
+      navigate('/login');
+      return;
+    }
+    setSelectedPackage(pkg);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedPackage) return;
+
+    setIsBooking(true);
+    try {
+      // Simulate a booking process with a delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In a real app, you would make an API call here
+      
+      toast.success(`${selectedPackage.name} booked successfully!`);
+      setSelectedPackage(null);
+      
+      // Redirect to appointments page
+      navigate('/my-appointments');
+    } catch (error) {
+      toast.error("Failed to book the health package. Please try again.");
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   return (
     <PageTemplate title="Health Packages" subtitle="Comprehensive health check-up packages for you and your family">
@@ -80,13 +136,72 @@ const HealthPackages = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-medical-500 hover:bg-medical-600">
+                <Button 
+                  className="w-full bg-medical-500 hover:bg-medical-600"
+                  onClick={() => handleBookNow(pkg)}
+                >
                   Book Now
                 </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
+
+        {/* Booking Confirmation Dialog */}
+        <Dialog open={!!selectedPackage} onOpenChange={(open) => !open && setSelectedPackage(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Booking</DialogTitle>
+              <DialogDescription>
+                You are about to book the following health package
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Package:</span>
+                <span className="font-medium">{selectedPackage?.name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Price:</span>
+                <span className="font-medium">{selectedPackage?.price}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Next available slot:</span>
+                <span className="font-medium">
+                  {new Date(Date.now() + 86400000).toLocaleDateString('en-IN', { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedPackage(null)}
+                disabled={isBooking}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmBooking}
+                disabled={isBooking}
+                className="bg-medical-500 hover:bg-medical-600"
+              >
+                {isBooking ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Booking...
+                  </>
+                ) : (
+                  "Confirm Booking"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </PageTemplate>
   );

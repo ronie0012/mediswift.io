@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -287,7 +286,8 @@ const doctors = [
 const DoctorAppointment = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
-  const [doctor, setDoctor] = useState(null);
+  const [doctor, setDoctor] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -300,16 +300,29 @@ const DoctorAppointment = () => {
 
   useEffect(() => {
     if (doctorId) {
-      // Find the doctor by ID from the sample data
-      const foundDoctor = doctors.find((d) => d.id === parseInt(doctorId));
+      // Convert doctorId to number and find the doctor
+      const doctorIdNum = parseInt(doctorId, 10);
+      const foundDoctor = doctors.find((d) => d.id === doctorIdNum);
+      
       if (foundDoctor) {
         setDoctor(foundDoctor);
       } else {
-        // Handle doctor not found (e.g., redirect to doctors list)
-        navigate('/doctors');
+        toast({
+          variant: "destructive",
+          title: "Doctor Not Found",
+          description: "The requested doctor could not be found.",
+        });
+        // Add a small delay before navigation to show the toast
+        setTimeout(() => {
+          navigate('/doctors');
+        }, 1500);
       }
+    } else {
+      // If no doctorId is provided, redirect to doctors list
+      navigate('/doctors');
     }
-  }, [doctorId, navigate]);
+    setLoading(false);
+  }, [doctorId, navigate, toast]);
 
   const timeslots = [
     "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -319,32 +332,94 @@ const DoctorAppointment = () => {
 
   const submitAppointment = async () => {
     try {
-      setSubmitting(true);
-      // Here, we need to fix the problematic code where it's trying to access .id on an array
-      // Instead of using doctors[parseInt(doctorId)].id, we should use doctorId directly
-      // Since doctorId is already the ID value from the params
+      // Validate required fields
+      if (!name.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Name Required",
+          description: "Please enter your name to continue.",
+        });
+        return;
+      }
+      if (!email.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Email Required",
+          description: "Please enter your email to continue.",
+        });
+        return;
+      }
+      if (!phone.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Phone Required",
+          description: "Please enter your phone number to continue.",
+        });
+        return;
+      }
+      if (!date) {
+        toast({
+          variant: "destructive",
+          title: "Date Required",
+          description: "Please select an appointment date.",
+        });
+        return;
+      }
+      if (!time) {
+        toast({
+          variant: "destructive",
+          title: "Time Required",
+          description: "Please select an appointment time.",
+        });
+        return;
+      }
+      if (!symptoms.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Symptoms Required",
+          description: "Please describe your symptoms.",
+        });
+        return;
+      }
 
-      // Fix the erroneous line
+      setSubmitting(true);
+
       const appointmentData = {
-        doctorId: doctorId, // Using doctorId directly instead of trying to access it from an array
+        id: Date.now(),
+        doctorId: parseInt(doctorId || '0', 10),
+        doctorName: doctor.name,
+        doctorSpecialty: doctor.specialty,
+        doctorImage: doctor.image,
         patientName: name,
         patientEmail: email,
         patientPhone: phone,
-        appointmentDate: date ? format(date, 'yyyy-MM-dd') : '', // Format the date as string
+        appointmentDate: format(date, 'yyyy-MM-dd'),
         appointmentTime: time,
         symptomDescription: symptoms,
-        appointmentType: consultationType
+        appointmentType: consultationType,
+        consultationFee: doctor.consultationFee,
+        status: 'scheduled',
+        createdAt: new Date().toISOString()
       };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('Appointment Data:', appointmentData);
 
-      toast({
-        title: "Appointment Booked",
-        description: `Your appointment with Dr. ${doctor?.name} has been booked for ${date ? format(date, "PPP") : 'No date selected'} at ${time}.`,
-      });
-      navigate('/appointments'); // Redirect to appointments page
+      // Get existing appointments from localStorage or initialize empty array
+      const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      console.log('Existing Appointments:', existingAppointments);
+      
+      // Add new appointment to the array
+      existingAppointments.push(appointmentData);
+      
+      // Save back to localStorage
+      localStorage.setItem('appointments', JSON.stringify(existingAppointments));
+      console.log('Updated Appointments:', existingAppointments);
+
+      // Navigate to success page
+      navigate('/appointment-success');
+
     } catch (error) {
+      console.error("Error booking appointment:", error);
       toast({
         variant: "destructive",
         title: "Error Booking Appointment",
@@ -355,8 +430,32 @@ const DoctorAppointment = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-medical-500"></div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   if (!doctor) {
-    return <div>Loading...</div>; // Or a more informative loading state
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Doctor Not Found</h2>
+            <p className="text-gray-600 mb-6">The requested doctor could not be found.</p>
+            <Button onClick={() => navigate('/doctors')}>
+              Back to Doctors
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   return (
@@ -515,11 +614,18 @@ const DoctorAppointment = () => {
                     </div>
                   </div>
                   <Button
-                    className="w-full mt-6"
+                    className="w-full mt-6 bg-medical-500 hover:bg-medical-600 text-white"
                     onClick={submitAppointment}
                     disabled={submitting}
                   >
-                    {submitting ? "Submitting..." : "Book Appointment"}
+                    {submitting ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                        Booking Appointment...
+                      </div>
+                    ) : (
+                      "Book Appointment"
+                    )}
                   </Button>
                 </div>
               </div>
