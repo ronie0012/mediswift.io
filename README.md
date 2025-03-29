@@ -1,107 +1,119 @@
-# MediSwift - Healthcare Platform
+# MediSwift Backend
 
-MediSwift is a comprehensive healthcare platform that provides services for medicines, doctor appointments, and emergency services.
-
-## Features
-
-- Medicine ordering and delivery
-- Doctor appointments and consultations
-- Emergency services booking
-- Health packages
-- Online consultations
-- Health records management
-- Lab tests booking
-- Health blogs and articles
+This is the backend for MediSwift, an AI-powered healthcare platform for instant doctor appointments, medicine delivery, and ambulance services.
 
 ## Tech Stack
 
-- React 18
+- Supabase (PostgreSQL, Authentication, Edge Functions, Storage, and API)
 - TypeScript
-- Vite
-- Tailwind CSS
-- Supabase
-- React Query
-- React Router
-- Radix UI Components
+- React (for frontend)
 
-## Prerequisites
+## Features
 
-- Node.js 18 or higher
-- npm or yarn
-- Supabase account
-- Git
+- ✅ User Authentication – Secure login, signup, and session management using Supabase Auth
+- ✅ Database Management – PostgreSQL setup with tables for users, doctors, appointments, prescriptions, and orders
+- ✅ API Endpoints – RESTful APIs for booking appointments, ordering medicines, and managing ambulance requests
+- ✅ Role-Based Access Control (RBAC) – Different access levels for patients, doctors, and admins
+- ✅ Real-Time Updates – Supabase real-time features for instant status updates
+- ✅ Secure Data Handling – Using service_role key only on the backend and storing API keys in .env
 
 ## Getting Started
 
-1. Clone the repository:
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+- Supabase CLI (optional, for local development)
+
+### Installation
+
+1. Clone the repository
    ```bash
    git clone https://github.com/yourusername/mediswift.git
    cd mediswift
    ```
 
-2. Install dependencies:
+2. Install dependencies
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-3. Create a `.env` file:
-   ```bash
-   cp .env.example .env
+3. Create a `.env` file in the root directory and add your Supabase credentials:
+   ```
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    ```
 
-4. Update the `.env` file with your Supabase credentials and other configuration.
-
-5. Start the development server:
+4. Run the development server
    ```bash
    npm run dev
+   # or
+   yarn dev
    ```
 
-The application will be available at `http://localhost:8080`.
+### Setting up Supabase Locally (Optional)
 
-## Building for Production
-
-1. Build the application:
+1. Install the Supabase CLI
    ```bash
-   npm run build
+   npm install -g supabase
    ```
 
-2. Preview the production build:
+2. Run the setup script
    ```bash
-   npm run preview
+   chmod +x supabase/setup.sh
+   ./supabase/setup.sh
    ```
 
-## Deployment
+3. This will start a local Supabase instance and apply the database migrations
 
-### Vercel (Recommended)
+## Folder Structure
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Configure environment variables in Vercel
-4. Deploy!
+```
+mediswift/
+├── public/                # Static assets
+├── src/
+│   ├── lib/               # API and service functions
+│   │   ├── auth.ts        # Authentication services
+│   │   ├── profiles.ts    # User profile services
+│   │   ├── doctors.ts     # Doctor-related services
+│   │   ├── appointments.ts # Appointment services
+│   │   ├── prescriptions.ts # Prescription services
+│   │   ├── pharmacy.ts    # Pharmacy and medicine services
+│   │   ├── ambulance.ts   # Ambulance services
+│   │   ├── notifications.ts # Notification services
+│   │   ├── payments.ts    # Payment services
+│   │   ├── reviews.ts     # Review services
+│   │   ├── medical-records.ts # Medical records services
+│   │   ├── supabase.ts    # Supabase client initialization
+│   │   └── index.ts       # Export all services
+│   ├── types/             # TypeScript type definitions
+│   │   └── database.types.ts # Database types
+├── supabase/
+│   ├── migrations/        # Database migrations
+│   │   ├── 20230701000000_initial_schema.sql
+│   │   └── 20230701000001_seed_data.sql
+│   ├── setup.sh           # Setup script for local development
+│   └── storage.sql        # Storage bucket setup
+└── .env                   # Environment variables (not committed to git)
+```
 
-### Netlify
+## API Reference
 
-1. Push your code to GitHub
-2. Connect your repository to Netlify
-3. Configure environment variables in Netlify
-4. Deploy!
+The backend provides API endpoints for all core features:
 
-## Environment Variables
-
-See `.env.example` for all required environment variables.
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- Authentication (signup, login, logout)
+- User profiles (create, update, get)
+- Doctors (list, search, filter)
+- Appointments (book, cancel, reschedule)
+- Prescriptions (create, view)
+- Pharmacy (medicine inventory, orders)
+- Ambulance services (request, track)
+- Payments
+- Reviews and ratings
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, email support@mediswift.io or join our Slack channel.
+[MIT](LICENSE)
