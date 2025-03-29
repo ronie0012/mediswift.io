@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight } from "lucide-react";
 
@@ -19,7 +18,7 @@ const news = [
     date: "March 5, 2024",
     title: "New Medicine Categories",
     description: "We've expanded our medicine inventory with new categories including Ayurvedic and Homeopathic medicines.",
-    image: "https://images.unsplash.com/photo-1585435557343-3b092092a831?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+    image: "/lovable-uploads/91062ee0-9c38-4dc0-87fb-7422f3920b42.png"
   }
 ];
 

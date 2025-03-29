@@ -1,4 +1,3 @@
-
 import PageTemplate from "@/components/layout/PageTemplate";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -288,9 +287,7 @@ const Refund = () => {
           <HelpCircle className="h-8 w-8 text-medical-500 flex-shrink-0" />
           <div>
             <h2 className="font-medium text-gray-800 mb-1">Need Assistance with Refunds?</h2>
-            <p className="text-sm text-gray-600">
-              If you have questions about our refund policy or need help with a specific refund request, please contact our customer support team at <span className="font-medium">support@mediswift.com</span> or call <span className="font-medium">1-800-123-4567</span>.
-            </p>
+            <p className="text-gray-600">If you have any questions about our refund policy, please contact our customer service team at <a href="mailto:support@mediswift.com" className="text-medical-500 hover:underline">support@mediswift.com</a> or call <span className="font-medium">+91 1800 123 4567</span>.</p>
           </div>
         </section>
         

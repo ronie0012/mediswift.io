@@ -1,37 +1,100 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Calendar, Clock, User, Video, MapPin } from "lucide-react";
+import { CheckCircle2, Calendar, Clock, MapPin, User, Video } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { format } from "date-fns";
+
+// Updated interface to match the actual structure in AppointmentContext
+interface Appointment {
+  id: number;
+  doctorId: number;
+  doctorName: string;
+  patientName: string;
+  patientEmail: string;
+  patientAge: string;
+  patientPhone: string;
+  symptoms: string;
+  date: string;
+  time: string;
+  consultationType: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  createdAt: string;
+}
 
 const AppointmentSuccess = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [appointment, setAppointment] = useState<any>(null);
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get the latest appointment from localStorage
-    const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-    console.log('All Appointments:', appointments);
-    
-    if (appointments.length > 0) {
-      const latestAppointment = appointments[appointments.length - 1];
-      console.log('Latest Appointment:', latestAppointment);
+    try {
+      // Get appointments from localStorage
+      const storedAppointments = localStorage.getItem('appointments');
+      if (!storedAppointments) {
+        console.error('No appointments found in localStorage');
+        setError('No appointments found');
+        setLoading(false);
+        return;
+      }
+
+      const appointments = JSON.parse(storedAppointments);
+      if (!Array.isArray(appointments) || appointments.length === 0) {
+        console.error('No appointments array or empty array');
+        setError('No appointment data available');
+        setLoading(false);
+        return;
+      }
+
+      // Get the most recent confirmed appointment
+      const confirmedAppointments = appointments.filter(apt => apt.status === 'confirmed');
+      const latestAppointment = confirmedAppointments[confirmedAppointments.length - 1];
+      
+      if (!latestAppointment || !latestAppointment.doctorName) {
+        console.error('Invalid appointment data');
+        setError('Invalid appointment data');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Latest appointment:', latestAppointment);
       setAppointment(latestAppointment);
-    } else {
-      console.log('No appointments found, redirecting to doctors page');
-      navigate('/doctors');
+      setLoading(false);
+    } catch (error) {
+      console.error('Error retrieving appointment:', error);
+      setError('Error retrieving appointment data');
+      setLoading(false);
     }
   }, [navigate]);
 
-  if (!appointment) {
+  if (loading) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-medical-500"></div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error || !appointment) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Appointment Information Not Found
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {error || "We couldn't find your appointment information."}
+            </p>
+            <Button onClick={() => navigate('/doctors')}>
+              Book an Appointment
+            </Button>
           </div>
         </div>
       </Layout>
@@ -64,7 +127,6 @@ const AppointmentSuccess = () => {
                   <div>
                     <p className="font-medium text-gray-900">Doctor</p>
                     <p>{appointment.doctorName}</p>
-                    <p className="text-sm text-gray-500">{appointment.doctorSpecialty}</p>
                   </div>
                 </div>
 
@@ -72,7 +134,7 @@ const AppointmentSuccess = () => {
                   <Calendar className="h-5 w-5 mr-3 text-medical-500" />
                   <div>
                     <p className="font-medium text-gray-900">Date</p>
-                    <p>{format(new Date(appointment.appointmentDate), "PPP")}</p>
+                    <p>{appointment.date}</p>
                   </div>
                 </div>
 
@@ -80,25 +142,27 @@ const AppointmentSuccess = () => {
                   <Clock className="h-5 w-5 mr-3 text-medical-500" />
                   <div>
                     <p className="font-medium text-gray-900">Time</p>
-                    <p>{appointment.appointmentTime}</p>
+                    <p>{appointment.time}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center text-gray-600">
-                  {appointment.appointmentType === "video" ? (
+                  {appointment.consultationType === "video" ? (
                     <Video className="h-5 w-5 mr-3 text-medical-500" />
                   ) : (
                     <MapPin className="h-5 w-5 mr-3 text-medical-500" />
                   )}
                   <div>
                     <p className="font-medium text-gray-900">Consultation Type</p>
-                    <p>{appointment.appointmentType === "video" ? "Video Consultation" : "In-Clinic Visit"}</p>
+                    <p>{appointment.consultationType === "video" ? "Video Consultation" : "In-Clinic Visit"}</p>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t">
-                  <p className="font-medium text-gray-900">Consultation Fee</p>
-                  <p className="text-xl font-bold text-medical-600">₹{appointment.consultationFee}</p>
+                  <p className="font-medium text-gray-900">Patient Details</p>
+                  <p className="text-gray-800">Name: {appointment.patientName}</p>
+                  <p className="text-gray-800">Email: {appointment.patientEmail}</p>
+                  <p className="text-gray-800">Phone: {appointment.patientPhone}</p>
                 </div>
               </div>
 

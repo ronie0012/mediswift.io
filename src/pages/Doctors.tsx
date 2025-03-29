@@ -289,8 +289,15 @@ const doctors = [
   }
 ];
 
+interface FilterState {
+  fees: string[];
+  availability: string[];
+  gender: string;
+}
+
 const DoctorCard = ({ doctor }: { doctor: any }) => {
   const [consultationType, setConsultationType] = useState("video");
+  const [isFavorite, setIsFavorite] = useState(false);
   
   return (
     <Card className="overflow-hidden">
@@ -307,8 +314,13 @@ const DoctorCard = ({ doctor }: { doctor: any }) => {
                   <h3 className="font-bold text-gray-900">{doctor.name}</h3>
                   <p className="text-medical-600">{doctor.specialty}</p>
                 </div>
-                <Button size="icon" variant="ghost" className="text-gray-500 hover:text-red-500">
-                  <Heart className="h-5 w-5" />
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className={`${isFavorite ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
+                  onClick={() => setIsFavorite(!isFavorite)}
+                >
+                  <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                 </Button>
               </div>
               <div className="flex items-center mt-1">
@@ -385,7 +397,12 @@ const DoctorCard = ({ doctor }: { doctor: any }) => {
         
         <div className="mt-4 border-t border-gray-100">
           <Button asChild className="w-full rounded-none rounded-b-lg h-12 bg-medical-500 hover:bg-medical-600">
-            <Link to={`/doctors/${doctor.id}`}>Book Appointment</Link>
+            <Link 
+              to={`/doctors/${doctor.id}`}
+              state={{ doctor, consultationType }}
+            >
+              Book Appointment
+            </Link>
           </Button>
         </div>
       </CardContent>
@@ -394,25 +411,124 @@ const DoctorCard = ({ doctor }: { doctor: any }) => {
 };
 
 const Doctors = () => {
+  const [activeTab, setActiveTab] = useState("all");
   const [activeSpecialty, setActiveSpecialty] = useState("All Specialties");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("relevance");
-  
-  const filteredDoctors = doctors.filter(doctor => {
-    const matchesSpecialty = activeSpecialty === "All Specialties" || doctor.specialty === activeSpecialty;
-    const matchesSearch = doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSpecialty && matchesSearch;
+  const [filters, setFilters] = useState<FilterState>({
+    fees: [],
+    availability: [],
+    gender: "any"
   });
+  const [visibleDoctors, setVisibleDoctors] = useState(6);
   
-  const sortedDoctors = [...filteredDoctors].sort((a, b) => {
-    if (sortOption === "rating") return b.rating - a.rating;
-    if (sortOption === "fee-low") return a.consultationFee - b.consultationFee;
-    if (sortOption === "fee-high") return b.consultationFee - a.consultationFee;
-    if (sortOption === "experience") return parseInt(b.experience) - parseInt(a.experience);
-    // Default: relevance - no specific sort
-    return 0;
-  });
+  const filterDoctors = () => {
+    let filtered = [...doctors];
+    
+    // Filter by tab
+    if (activeTab === "available-today") {
+      filtered = filtered.filter(doctor => doctor.availableToday);
+    } else if (activeTab === "video-consult") {
+      filtered = filtered.filter(doctor => doctor.availableForVideo);
+    } else if (activeTab === "in-clinic") {
+      filtered = filtered.filter(doctor => doctor.availableForInClinic);
+    }
+    
+    // Filter by specialty
+    if (activeSpecialty !== "All Specialties") {
+      filtered = filtered.filter(doctor => doctor.specialty === activeSpecialty);
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(doctor => 
+        doctor.name.toLowerCase().includes(query) || 
+        doctor.specialty.toLowerCase().includes(query) ||
+        doctor.location.toLowerCase().includes(query)
+      );
+    }
+    
+    // Filter by consultation fee
+    if (filters.fees.length > 0) {
+      filtered = filtered.filter(doctor => {
+        const fee = doctor.consultationFee;
+        return filters.fees.some(range => {
+          if (range === "under-500") return fee < 500;
+          if (range === "500-1000") return fee >= 500 && fee <= 1000;
+          if (range === "1000-1500") return fee > 1000 && fee <= 1500;
+          if (range === "above-1500") return fee > 1500;
+          return true;
+        });
+      });
+    }
+    
+    // Filter by availability
+    if (filters.availability.length > 0) {
+      filtered = filtered.filter(doctor => {
+        return filters.availability.some(avail => {
+          if (avail === "today") return doctor.availableToday;
+          if (avail === "tomorrow") return doctor.nextAvailable.includes("Tomorrow");
+          if (avail === "this-week") return true; // Assuming all doctors are available this week
+          return true;
+        });
+      });
+    }
+    
+    // Filter by gender
+    if (filters.gender !== "any") {
+      filtered = filtered.filter(doctor => {
+        const doctorGender = doctor.name.startsWith("Dr. Mr.") ? "male" : "female";
+        return doctorGender === filters.gender;
+      });
+    }
+    
+    // Sort doctors
+    filtered.sort((a, b) => {
+      if (sortOption === "rating") return b.rating - a.rating;
+      if (sortOption === "fee-low") return a.consultationFee - b.consultationFee;
+      if (sortOption === "fee-high") return b.consultationFee - a.consultationFee;
+      if (sortOption === "experience") {
+        return parseInt(b.experience) - parseInt(a.experience);
+      }
+      return 0;
+    });
+    
+    return filtered;
+  };
+  
+  const filteredDoctors = filterDoctors();
+  
+  const handleFilterChange = (type: keyof FilterState, value: string) => {
+    setFilters(prev => {
+      if (type === "gender") {
+        return { ...prev, gender: value };
+      }
+      
+      const array = prev[type] as string[];
+      const newArray = array.includes(value)
+        ? array.filter(item => item !== value)
+        : [...array, value];
+        
+      return { ...prev, [type]: newArray };
+    });
+  };
+  
+  const clearFilters = () => {
+    setFilters({
+      fees: [],
+      availability: [],
+      gender: "any"
+    });
+    setActiveSpecialty("All Specialties");
+    setSearchQuery("");
+    setSortOption("relevance");
+    setActiveTab("all");
+  };
+  
+  const loadMore = () => {
+    setVisibleDoctors(prev => prev + 6);
+  };
   
   return (
     <Layout>
@@ -434,7 +550,7 @@ const Doctors = () => {
             </div>
           </div>
           
-          <Tabs defaultValue="all" className="w-full mb-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="available-today">Available Today</TabsTrigger>
@@ -468,19 +584,43 @@ const Doctors = () => {
                   <label className="text-sm font-medium text-gray-700 block mb-2">Consultation Fee</label>
                   <div className="space-y-2">
                     <div className="flex items-center">
-                      <input type="checkbox" id="fee-1" className="rounded text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="checkbox" 
+                        id="fee-1" 
+                        checked={filters.fees.includes("under-500")}
+                        onChange={() => handleFilterChange("fees", "under-500")}
+                        className="rounded text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="fee-1" className="ml-2 text-gray-600">Under ₹500</label>
                     </div>
                     <div className="flex items-center">
-                      <input type="checkbox" id="fee-2" className="rounded text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="checkbox" 
+                        id="fee-2" 
+                        checked={filters.fees.includes("500-1000")}
+                        onChange={() => handleFilterChange("fees", "500-1000")}
+                        className="rounded text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="fee-2" className="ml-2 text-gray-600">₹500 - ₹1000</label>
                     </div>
                     <div className="flex items-center">
-                      <input type="checkbox" id="fee-3" className="rounded text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="checkbox" 
+                        id="fee-3" 
+                        checked={filters.fees.includes("1000-1500")}
+                        onChange={() => handleFilterChange("fees", "1000-1500")}
+                        className="rounded text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="fee-3" className="ml-2 text-gray-600">₹1000 - ₹1500</label>
                     </div>
                     <div className="flex items-center">
-                      <input type="checkbox" id="fee-4" className="rounded text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="checkbox" 
+                        id="fee-4" 
+                        checked={filters.fees.includes("above-1500")}
+                        onChange={() => handleFilterChange("fees", "above-1500")}
+                        className="rounded text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="fee-4" className="ml-2 text-gray-600">Above ₹1500</label>
                     </div>
                   </div>
@@ -490,15 +630,33 @@ const Doctors = () => {
                   <label className="text-sm font-medium text-gray-700 block mb-2">Availability</label>
                   <div className="space-y-2">
                     <div className="flex items-center">
-                      <input type="checkbox" id="avail-1" className="rounded text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="checkbox" 
+                        id="avail-1" 
+                        checked={filters.availability.includes("today")}
+                        onChange={() => handleFilterChange("availability", "today")}
+                        className="rounded text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="avail-1" className="ml-2 text-gray-600">Available Today</label>
                     </div>
                     <div className="flex items-center">
-                      <input type="checkbox" id="avail-2" className="rounded text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="checkbox" 
+                        id="avail-2" 
+                        checked={filters.availability.includes("tomorrow")}
+                        onChange={() => handleFilterChange("availability", "tomorrow")}
+                        className="rounded text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="avail-2" className="ml-2 text-gray-600">Available Tomorrow</label>
                     </div>
                     <div className="flex items-center">
-                      <input type="checkbox" id="avail-3" className="rounded text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="checkbox" 
+                        id="avail-3" 
+                        checked={filters.availability.includes("this-week")}
+                        onChange={() => handleFilterChange("availability", "this-week")}
+                        className="rounded text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="avail-3" className="ml-2 text-gray-600">Available This Week</label>
                     </div>
                   </div>
@@ -508,29 +666,56 @@ const Doctors = () => {
                   <label className="text-sm font-medium text-gray-700 block mb-2">Gender</label>
                   <div className="space-y-2">
                     <div className="flex items-center">
-                      <input type="radio" name="gender" id="gender-any" className="text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="radio" 
+                        name="gender" 
+                        id="gender-any" 
+                        checked={filters.gender === "any"}
+                        onChange={() => handleFilterChange("gender", "any")}
+                        className="text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="gender-any" className="ml-2 text-gray-600">Any</label>
                     </div>
                     <div className="flex items-center">
-                      <input type="radio" name="gender" id="gender-male" className="text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="radio" 
+                        name="gender" 
+                        id="gender-male" 
+                        checked={filters.gender === "male"}
+                        onChange={() => handleFilterChange("gender", "male")}
+                        className="text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="gender-male" className="ml-2 text-gray-600">Male</label>
                     </div>
                     <div className="flex items-center">
-                      <input type="radio" name="gender" id="gender-female" className="text-medical-600 focus:ring-medical-500" />
+                      <input 
+                        type="radio" 
+                        name="gender" 
+                        id="gender-female" 
+                        checked={filters.gender === "female"}
+                        onChange={() => handleFilterChange("gender", "female")}
+                        className="text-medical-600 focus:ring-medical-500" 
+                      />
                       <label htmlFor="gender-female" className="ml-2 text-gray-600">Female</label>
                     </div>
                   </div>
                 </div>
                 
                 <div className="pt-2">
-                  <Button variant="outline" className="w-full">Clear All Filters</Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={clearFilters}
+                  >
+                    Clear All Filters
+                  </Button>
                 </div>
               </div>
             </div>
             
             <div className="lg:col-span-3">
               <div className="flex justify-between items-center mb-6">
-                <p className="text-gray-600">{sortedDoctors.length} doctors found</p>
+                <p className="text-gray-600">{filteredDoctors.length} doctors found</p>
                 <Select value={sortOption} onValueChange={setSortOption}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Sort by" />
@@ -546,29 +731,30 @@ const Doctors = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {sortedDoctors.map((doctor) => (
+                {filteredDoctors.slice(0, visibleDoctors).map((doctor) => (
                   <DoctorCard key={doctor.id} doctor={doctor} />
                 ))}
               </div>
               
-              {sortedDoctors.length === 0 && (
+              {filteredDoctors.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 mb-4">No doctors found matching your criteria.</p>
                   <Button 
                     variant="outline" 
-                    onClick={() => {
-                      setActiveSpecialty("All Specialties");
-                      setSearchQuery("");
-                    }}
+                    onClick={clearFilters}
                   >
                     Clear Filters
                   </Button>
                 </div>
               )}
               
-              <div className="mt-8 text-center">
-                <Button variant="outline" className="mx-auto">Load More Doctors</Button>
-              </div>
+              {filteredDoctors.length > visibleDoctors && (
+                <div className="mt-8 text-center">
+                  <Button variant="outline" className="mx-auto" onClick={loadMore}>
+                    Load More Doctors
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

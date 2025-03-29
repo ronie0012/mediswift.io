@@ -1,4 +1,3 @@
-
 import PageTemplate from "@/components/layout/PageTemplate";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -18,9 +17,9 @@ const EmergencyServices = () => {
           </div>
           
           <div className="flex justify-center mb-4">
-            <a href="tel:1-800-123-4567" className="bg-emergency-500 hover:bg-emergency-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 text-xl font-bold transition-colors duration-300">
+            <a href="tel:+911800123456" className="bg-emergency-500 hover:bg-emergency-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 text-xl font-bold transition-colors duration-300">
               <PhoneCall className="h-6 w-6" />
-              1-800-123-4567
+              +91 1800 123 4567
             </a>
           </div>
           

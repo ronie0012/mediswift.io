@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,13 +123,16 @@ const AmbulanceBooking = () => {
                       <Label htmlFor="emergency-phone">Contact Phone Number</Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <Input
-                          id="emergency-phone"
-                          type="tel"
-                          placeholder="+1 (123) 456-7890"
-                          className="pl-10"
-                          required
-                        />
+                        <div className="flex">
+                          <div className="flex items-center justify-center bg-gray-100 border border-r-0 rounded-l-md px-3 text-gray-500">+91</div>
+                          <Input
+                            id="emergency-phone"
+                            type="tel"
+                            placeholder="9876543210"
+                            className="rounded-l-none"
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -218,13 +220,16 @@ const AmbulanceBooking = () => {
                       <Label htmlFor="scheduled-phone">Contact Phone Number</Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <Input
-                          id="scheduled-phone"
-                          type="tel"
-                          placeholder="+1 (123) 456-7890"
-                          className="pl-10"
-                          required
-                        />
+                        <div className="flex">
+                          <div className="flex items-center justify-center bg-gray-100 border border-r-0 rounded-l-md px-3 text-gray-500">+91</div>
+                          <Input
+                            id="scheduled-phone"
+                            type="tel"
+                            placeholder="9876543210"
+                            className="rounded-l-none"
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -248,14 +253,11 @@ const AmbulanceBooking = () => {
                 Emergency Hotline
               </h3>
               <p className="text-gray-600 mb-4">
-                If you're experiencing a critical emergency, please call our 24/7 emergency hotline for immediate assistance.
+                For immediate ambulance dispatch in emergencies, call our 24/7 hotline:
               </p>
-              <div className="text-center">
-                <a href="tel:+1800123456" className="inline-flex items-center justify-center h-12 px-6 text-lg font-medium text-white bg-emergency-500 rounded-lg hover:bg-emergency-600 transition-colors">
-                  <Phone className="h-5 w-5 mr-2" />
-                  Call: 1-800-123-456
-                </a>
-              </div>
+              <a href="tel:+911800123456" className="text-3xl font-bold text-emergency-500 hover:underline flex items-center">
+                Call: +91 1800 123 456
+              </a>
             </div>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import PageTemplate from "@/components/layout/PageTemplate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,11 @@ const Support = () => {
                 <CardDescription>Speak directly with our support team</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 font-medium mb-2">1-800-123-4567</p>
+                <h3 className="text-lg font-semibold mb-1 flex items-center gap-2 text-gray-800">
+                  <Phone className="h-5 w-5 text-medical-500" />
+                  Customer Support Hotline
+                </h3>
+                <p className="text-gray-700 font-medium mb-2">+91 1800 123 4567</p>
                 <div className="flex items-center text-sm text-gray-600">
                   <Clock className="h-4 w-4 mr-2 text-gray-500" />
                   <span>24/7 Customer Support</span>

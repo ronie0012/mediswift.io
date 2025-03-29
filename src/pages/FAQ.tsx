@@ -1,4 +1,3 @@
-
 import PageTemplate from "@/components/layout/PageTemplate";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
@@ -226,7 +225,7 @@ const FAQ = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-800 text-sm">Call Us</h3>
-                  <p className="text-xs text-gray-600">1-800-123-4567</p>
+                  <p className="text-xs text-gray-600">+91 1800 123 4567</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">

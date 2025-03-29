@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { CalendarIcon, Clock, User, Mail, Phone, MessageSquare } from "lucide-re
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { DayPicker } from "react-day-picker"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import {
   Select,
   SelectContent,
@@ -26,6 +26,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MapPin, Star, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { useAppointments } from "@/context/AppointmentContext";
 
 // Sample data - replace with actual data fetching later
 const doctors = [
@@ -286,6 +288,8 @@ const doctors = [
 const DoctorAppointment = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { addAppointment } = useAppointments();
   const [doctor, setDoctor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -296,135 +300,137 @@ const DoctorAppointment = () => {
   const [symptoms, setSymptoms] = useState("");
   const [consultationType, setConsultationType] = useState("video");
   const [submitting, setSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (doctorId) {
-      // Convert doctorId to number and find the doctor
-      const doctorIdNum = parseInt(doctorId, 10);
-      const foundDoctor = doctors.find((d) => d.id === doctorIdNum);
-      
-      if (foundDoctor) {
-        setDoctor(foundDoctor);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Doctor Not Found",
-          description: "The requested doctor could not be found.",
-        });
-        // Add a small delay before navigation to show the toast
-        setTimeout(() => {
-          navigate('/doctors');
-        }, 1500);
-      }
-    } else {
-      // If no doctorId is provided, redirect to doctors list
-      navigate('/doctors');
-    }
-    setLoading(false);
-  }, [doctorId, navigate, toast]);
-
-  const timeslots = [
-    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM"
-  ];
-
-  const submitAppointment = async () => {
     try {
-      // Validate required fields
-      if (!name.trim()) {
-        toast({
-          variant: "destructive",
-          title: "Name Required",
-          description: "Please enter your name to continue.",
-        });
-        return;
+      // Check if we have data from location state
+      const locationState = location.state as { doctor?: any; consultationType?: string } | null;
+      
+      if (locationState?.doctor) {
+        // Use doctor directly from location state
+        setDoctor(locationState.doctor);
+        if (locationState.consultationType) {
+          setConsultationType(locationState.consultationType);
+        }
+        setLoading(false);
+      } else if (doctorId) {
+        // Fallback to finding doctor by ID
+        const doctorIdNum = parseInt(doctorId, 10);
+        const foundDoctor = doctors.find((d) => d.id === doctorIdNum);
+        
+        if (foundDoctor) {
+          setDoctor(foundDoctor);
+        } else {
+          toast.error("Doctor Not Found", {
+            description: "The requested doctor could not be found.",
+          });
+          // Add a small delay before navigation to show the toast
+          setTimeout(() => {
+            navigate('/doctors');
+          }, 1500);
+        }
+        setLoading(false);
+      } else {
+        // If no doctorId is provided, redirect to doctors list
+        navigate('/doctors');
       }
-      if (!email.trim()) {
-        toast({
-          variant: "destructive",
-          title: "Email Required",
-          description: "Please enter your email to continue.",
-        });
-        return;
-      }
-      if (!phone.trim()) {
-        toast({
-          variant: "destructive",
-          title: "Phone Required",
-          description: "Please enter your phone number to continue.",
-        });
-        return;
-      }
-      if (!date) {
-        toast({
-          variant: "destructive",
-          title: "Date Required",
-          description: "Please select an appointment date.",
-        });
-        return;
-      }
-      if (!time) {
-        toast({
-          variant: "destructive",
-          title: "Time Required",
-          description: "Please select an appointment time.",
-        });
-        return;
-      }
-      if (!symptoms.trim()) {
-        toast({
-          variant: "destructive",
-          title: "Symptoms Required",
-          description: "Please describe your symptoms.",
-        });
-        return;
-      }
+    } catch (error) {
+      console.error("Error loading doctor information:", error);
+      toast.error("Failed to load doctor information");
+      setLoading(false);
+    }
+  }, [doctorId, navigate, location]);
 
+  const validateForm = () => {
+    setFormError(null);
+    
+    if (!name.trim()) {
+      setFormError("Please enter your name to continue.");
+      toast.error("Please enter your name to continue.");
+      return false;
+    }
+    if (!email.trim()) {
+      setFormError("Please enter your email to continue.");
+      toast.error("Please enter your email to continue.");
+      return false;
+    }
+    if (!phone.trim()) {
+      setFormError("Please enter your phone number to continue.");
+      toast.error("Please enter your phone number to continue.");
+      return false;
+    }
+    if (!date) {
+      setFormError("Please select an appointment date.");
+      toast.error("Please select an appointment date.");
+      return false;
+    }
+    if (!time) {
+      setFormError("Please select an appointment time.");
+      toast.error("Please select an appointment time.");
+      return false;
+    }
+    if (!symptoms.trim()) {
+      setFormError("Please describe your symptoms.");
+      toast.error("Please describe your symptoms.");
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (submitting) return; // Prevent double submission
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
       setSubmitting(true);
+      setFormError(null);
+
+      if (!doctor) {
+        throw new Error("Doctor information not found");
+      }
 
       const appointmentData = {
-        id: Date.now(),
-        doctorId: parseInt(doctorId || '0', 10),
+        doctorId: doctor.id,
         doctorName: doctor.name,
-        doctorSpecialty: doctor.specialty,
-        doctorImage: doctor.image,
         patientName: name,
         patientEmail: email,
+        patientAge: "0",
         patientPhone: phone,
-        appointmentDate: format(date, 'yyyy-MM-dd'),
-        appointmentTime: time,
-        symptomDescription: symptoms,
-        appointmentType: consultationType,
-        consultationFee: doctor.consultationFee,
-        status: 'scheduled',
-        createdAt: new Date().toISOString()
+        symptoms: symptoms,
+        date: format(date!, 'yyyy-MM-dd'),
+        time: time,
+        consultationType: consultationType,
       };
 
-      console.log('Appointment Data:', appointmentData);
+      console.log("Submitting appointment data:", appointmentData);
 
-      // Get existing appointments from localStorage or initialize empty array
-      const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-      console.log('Existing Appointments:', existingAppointments);
+      // Use the addAppointment function from context
+      const newAppointment = await addAppointment(appointmentData);
       
-      // Add new appointment to the array
-      existingAppointments.push(appointmentData);
-      
-      // Save back to localStorage
-      localStorage.setItem('appointments', JSON.stringify(existingAppointments));
-      console.log('Updated Appointments:', existingAppointments);
-
-      // Navigate to success page
-      navigate('/appointment-success');
-
+      if (newAppointment && newAppointment.id) {
+        console.log("Appointment created successfully:", newAppointment);
+        toast.success('Appointment Booked Successfully', {
+          description: `Your appointment with ${doctor.name} has been booked for ${format(date!, "PPP")} at ${time}.`
+        });
+        
+        // Wait a moment for the toast to be visible before navigating
+        setTimeout(() => {
+          navigate('/appointment-success');
+        }, 1000);
+      } else {
+        throw new Error("Failed to create appointment");
+      }
     } catch (error) {
       console.error("Error booking appointment:", error);
-      toast({
-        variant: "destructive",
-        title: "Error Booking Appointment",
-        description: "Failed to book appointment. Please try again.",
-      });
+      setFormError(error instanceof Error ? error.message : "Failed to book appointment. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to book appointment. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -460,177 +466,174 @@ const DoctorAppointment = () => {
 
   return (
     <Layout>
-      <div className="bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="md:flex">
-                <div className="md:w-1/3 p-6 bg-gray-100">
-                  <div className="flex items-start">
-                    <Avatar className="h-16 w-16 rounded-lg">
-                      <AvatarImage src={doctor.image} alt={doctor.name} />
-                      <AvatarFallback>{doctor.name[0]}{doctor.name.split(' ')[1][0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="ml-4 flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-bold text-gray-900">{doctor.name}</h3>
-                          <p className="text-medical-600">{doctor.specialty}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center mt-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm font-medium ml-1">{doctor.rating}</span>
-                        <span className="text-xs text-gray-500 ml-1">({doctor.reviewCount} reviews)</span>
-                      </div>
-                      <div className="flex flex-wrap items-center mt-2 text-sm text-gray-600">
-                        <span className="mr-4 flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {doctor.experience}
-                        </span>
-                        <span className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {doctor.location}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className="flex items-center gap-4 mb-6">
+              <img
+                src={doctor.image}
+                alt={doctor.name}
+                className="w-20 h-20 rounded-full object-cover"
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{doctor.name}</h1>
+                <p className="text-gray-600">{doctor.specialty}</p>
+                <p className="text-medical-600 font-semibold">
+                  Consultation Fee: ₹{doctor.consultationFee}
+                </p>
+              </div>
+            </div>
 
-                  <div className="mt-4">
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {doctor.availableForVideo && (
-                        <Badge
-                          variant={consultationType === "video" ? "default" : "outline"}
-                          className={`cursor-pointer ${consultationType === "video" ? "bg-medical-500" : ""
-                            }`}
-                          onClick={() => setConsultationType("video")}
-                        >
-                          <Video className="h-3 w-3 mr-1" />
-                          Video Consult
-                        </Badge>
-                      )}
-                      {doctor.availableForInClinic && (
-                        <Badge
-                          variant={consultationType === "clinic" ? "default" : "outline"}
-                          className={`cursor-pointer ${consultationType === "clinic" ? "bg-medical-500" : ""
-                            }`}
-                          onClick={() => setConsultationType("clinic")}
-                        >
-                          <MapPin className="h-3 w-3 mr-1" />
-                          In-Clinic
-                        </Badge>
-                      )}
-                    </div>
+            {formError && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-600">
+                {formError}
+              </div>
+            )}
 
-                    <div>
-                      <p className="text-sm text-gray-500">Consultation Fee</p>
-                      <p className="font-bold text-gray-900">₹{doctor.consultationFee}</p>
-                    </div>
-                  </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
                 </div>
 
-                <div className="md:w-2/3 p-6">
-                  <h2 className="text-2xl font-bold mb-4">Book Appointment</h2>
-                  <div className="grid gap-4">
-                    <div>
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                        type="text"
-                        id="name"
-                        placeholder="Enter your name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="date">Appointment Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date"
+                        name="date"
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
                       />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        type="email"
-                        id="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        type="tel"
-                        id="phone"
-                        placeholder="Enter your phone number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Appointment Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "PPP") : <span>Pick a date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <DayPicker
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            disabled={{ before: new Date() }}
-                            className="border-0 shadow-sm"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div>
-                      <Label htmlFor="time">Time</Label>
-                      <Select value={time} onValueChange={setTime}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {timeslots.map((slot) => (
-                            <SelectItem key={slot} value={slot}>
-                              {slot}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="symptoms">Symptoms</Label>
-                      <Input
-                        id="symptoms"
-                        placeholder="Describe your symptoms"
-                        value={symptoms}
-                        onChange={(e) => setSymptoms(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <Button
-                    className="w-full mt-6 bg-medical-500 hover:bg-medical-600 text-white"
-                    onClick={submitAppointment}
-                    disabled={submitting}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="time">Appointment Time</Label>
+                  <Select value={time} onValueChange={setTime} required>
+                    <SelectTrigger id="time" name="time">
+                      <SelectValue placeholder="Select time">
+                        {time ? (
+                          <div className="flex items-center">
+                            <Clock className="mr-2 h-4 w-4" />
+                            {time}
+                          </div>
+                        ) : (
+                          "Select time"
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="09:00 AM">09:00 AM</SelectItem>
+                      <SelectItem value="10:00 AM">10:00 AM</SelectItem>
+                      <SelectItem value="11:00 AM">11:00 AM</SelectItem>
+                      <SelectItem value="12:00 PM">12:00 PM</SelectItem>
+                      <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                      <SelectItem value="03:00 PM">03:00 PM</SelectItem>
+                      <SelectItem value="04:00 PM">04:00 PM</SelectItem>
+                      <SelectItem value="05:00 PM">05:00 PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="consultationType">Consultation Type</Label>
+                  <Select
+                    value={consultationType}
+                    onValueChange={setConsultationType}
+                    required
                   >
-                    {submitting ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                        Booking Appointment...
-                      </div>
-                    ) : (
-                      "Book Appointment"
-                    )}
-                  </Button>
+                    <SelectTrigger id="consultationType" name="consultationType">
+                      <SelectValue placeholder="Select consultation type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="video">Video Consultation</SelectItem>
+                      <SelectItem value="clinic">In-Clinic Visit</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="symptoms">Symptoms Description</Label>
+                <Textarea
+                  id="symptoms"
+                  name="symptoms"
+                  placeholder="Please describe your symptoms"
+                  value={symptoms}
+                  onChange={(e) => setSymptoms(e.target.value)}
+                  className="min-h-[100px]"
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-medical-600 hover:bg-medical-700 text-white"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                    Booking...
+                  </div>
+                ) : (
+                  "Book Appointment"
+                )}
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </Layout>

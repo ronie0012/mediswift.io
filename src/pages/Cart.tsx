@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { useCart } from "@/context/CartContext";
@@ -47,7 +46,7 @@ const CartContent = () => {
   });
 
   const subtotal = getCartTotal();
-  const deliveryFee = subtotal > 0 ? 2.99 : 0;
+  const deliveryFee = subtotal >= 200 ? 0 : 40;
   const tax = subtotal * 0.08;
   const total = subtotal + deliveryFee + tax;
 
@@ -338,6 +337,16 @@ const CartContent = () => {
                     <span className="font-medium text-medical-700">Express Delivery</span>
                   </div>
                   <p className="text-sm text-medical-600">Your order will be delivered in 10-20 minutes</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                  <div className="flex items-center">
+                    <Truck className="h-5 w-5 text-medical-500 mr-2" />
+                    <div>
+                      <div className="text-sm font-medium">Free Delivery</div>
+                      <div className="text-xs text-gray-500">On orders above ₹200</div>
+                    </div>
+                  </div>
                 </div>
 
                 {!isAuthenticated ? (

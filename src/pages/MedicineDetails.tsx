@@ -16,14 +16,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-// Sample medicine data (in real app, this would come from an API or database)
+// Import medicine data directly from Medicines.tsx
+// This is the same data used in the Medicines page
 const medicineData = [
   {
     id: 1,
     name: "Paracetamol 500mg",
     brand: "Generic",
-    price: 15,
-    discountPrice: 12,
+    price: 35,
+    discountPrice: 32,
     rating: 4.8,
     category: "Pain Relief",
     quantity: "10 tablets",
@@ -43,483 +44,290 @@ const medicineData = [
     id: 2,
     name: "Amoxicillin 500mg",
     brand: "Generic",
-    price: 50,
-    discountPrice: 45,
+    price: 84,
+    discountPrice: 79,
     rating: 4.7,
     category: "Antibiotics",
     quantity: "10 capsules",
     image: "/Amoxicillin.webp",
-    description: "Amoxicillin is a penicillin antibiotic that fights bacteria in the body. It is used to treat bacterial infections such as bronchitis and pneumonia.",
-    usage: "Take as directed by your doctor, usually every 8 or 12 hours with or without food. Complete the full course even if you feel better.",
-    sideEffects: "Side effects may include diarrhea, stomach upset, or allergic reactions. Contact your doctor if experiencing severe rash, persistent diarrhea, or difficulty breathing.",
-    contraindications: "Do not use if allergic to penicillin antibiotics. Inform your doctor about your medical history, especially of kidney disease.",
-    stock: 35,
-    reviews: [
-      { id: 1, user: "Emily P.", rating: 5, comment: "Cleared my infection within days.", date: "2023-04-18" },
-      { id: 2, user: "Michael R.", rating: 4, comment: "Effective but caused some stomach upset.", date: "2023-05-30" }
-    ]
+    stock: 15
   },
   {
     id: 3,
-    name: "Lisinopril 10mg",
+    name: "Azithromycin 500mg",
     brand: "Generic",
-    price: 65,
-    discountPrice: 55,
-    rating: 4.5,
-    category: "Blood Pressure",
-    quantity: "30 tablets",
-    image: "/medicines/default-medicine.svg",
-    description: "Lisinopril is an ACE inhibitor used to treat high blood pressure and heart failure, and to improve survival after heart attacks.",
-    usage: "Take once daily with or without food. Take exactly as prescribed by your doctor, even if you feel well.",
-    sideEffects: "May cause dizziness, headache, or persistent dry cough. Severe side effects include swelling of face/lips/tongue, difficulty breathing, or unusually fast or slow heartbeat.",
-    contraindications: "Do not use if pregnant or planning to become pregnant. Inform your doctor if you have kidney disease or are taking other medications.",
-    stock: 42,
-    reviews: [
-      { id: 1, user: "David K.", rating: 5, comment: "Helped control my blood pressure effectively.", date: "2023-07-05" },
-      { id: 2, user: "Linda M.", rating: 4, comment: "Works well but causes occasional cough.", date: "2023-08-12" }
-    ]
+    price: 90,
+    discountPrice: 85,
+    rating: 4.7,
+    category: "Antibiotics",
+    quantity: "3 tablets",
+    image: "/Azithromycin.webp",
+    stock: 12
   },
   {
     id: 4,
-    name: "Metformin 500mg",
+    name: "Ciprofloxacin 500mg",
     brand: "Generic",
-    price: 45,
-    discountPrice: 38,
-    rating: 4.6,
-    category: "Diabetes",
-    quantity: "60 tablets",
-    image: "/Metformin.webp",
-    description: "Metformin is used to control blood sugar levels in people with type 2 diabetes. It helps improve your body's response to insulin.",
-    usage: "Take with meals to reduce stomach upset. Your doctor may gradually increase your dose to minimize side effects.",
-    sideEffects: "Common side effects include nausea, vomiting, diarrhea, or stomach upset. These usually improve as your body adjusts to the medication.",
-    contraindications: "Not suitable for people with kidney problems, liver disease, or conditions that may affect kidney function.",
-    stock: 55,
-    reviews: [
-      { id: 1, user: "Amanda T.", rating: 5, comment: "Excellent for controlling my blood sugar.", date: "2023-06-20" },
-      { id: 2, user: "Brian L.", rating: 4, comment: "Works great but caused initial digestive issues.", date: "2023-07-15" }
-    ]
+    price: 70,
+    discountPrice: 65,
+    rating: 4.5,
+    category: "Antibiotics",
+    quantity: "10 tablets",
+    image: "/Ciprofloxacin.webp",
+    stock: 20
   },
   {
     id: 5,
-    name: "Atorvastatin 20mg",
+    name: "Metformin 500mg",
     brand: "Generic",
-    price: 70,
-    discountPrice: 62,
-    rating: 4.7,
-    category: "Cholesterol",
-    quantity: "30 tablets",
-    image: "/Atorvastatin.webp",
-    description: "Atorvastatin is used to lower cholesterol and triglycerides in the blood. It helps reduce the risk of heart disease, stroke, and heart attacks.",
-    usage: "Take once daily, with or without food. Can be taken at any time of day, but preferably at the same time each day.",
-    sideEffects: "May cause muscle pain, mild digestive issues, or slight liver enzyme elevation. Serious side effects are rare but may include severe muscle pain or weakness.",
-    contraindications: "Not recommended during pregnancy or if planning pregnancy. Use with caution if you have liver disease or consume substantial amounts of alcohol.",
-    stock: 38,
-    reviews: [
-      { id: 1, user: "Jennifer P.", rating: 5, comment: "Reduced my cholesterol significantly.", date: "2023-05-28" },
-      { id: 2, user: "Mark D.", rating: 5, comment: "Very effective with no noticeable side effects.", date: "2023-08-03" }
-    ]
+    price: 25,
+    discountPrice: 22,
+    rating: 4.6,
+    category: "Diabetes",
+    quantity: "10 tablets",
+    image: "/Metformin.webp",
+    stock: 18
   },
   {
     id: 6,
-    name: "Cetirizine 10mg",
+    name: "Amlodipine 5mg",
     brand: "Generic",
-    price: 25,
-    discountPrice: 20,
+    price: 15,
+    discountPrice: 12,
     rating: 4.8,
-    category: "Allergy",
-    quantity: "30 tablets",
-    image: "/Cetirizine.webp",
-    description: "Cetirizine is an antihistamine used to relieve allergy symptoms such as sneezing, runny nose, watery eyes, and itching.",
-    usage: "Take once daily with or without food. May cause drowsiness in some people; use caution when driving or operating machinery.",
-    sideEffects: "May cause drowsiness, dry mouth, fatigue, or headache. These side effects are usually mild and temporary.",
-    contraindications: "Use with caution if you have kidney or liver disease. Consult your doctor if pregnant, planning to become pregnant, or breastfeeding.",
-    stock: 65,
-    reviews: [
-      { id: 1, user: "Susan R.", rating: 5, comment: "Great for seasonal allergies!", date: "2023-04-10" },
-      { id: 2, user: "James T.", rating: 4, comment: "Works well but makes me a bit drowsy.", date: "2023-06-05" }
-    ]
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Amlodipine.webp",
+    stock: 25
   },
   {
     id: 7,
-    name: "Omeprazole 20mg",
+    name: "Atorvastatin 10mg",
     brand: "Generic",
-    price: 40,
-    discountPrice: 35,
-    rating: 4.6,
-    category: "Digestive Health",
-    quantity: "28 capsules",
-    image: "/Omeprazole.webp",
-    description: "Omeprazole reduces the amount of acid in your stomach. It treats conditions such as heartburn, acid reflux, and stomach ulcers.",
-    usage: "Take once daily before a meal, preferably in the morning. Swallow the capsule whole, do not crush or chew.",
-    sideEffects: "May cause headache, stomach pain, nausea, diarrhea, or vomiting. Long-term use may increase the risk of certain infections.",
-    contraindications: "Inform your doctor if you have liver problems or low magnesium levels, or if you're taking other medications.",
-    stock: 48,
-    reviews: [
-      { id: 1, user: "Patricia M.", rating: 5, comment: "Completely eliminated my acid reflux.", date: "2023-07-22" },
-      { id: 2, user: "Thomas B.", rating: 4, comment: "Very effective for heartburn relief.", date: "2023-09-04" }
-    ]
+    price: 55,
+    discountPrice: 50,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Atorvastatin.webp",
+    stock: 30
   },
   {
     id: 8,
-    name: "Levothyroxine 50mcg",
+    name: "Omeprazole 20mg",
     brand: "Generic",
-    price: 55,
-    discountPrice: 48,
+    price: 20,
+    discountPrice: 18,
     rating: 4.7,
-    category: "Thyroid",
-    quantity: "30 tablets",
-    image: "/medicines/default-medicine.svg",
-    description: "Levothyroxine is a replacement for a hormone normally produced by your thyroid gland. It treats hypothyroidism (low thyroid hormone).",
-    usage: "Take once daily on an empty stomach, at least 30-60 minutes before eating. Take at the same time each day for best results.",
-    sideEffects: "When starting treatment, you may experience headache, nervousness, irritability, or trouble sleeping as your body adjusts.",
-    contraindications: "Should not be used for weight loss. Many medications can interact with levothyroxine; inform your doctor about all medications you take.",
-    stock: 40,
-    reviews: [
-      { id: 1, user: "Karen L.", rating: 5, comment: "Restored my energy levels completely.", date: "2023-05-05" },
-      { id: 2, user: "Richard W.", rating: 5, comment: "Very consistent results.", date: "2023-08-18" }
-    ]
+    category: "Gastro",
+    quantity: "10 capsules",
+    image: "/Omeprazole.webp",
+    stock: 22
   },
   {
     id: 9,
-    name: "Montelukast 10mg",
+    name: "Pantoprazole 40mg",
     brand: "Generic",
-    price: 60,
-    discountPrice: 52,
-    rating: 4.5,
-    category: "Asthma & Allergy",
-    quantity: "30 tablets",
-    image: "/Montelukast.webp",
-    description: "Montelukast is used to prevent and treat asthma, and to relieve seasonal allergy symptoms. It works by reducing inflammation in the airways.",
-    usage: "Take once daily in the evening, with or without food. Continue taking even when you feel well as it helps prevent symptoms.",
-    sideEffects: "May cause headache, stomach pain, or upper respiratory infection. Rarely, may cause behavioral changes, depression, or suicidal thoughts.",
-    contraindications: "Alert your doctor if you experience mood or behavior changes. Not for use during acute asthma attacks.",
-    stock: 32,
-    reviews: [
-      { id: 1, user: "Nancy K.", rating: 4, comment: "Helps control my asthma well.", date: "2023-06-12" },
-      { id: 2, user: "George P.", rating: 5, comment: "Great for both asthma and allergies.", date: "2023-07-29" }
-    ]
+    price: 40,
+    discountPrice: 36,
+    rating: 4.6,
+    category: "Gastro",
+    quantity: "10 tablets",
+    image: "/Pantoprazole.webp",
+    stock: 16
   },
   {
     id: 10,
-    name: "Sertraline 50mg",
+    name: "Cetirizine 10mg",
     brand: "Generic",
-    price: 65,
-    discountPrice: 58,
-    rating: 4.6,
-    category: "Mental Health",
-    quantity: "30 tablets",
-    image: "/medicines/default-medicine.svg",
-    description: "Sertraline is an antidepressant (SSRI type) that helps restore the balance of serotonin in the brain. It treats depression, anxiety, and related conditions.",
-    usage: "Take once daily, with or without food. May take several weeks to feel the full benefit. Do not stop taking suddenly without consulting your doctor.",
-    sideEffects: "Initial side effects may include nausea, headache, fatigue, or insomnia, usually improving within a few weeks. Sexual side effects may persist.",
-    contraindications: "Should not be taken with certain medications including MAO inhibitors. Not recommended during pregnancy without medical supervision.",
-    stock: 38,
-    reviews: [
-      { id: 1, user: "Michelle B.", rating: 5, comment: "Life-changing improvement in my anxiety.", date: "2023-04-25" },
-      { id: 2, user: "Steven C.", rating: 4, comment: "Effective but took time to work.", date: "2023-07-14" }
-    ]
+    price: 10,
+    discountPrice: 8,
+    rating: 4.8,
+    category: "Allergy",
+    quantity: "10 tablets",
+    image: "/Cetirizine.webp",
+    stock: 40
   },
   {
     id: 11,
-    name: "Amlodipine 5mg",
+    name: "Levocetirizine 5mg",
     brand: "Generic",
-    price: 45,
-    discountPrice: 38,
+    price: 12,
+    discountPrice: 10,
     rating: 4.7,
-    category: "Blood Pressure",
-    quantity: "30 tablets",
-    image: "/Amlodipine.webp",
-    description: "Amlodipine is a calcium channel blocker that dilates blood vessels and improves blood flow, used to treat high blood pressure and chest pain (angina).",
-    usage: "Take once daily with or without food. Take at the same time each day to maintain consistent blood levels.",
-    sideEffects: "May cause swelling in ankles or feet, dizziness, flushing, or headache. More serious side effects include irregular heartbeat or severe dizziness.",
-    contraindications: "Inform your doctor if you have liver disease, heart problems, or if you are pregnant or breastfeeding.",
-    stock: 60,
-    reviews: [
-      { id: 1, user: "William J.", rating: 5, comment: "Effectively controls my blood pressure with minimal side effects.", date: "2023-06-08" },
-      { id: 2, user: "Maria G.", rating: 4, comment: "Works well but causes some ankle swelling.", date: "2023-07-20" }
-    ]
+    category: "Allergy",
+    quantity: "10 tablets",
+    image: "/Levocetirizine.webp",
+    stock: 35
   },
   {
     id: 12,
-    name: "Escitalopram 10mg",
+    name: "Montelukast 10mg",
     brand: "Generic",
-    price: 75,
-    discountPrice: 65,
-    rating: 4.5,
-    category: "Mental Health",
-    quantity: "30 tablets",
-    image: "/medicines/default-medicine.svg",
-    description: "Escitalopram is an SSRI antidepressant that helps restore the balance of serotonin in the brain, used to treat depression and anxiety disorders.",
-    usage: "Take once daily, morning or evening, with or without food. It may take several weeks to feel the full benefit.",
-    sideEffects: "May cause nausea, insomnia, dry mouth, drowsiness, or sexual difficulties. Usually improves over time.",
-    contraindications: "Not recommended for use with certain other medications. Consult your doctor if you have liver or kidney problems, heart conditions, or seizures.",
-    stock: 42,
-    reviews: [
-      { id: 1, user: "Rachel P.", rating: 5, comment: "Changed my life. Anxiety much more manageable now.", date: "2023-05-11" },
-      { id: 2, user: "Daniel K.", rating: 4, comment: "Effective but took about 3 weeks to start working.", date: "2023-08-02" }
-    ]
+    price: 35,
+    discountPrice: 30,
+    rating: 4.6,
+    category: "Allergy",
+    quantity: "10 tablets",
+    image: "/Montelukast.webp",
+    stock: 28
   },
   {
     id: 13,
     name: "Losartan 50mg",
     brand: "Generic",
-    price: 55,
-    discountPrice: 48,
+    price: 28,
+    discountPrice: 25,
     rating: 4.6,
-    category: "Blood Pressure",
-    quantity: "30 tablets",
+    category: "Cardiac",
+    quantity: "10 tablets",
     image: "/Losartan.webp",
-    description: "Losartan is an angiotensin II receptor blocker (ARB) that helps relax blood vessels, used to treat high blood pressure and protect kidneys in diabetes.",
-    usage: "Take once daily with or without food. May be taken with other blood pressure medications for enhanced effect.",
-    sideEffects: "May cause dizziness, diarrhea, or upper respiratory infections. Serious side effects include fainting, swelling, or kidney problems.",
-    contraindications: "Not suitable during pregnancy. Use with caution if you have severe kidney or liver disease.",
-    stock: 55,
-    reviews: [
-      { id: 1, user: "Kenneth L.", rating: 5, comment: "Great alternative after experiencing cough with ACE inhibitors.", date: "2023-04-28" },
-      { id: 2, user: "Lisa W.", rating: 4, comment: "Controls my blood pressure well with minimal side effects.", date: "2023-07-12" }
-    ]
+    stock: 14
   },
   {
     id: 14,
-    name: "Albuterol Inhaler",
+    name: "Telmisartan 40mg",
     brand: "Generic",
-    price: 120,
-    discountPrice: 98,
-    rating: 4.9,
-    category: "Respiratory",
-    quantity: "200 doses",
-    image: "/medicines/default-medicine.svg",
-    description: "Albuterol is a bronchodilator that relaxes muscles in the airways and increases air flow to the lungs, used to treat or prevent bronchospasm in people with asthma or COPD.",
-    usage: "Use as directed for acute symptoms. For regular use, typically 1-2 puffs every 4-6 hours as needed. Shake well before use.",
-    sideEffects: "May cause nervousness, shaking, headache, or rapid heartbeat. Overuse may lead to decreased effectiveness or worsening symptoms.",
-    contraindications: "Tell your doctor if you have heart disease, high blood pressure, seizures, or thyroid disorder before using.",
-    stock: 30,
-    reviews: [
-      { id: 1, user: "Jennifer S.", rating: 5, comment: "Literally a lifesaver during asthma attacks.", date: "2023-06-30" },
-      { id: 2, user: "Carlos M.", rating: 5, comment: "Quick relief for breathing difficulties. Always keep one with me.", date: "2023-08-15" }
-    ]
+    price: 38,
+    discountPrice: 34,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Telmisartan.webp",
+    stock: 17
   },
   {
     id: 15,
-    name: "Simvastatin 20mg",
+    name: "Metoprolol 50mg",
     brand: "Generic",
-    price: 60,
-    discountPrice: 52,
-    rating: 4.5,
-    category: "Cholesterol",
-    quantity: "30 tablets",
-    image: "/Simvastatin.webp",
-    description: "Simvastatin is an HMG-CoA reductase inhibitor (statin) that reduces levels of bad cholesterol (LDL) and triglycerides, while increasing good cholesterol (HDL).",
-    usage: "Take once daily in the evening, with or without food. Avoid grapefruit products while taking this medication.",
-    sideEffects: "May cause muscle pain, weakness, or tenderness. Less common side effects include digestive issues or liver enzyme elevation.",
-    contraindications: "Not recommended during pregnancy or if you have active liver disease. Interact with many medications; inform your doctor about all medications you take.",
-    stock: 45,
-    reviews: [
-      { id: 1, user: "Harold J.", rating: 4, comment: "Lowered my cholesterol significantly within 2 months.", date: "2023-05-19" },
-      { id: 2, user: "Dorothy K.", rating: 5, comment: "Very effective, no side effects for me.", date: "2023-07-23" }
-    ]
+    price: 30,
+    discountPrice: 27,
+    rating: 4.6,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Metoprolol.webp",
+    stock: 19
   },
   {
     id: 16,
-    name: "Azithromycin 250mg",
+    name: "Atenolol 50mg",
     brand: "Generic",
-    price: 80,
-    discountPrice: 70,
+    price: 18,
+    discountPrice: 15,
     rating: 4.7,
-    category: "Antibiotics",
-    quantity: "6 tablets",
-    image: "/Azithromycin.webp",
-    description: "Azithromycin is a macrolide antibiotic that fights bacteria in the body, used to treat many different types of infections including respiratory and skin infections.",
-    usage: "Take as directed, typically once daily. May be taken with or without food. Complete the full course even if you feel better.",
-    sideEffects: "May cause nausea, stomach pain, diarrhea, or headache. Serious but rare side effects include severe diarrhea or allergic reactions.",
-    contraindications: "Not suitable if you have liver or kidney disease, heart rhythm disorder, or myasthenia gravis.",
-    stock: 38,
-    reviews: [
-      { id: 1, user: "Victoria P.", rating: 5, comment: "Cleared my sinus infection quickly with minimal side effects.", date: "2023-06-05" },
-      { id: 2, user: "Gregory T.", rating: 4, comment: "Effective antibiotic, convenient dosing schedule.", date: "2023-08-11" }
-    ]
+    category: "Cardiac",
+    quantity: "14 tablets",
+    image: "/Atenolol.webp",
+    stock: 23
   },
   {
     id: 17,
-    name: "Pantoprazole 40mg",
+    name: "Furosemide 40mg",
     brand: "Generic",
-    price: 45,
-    discountPrice: 38,
+    price: 12,
+    discountPrice: 10,
     rating: 4.6,
-    category: "Digestive Health",
-    quantity: "30 tablets",
-    image: "/Pantoprazole.webp",
-    description: "Pantoprazole is a proton pump inhibitor that reduces stomach acid production, used to treat GERD, stomach ulcers, and other conditions caused by excess stomach acid.",
-    usage: "Take once daily, preferably in the morning before breakfast. Swallow the tablet whole, do not crush or chew.",
-    sideEffects: "Generally well-tolerated. May cause headache, diarrhea, nausea, or stomach pain. Long-term use may increase risk of bone fractures or vitamin B12 deficiency.",
-    contraindications: "Inform your doctor if you have liver disease or low magnesium levels. May interact with other medications.",
-    stock: 52,
-    reviews: [
-      { id: 1, user: "Martin L.", rating: 5, comment: "Completely eliminated my acid reflux issues.", date: "2023-05-04" },
-      { id: 2, user: "Samantha J.", rating: 4, comment: "Works better than other acid reducers I've tried.", date: "2023-07-18" }
-    ]
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Furosemide.webp",
+    stock: 26
   },
   {
     id: 18,
-    name: "Fexofenadine 180mg",
+    name: "Hydrochlorothiazide 25mg",
     brand: "Generic",
-    price: 35,
-    discountPrice: 30,
-    rating: 4.7,
-    category: "Allergy",
-    quantity: "30 tablets",
-    image: "/medicines/default-medicine.svg",
-    description: "Fexofenadine is a non-drowsy antihistamine that reduces the effects of natural histamine in the body, used to treat allergy symptoms such as sneezing, itching, and runny nose.",
-    usage: "Take once daily with water. Avoid taking with fruit juices as they may decrease effectiveness.",
-    sideEffects: "Generally minimal side effects. May cause headache, nausea, drowsiness, or dizziness in some people.",
-    contraindications: "Use with caution if you have kidney disease. Inform your doctor about other medications you're taking.",
-    stock: 68,
-    reviews: [
-      { id: 1, user: "Rebecca H.", rating: 5, comment: "Relief from allergies without making me drowsy.", date: "2023-04-12" },
-      { id: 2, user: "Jason K.", rating: 5, comment: "Works quickly and lasts all day. My go-to allergy medicine.", date: "2023-06-27" }
-    ]
+    price: 8,
+    discountPrice: 6,
+    rating: 4.5,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Hydrochlorothiazide.webp",
+    stock: 32
   },
   {
     id: 19,
-    name: "Fluticasone Nasal Spray",
+    name: "Spironolactone 25mg",
     brand: "Generic",
-    price: 65,
-    discountPrice: 55,
+    price: 22,
+    discountPrice: 19,
     rating: 4.6,
-    category: "Allergy",
-    quantity: "120 sprays",
-    image: "/medicines/default-medicine.svg",
-    description: "Fluticasone is a corticosteroid nasal spray that reduces inflammation in the nasal passages, used to treat allergic and non-allergic nasal symptoms including congestion, sneezing, and runny nose.",
-    usage: "Typically 1-2 sprays in each nostril once daily. Best results with regular use; may take several days to feel full benefit.",
-    sideEffects: "May cause nasal irritation, nosebleeds, or headache. Less common side effects include sore throat or unpleasant taste in mouth.",
-    contraindications: "Consult doctor before use if you have recent nasal ulcers, nasal surgery, or nasal injury. Not for immediate relief of symptoms.",
-    stock: 40,
-    reviews: [
-      { id: 1, user: "Laura B.", rating: 4, comment: "Helps with seasonal allergies but takes a few days to start working.", date: "2023-05-22" },
-      { id: 2, user: "Charles M.", rating: 5, comment: "Best nasal spray I've found for my chronic allergies.", date: "2023-07-08" }
-    ]
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Spironolactone.webp",
+    stock: 21
   },
   {
     id: 20,
-    name: "Gabapentin 300mg",
+    name: "Clopidogrel 75mg",
     brand: "Generic",
-    price: 55,
-    discountPrice: 48,
-    rating: 4.5,
-    category: "Pain Relief",
-    quantity: "60 capsules",
-    image: "/medicines/default-medicine.svg",
-    description: "Gabapentin is an anticonvulsant medication also used to treat nerve pain caused by shingles, diabetic neuropathy, and other conditions.",
-    usage: "Usually taken 1-3 times daily as directed by your doctor. May be taken with or without food. Dosage typically starts low and increases gradually.",
-    sideEffects: "Common side effects include dizziness, drowsiness, fatigue, or coordination problems. Do not stop suddenly without consulting your doctor.",
-    contraindications: "Use with caution if you have kidney disease. May interact with other medications and cause increased drowsiness with alcohol.",
-    stock: 35,
-    reviews: [
-      { id: 1, user: "Margaret S.", rating: 5, comment: "Life-changing for my nerve pain after shingles.", date: "2023-06-15" },
-      { id: 2, user: "Edward P.", rating: 4, comment: "Helps with my diabetic neuropathy but causes some drowsiness.", date: "2023-08-04" }
-    ]
+    price: 50,
+    discountPrice: 45,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Clopidogrel.webp",
+    stock: 18
   },
   {
     id: 21,
-    name: "Metoprolol 50mg",
+    name: "Aspirin 75mg",
     brand: "Generic",
-    price: 40,
-    discountPrice: 35,
+    price: 5,
+    discountPrice: 4,
     rating: 4.6,
-    category: "Blood Pressure",
-    quantity: "60 tablets",
-    image: "/Metoprolol.webp",
-    description: "Metoprolol is a beta-blocker that affects the heart and circulation, used to treat high blood pressure, angina, and heart failure, and to prevent heart attacks.",
-    usage: "Take with or immediately after meals. Do not stop taking suddenly; dosage should be gradually reduced under doctor supervision.",
-    sideEffects: "May cause tiredness, dizziness, depression, shortness of breath, or slow heartbeat. Serious side effects are rare but should be reported to your doctor.",
-    contraindications: "Not recommended for certain heart conditions, severe circulatory problems, or untreated pheochromocytoma. Caution with asthma or COPD.",
-    stock: 50,
-    reviews: [
-      { id: 1, user: "Donald F.", rating: 5, comment: "Effectively manages my blood pressure with minimal side effects.", date: "2023-04-20" },
-      { id: 2, user: "Helen T.", rating: 4, comment: "Works well but sometimes makes me tired during the day.", date: "2023-07-30" }
-    ]
+    category: "Pain Relief",
+    quantity: "14 tablets",
+    image: "/Aspirin.webp",
+    stock: 42
   },
   {
     id: 22,
-    name: "Hydrochlorothiazide 25mg",
+    name: "Rosuvastatin 10mg",
     brand: "Generic",
-    price: 30,
-    discountPrice: 25,
-    rating: 4.5,
-    category: "Blood Pressure",
-    quantity: "30 tablets",
-    image: "/Hydrochlorothiazide.webp",
-    description: "Hydrochlorothiazide is a thiazide diuretic (water pill) that helps your body get rid of excess salt and water, used to treat high blood pressure and fluid retention.",
-    usage: "Usually taken once daily in the morning to prevent nighttime urination. May be taken with or without food.",
-    sideEffects: "May cause increased urination, dizziness, or electrolyte imbalances. Monitor for signs of dehydration, especially during hot weather or exercise.",
-    contraindications: "Not suitable for people with sulfa allergies, anuria, or severe kidney or liver disease. May affect blood sugar in people with diabetes.",
-    stock: 65,
-    reviews: [
-      { id: 1, user: "Robert J.", rating: 4, comment: "Simple but effective for controlling my blood pressure.", date: "2023-05-25" },
-      { id: 2, user: "Elizabeth W.", rating: 5, comment: "Works well without the side effects I had with other medications.", date: "2023-08-07" }
-    ]
+    price: 60,
+    discountPrice: 54,
+    rating: 4.7,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Rosuvastatin.webp",
+    stock: 15
   },
   {
     id: 23,
-    name: "Clopidogrel 75mg",
+    name: "Simvastatin 20mg",
     brand: "Generic",
-    price: 70,
-    discountPrice: 62,
-    rating: 4.7,
-    category: "Blood Thinner",
-    quantity: "30 tablets",
-    image: "/Clopidogrel.webp",
-    description: "Clopidogrel is an antiplatelet medication that prevents blood clots, used to reduce the risk of heart attack and stroke in those at high risk.",
-    usage: "Take once daily with or without food at the same time each day. Do not stop taking without consulting your doctor.",
-    sideEffects: "May cause easy bruising, bleeding, or nosebleeds. Serious side effects include unusual bleeding, signs of blood in stool, or allergic reactions.",
-    contraindications: "Use with caution if you have a history of bleeding disorders, recent surgery, or liver disease. May interact with many medications.",
-    stock: 40,
-    reviews: [
-      { id: 1, user: "Thomas R.", rating: 5, comment: "Essential part of my post-stent regimen. No issues so far.", date: "2023-06-02" },
-      { id: 2, user: "Sandra C.", rating: 4, comment: "Seems to be working well for preventing clots after my surgery.", date: "2023-07-25" }
-    ]
+    price: 50,
+    discountPrice: 45,
+    rating: 4.6,
+    category: "Cardiac",
+    quantity: "10 tablets",
+    image: "/Simvastatin.webp",
+    stock: 13
   },
   {
     id: 24,
-    name: "Ondansetron 4mg",
+    name: "Doxycycline 100mg",
     brand: "Generic",
-    price: 65,
-    discountPrice: 55,
-    rating: 4.9,
-    category: "Nausea Relief",
-    quantity: "10 tablets",
-    image: "/medicines/default-medicine.svg",
-    description: "Ondansetron is an anti-nausea medication that blocks serotonin, a natural substance that may cause nausea and vomiting, used to prevent nausea and vomiting from chemotherapy, radiation, and surgery.",
-    usage: "Take as directed by your doctor, typically 30 minutes before chemotherapy or 1 hour before surgery. May be taken with or without food.",
-    sideEffects: "May cause headache, constipation, or dizziness. Serious side effects are rare but include irregular heartbeat or allergic reactions.",
-    contraindications: "Inform your doctor if you have liver disease, heart rhythm disorder, or congenital long QT syndrome, or if you take other medications.",
-    stock: 25,
-    reviews: [
-      { id: 1, user: "Patricia K.", rating: 5, comment: "Extremely effective for post-surgery nausea. No side effects.", date: "2023-05-10" },
-      { id: 2, user: "Richard N.", rating: 5, comment: "The only thing that helps with my chemotherapy-induced nausea.", date: "2023-08-01" }
-    ]
+    price: 35,
+    discountPrice: 30,
+    rating: 4.6,
+    category: "Antibiotics",
+    quantity: "10 capsules",
+    image: "/Doxycycline.webp",
+    stock: 24
   },
   {
     id: 25,
-    name: "Loratadine 10mg",
+    name: "Levofloxacin 500mg",
     brand: "Generic",
-    price: 25,
-    discountPrice: 20,
-    rating: 4.8,
-    category: "Allergy",
-    quantity: "30 tablets",
-    image: "/medicines/default-medicine.svg",
-    description: "Loratadine is a non-drowsy antihistamine that reduces the effects of natural histamine in the body, used to treat allergy symptoms such as sneezing, runny nose, and watery eyes.",
-    usage: "Take once daily with or without food. Non-drowsy formula suitable for daytime use.",
-    sideEffects: "Usually minimal. May cause headache, dry mouth, or fatigue in some people. Less likely to cause drowsiness than older antihistamines.",
-    contraindications: "Use with caution if you have liver or kidney disease. Consult doctor if pregnant or breastfeeding.",
-    stock: 70,
-    reviews: [
-      { id: 1, user: "Linda T.", rating: 5, comment: "Works great for my seasonal allergies without making me drowsy.", date: "2023-04-15" },
-      { id: 2, user: "Joseph R.", rating: 5, comment: "Effective and affordable. My go-to allergy medication.", date: "2023-06-28" }
-    ]
+    price: 65,
+    discountPrice: 60,
+    rating: 4.7,
+    category: "Antibiotics",
+    quantity: "5 tablets",
+    image: "/Levofloxacin.jpg",
+    stock: 17
   }
-  // Add more medicines with details as needed
 ];
 
 const MedicineDetails = () => {
@@ -544,7 +352,7 @@ const MedicineDetails = () => {
 
   // Add image error handler
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = "/medicines/default-medicine.svg";
+    e.currentTarget.src = "/Paracetamol.webp";  // Use the same fallback as in the Medicines page
   };
 
   useEffect(() => {
@@ -791,12 +599,10 @@ const MedicineDetails = () => {
                 </div>
 
                 <div className="flex items-center text-sm text-gray-600">
-                  <span className={`mr-2 ${medicine.stock > 10 ? 'text-green-600' : medicine.stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <span className={`mr-2 ${medicine.stock > 10 ? 'text-green-600' : 'text-yellow-600'}`}>
                     {medicine.stock > 10 
                       ? 'In Stock' 
-                      : medicine.stock > 0 
-                        ? `Only ${medicine.stock} left` 
-                        : 'Out of Stock'}
+                      : `Only ${medicine.stock} left`}
                   </span>
                 </div>
 
@@ -844,7 +650,7 @@ const MedicineDetails = () => {
                     <Truck className="h-5 w-5 text-medical-500 mr-2" />
                     <div>
                       <div className="text-sm font-medium">Free Delivery</div>
-                      <div className="text-xs text-gray-500">On orders above ₹199</div>
+                      <div className="text-xs text-gray-500">On orders above ₹200</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -1022,12 +828,12 @@ const MedicineDetails = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Delivery Fee</span>
-                  <span>₹40</span>
+                  <span>{medicine.discountPrice * quantity >= 200 ? 'Free' : '₹40'}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between font-medium">
                   <span>Total</span>
-                  <span>₹{medicine.discountPrice * quantity + 40}</span>
+                  <span>₹{medicine.discountPrice * quantity + (medicine.discountPrice * quantity >= 200 ? 0 : 40)}</span>
                 </div>
               </div>
             </div>
@@ -1098,7 +904,7 @@ const MedicineDetails = () => {
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span>Total Amount</span>
-                  <span className="font-medium">₹{medicine.discountPrice * quantity + 40}</span>
+                  <span className="font-medium">₹{medicine.discountPrice * quantity + (medicine.discountPrice * quantity >= 200 ? 0 : 40)}</span>
                 </div>
               </div>
             </div>
