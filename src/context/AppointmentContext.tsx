@@ -80,25 +80,48 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const processedData = processAppointmentData(data);
       setAppointments(processedData);
       
-      // After setting initial data, fetch complete doctor information for each appointment
-      processedData.forEach(async (appointment) => {
-        if (appointment.doctor && appointment.doctor.id) {
-          try {
-            const doctorDetails = await healthcareService.getDoctor(appointment.doctor.id);
-            
-            // Update the specific appointment with complete doctor information
-            setAppointments(prevAppointments => 
-              prevAppointments.map(apt => 
-                apt.id === appointment.id 
-                  ? { ...apt, doctor: doctorDetails } 
-                  : apt
-              )
-            );
-          } catch (err) {
-            console.error(`Error fetching details for doctor ${appointment.doctor.id}:`, err);
-          }
-        }
-      });
+      // Batch doctor information fetching to reduce UI updates
+      const doctorRequests = processedData
+        .filter(appointment => appointment.doctor && appointment.doctor.id)
+        .map(appointment => ({
+          appointmentId: appointment.id,
+          doctorId: appointment.doctor.id
+        }));
+      
+      // Use Promise.all to fetch all doctor details in parallel
+      if (doctorRequests.length > 0) {
+        const doctorDetailsPromises = doctorRequests.map(request => 
+          healthcareService.getDoctor(request.doctorId)
+            .then(doctorDetails => ({ 
+              appointmentId: request.appointmentId, 
+              doctorDetails 
+            }))
+            .catch(err => {
+              console.error(`Error fetching details for doctor ${request.doctorId}:`, err);
+              return null;
+            })
+        );
+        
+        // Wait for all doctor details to be fetched
+        const doctorResults = await Promise.all(doctorDetailsPromises);
+        
+        // Create a single state update with all doctor information
+        setAppointments(prevAppointments => {
+          const updatedAppointments = [...prevAppointments];
+          doctorResults.forEach(result => {
+            if (result) {
+              const index = updatedAppointments.findIndex(apt => apt.id === result.appointmentId);
+              if (index !== -1) {
+                updatedAppointments[index] = { 
+                  ...updatedAppointments[index], 
+                  doctor: result.doctorDetails 
+                };
+              }
+            }
+          });
+          return updatedAppointments;
+        });
+      }
     } catch (error) {
       console.error('Error fetching appointments:', error);
       setError('Failed to load appointments');
@@ -116,25 +139,48 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const processedData = processAppointmentData(data);
       setAppointments(processedData);
       
-      // After setting initial data, fetch complete doctor information for each appointment
-      processedData.forEach(async (appointment) => {
-        if (appointment.doctor && appointment.doctor.id) {
-          try {
-            const doctorDetails = await healthcareService.getDoctor(appointment.doctor.id);
-            
-            // Update the specific appointment with complete doctor information
-            setAppointments(prevAppointments => 
-              prevAppointments.map(apt => 
-                apt.id === appointment.id 
-                  ? { ...apt, doctor: doctorDetails } 
-                  : apt
-              )
-            );
-          } catch (err) {
-            console.error(`Error fetching details for doctor ${appointment.doctor.id}:`, err);
-          }
-        }
-      });
+      // Batch doctor information fetching to reduce UI updates
+      const doctorRequests = processedData
+        .filter(appointment => appointment.doctor && appointment.doctor.id)
+        .map(appointment => ({
+          appointmentId: appointment.id,
+          doctorId: appointment.doctor.id
+        }));
+      
+      // Use Promise.all to fetch all doctor details in parallel
+      if (doctorRequests.length > 0) {
+        const doctorDetailsPromises = doctorRequests.map(request => 
+          healthcareService.getDoctor(request.doctorId)
+            .then(doctorDetails => ({ 
+              appointmentId: request.appointmentId, 
+              doctorDetails 
+            }))
+            .catch(err => {
+              console.error(`Error fetching details for doctor ${request.doctorId}:`, err);
+              return null;
+            })
+        );
+        
+        // Wait for all doctor details to be fetched
+        const doctorResults = await Promise.all(doctorDetailsPromises);
+        
+        // Create a single state update with all doctor information
+        setAppointments(prevAppointments => {
+          const updatedAppointments = [...prevAppointments];
+          doctorResults.forEach(result => {
+            if (result) {
+              const index = updatedAppointments.findIndex(apt => apt.id === result.appointmentId);
+              if (index !== -1) {
+                updatedAppointments[index] = { 
+                  ...updatedAppointments[index], 
+                  doctor: result.doctorDetails 
+                };
+              }
+            }
+          });
+          return updatedAppointments;
+        });
+      }
     } catch (error) {
       console.error('Error fetching upcoming appointments:', error);
       setError('Failed to load upcoming appointments');
