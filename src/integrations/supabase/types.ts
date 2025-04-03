@@ -9,6 +9,436 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          consultation_type: string
+          created_at: string
+          date: string
+          doctor_id: number
+          id: number
+          patient_id: string
+          status: string
+          symptoms: string
+          time: string
+        }
+        Insert: {
+          consultation_type: string
+          created_at?: string
+          date: string
+          doctor_id: number
+          id?: number
+          patient_id: string
+          status?: string
+          symptoms: string
+          time: string
+        }
+        Update: {
+          consultation_type?: string
+          created_at?: string
+          date?: string
+          doctor_id?: number
+          id?: number
+          patient_id?: string
+          status?: string
+          symptoms?: string
+          time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_availability: {
+        Row: {
+          created_at: string
+          date: string
+          doctor_id: number
+          id: number
+          time_slots: string[]
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          doctor_id: number
+          id?: number
+          time_slots: string[]
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          doctor_id?: number
+          id?: number
+          time_slots?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_availability_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctors: {
+        Row: {
+          consultation_fee: number
+          created_at: string
+          experience_years: number
+          hospital: string
+          id: number
+          name: string
+          profile_image: string
+          qualification: string
+          rating: number
+          specialty: string
+        }
+        Insert: {
+          consultation_fee: number
+          created_at?: string
+          experience_years: number
+          hospital: string
+          id?: number
+          name: string
+          profile_image?: string
+          qualification: string
+          rating?: number
+          specialty: string
+        }
+        Update: {
+          consultation_fee?: number
+          created_at?: string
+          experience_years?: number
+          hospital?: string
+          id?: number
+          name?: string
+          profile_image?: string
+          qualification?: string
+          rating?: number
+          specialty?: string
+        }
+        Relationships: []
+      }
+      medicine_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          name: string
+          parent_id: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name: string
+          parent_id?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name?: string
+          parent_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "medicine_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicine_inventory: {
+        Row: {
+          batch_number: string
+          created_at: string
+          expiry_date: string
+          id: string
+          location: string | null
+          medicine_id: number
+          stock_quantity: number
+          updated_at: string
+        }
+        Insert: {
+          batch_number: string
+          created_at?: string
+          expiry_date: string
+          id?: string
+          location?: string | null
+          medicine_id: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          batch_number?: string
+          created_at?: string
+          expiry_date?: string
+          id?: string
+          location?: string | null
+          medicine_id?: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_inventory_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicines: {
+        Row: {
+          brand: string
+          category: string
+          created_at: string
+          description: string
+          discount_price: number | null
+          id: number
+          image_url: string
+          in_stock: boolean
+          name: string
+          price: number
+          quantity: string
+          requires_prescription: boolean
+        }
+        Insert: {
+          brand: string
+          category: string
+          created_at?: string
+          description: string
+          discount_price?: number | null
+          id?: number
+          image_url?: string
+          in_stock?: boolean
+          name: string
+          price: number
+          quantity: string
+          requires_prescription?: boolean
+        }
+        Update: {
+          brand?: string
+          category?: string
+          created_at?: string
+          description?: string
+          discount_price?: number | null
+          id?: number
+          image_url?: string
+          in_stock?: boolean
+          name?: string
+          price?: number
+          quantity?: string
+          requires_prescription?: boolean
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: number
+          medicine_id: number
+          order_id: number
+          price: number
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          medicine_id: number
+          order_id: number
+          price: number
+          quantity: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          medicine_id?: number
+          order_id?: number
+          price?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          delivery_address: string
+          id: number
+          payment_method: string
+          status: string
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_address: string
+          id?: number
+          payment_method: string
+          status?: string
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string
+          id?: number
+          payment_method?: string
+          status?: string
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prescription_items: {
+        Row: {
+          created_at: string
+          dosage: string
+          duration: string
+          frequency: string
+          id: string
+          instructions: string | null
+          medicine_id: number
+          prescription_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage: string
+          duration: string
+          frequency: string
+          id?: string
+          instructions?: string | null
+          medicine_id: number
+          prescription_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string
+          duration?: string
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          medicine_id?: number
+          prescription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_items_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          diagnosis: string | null
+          doctor_id: number
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          patient_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id: number
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          patient_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id?: number
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
