@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build && pip install -r backend/requirements.txt && python backend/manage.py collectstatic --noinput"
+  command = "cd backend && python manage.py migrate && npm run build && pip install -r backend/requirements.txt && python backend/manage.py collectstatic --noinput"
   publish = "dist"
   functions = "netlify/functions"
 
