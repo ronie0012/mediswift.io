@@ -203,7 +203,7 @@ const MyAppointments = () => {
       });
     }
   }, [appointments]);
-  
+
   // Change tab with transition
   const handleTabChange = (tab: "upcoming" | "past") => {
     if (tab !== activeTab) {
@@ -258,7 +258,7 @@ const MyAppointments = () => {
         const dateA = new Date(`${a.appointment_date}T${a.start_time}`);
         const dateB = new Date(`${b.appointment_date}T${b.start_time}`);
         
-        // For upcoming, sort by closest first
+          // For upcoming, sort by closest first
         if (sortOrder === "newest") {
           return dateA.getTime() - dateB.getTime();
         } else {
@@ -310,8 +310,8 @@ const MyAppointments = () => {
   const confirmCancelAppointment = async () => {
     if (!cancelAppointmentId) return;
     
-    setIsCancelling(true);
-    try {
+      setIsCancelling(true);
+      try {
       // Find the appointment to cancel
       const appointmentToCancel = allAppointments.find(apt => apt.id === cancelAppointmentId);
       
@@ -319,34 +319,34 @@ const MyAppointments = () => {
         throw new Error("Appointment not found");
       }
       
-      // Check if it's a mock appointment from localStorage
+        // Check if it's a mock appointment from localStorage
       if (appointmentToCancel.id > 1000000) { // Assuming mock IDs are large numbers (from Date.now())
-        const mockAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        const updatedMockAppointments = mockAppointments.map((apt: Appointment) => 
+          const mockAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
+          const updatedMockAppointments = mockAppointments.map((apt: Appointment) => 
           apt.id === appointmentToCancel.id ? { ...apt, status: 'cancelled' as const } : apt
-        );
-        localStorage.setItem('mockAppointments', JSON.stringify(updatedMockAppointments));
-        
-        // Update the local state
-        setAllAppointments(prev => 
+          );
+          localStorage.setItem('mockAppointments', JSON.stringify(updatedMockAppointments));
+          
+          // Update the local state
+          setAllAppointments(prev => 
           prev.map(apt => apt.id === appointmentToCancel.id ? { ...apt, status: 'cancelled' as const } : apt)
-        );
-        
-        toast.success('Appointment cancelled successfully');
-      } else {
-        // Real API appointment
+          );
+          
+          toast.success('Appointment cancelled successfully');
+        } else {
+          // Real API appointment
         await cancelAppointment(appointmentToCancel.id);
-        
-        // Update all appointments state after cancellation
-        setAllAppointments(prev => 
+          
+          // Update all appointments state after cancellation
+          setAllAppointments(prev => 
           prev.map(apt => apt.id === appointmentToCancel.id ? { ...apt, status: 'cancelled' as const } : apt)
-        );
-      }
-    } catch (error) {
-      console.error('Error cancelling appointment:', error);
-      toast.error('Failed to cancel appointment');
-    } finally {
-      setIsCancelling(false);
+          );
+        }
+      } catch (error) {
+        console.error('Error cancelling appointment:', error);
+        toast.error('Failed to cancel appointment');
+      } finally {
+        setIsCancelling(false);
       setShowCancelDialog(false);
       setCancelAppointmentId(null);
     }
@@ -395,27 +395,27 @@ const MyAppointments = () => {
     return Array(3).fill(0).map((_, index) => (
       <Card key={`skeleton-${index}`} className="mb-4">
         <CardContent className="p-4">
-          <div className="flex flex-col space-y-4">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <Skeleton className="h-6 w-40" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-              <Skeleton className="h-6 w-24" />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-gray-400" />
+        <div className="flex flex-col space-y-4">
+          <div className="flex justify-between items-start">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-40" />
               <Skeleton className="h-4 w-32" />
             </div>
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-gray-400" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Skeleton className="h-9 w-24" />
-              <Skeleton className="h-9 w-24" />
-            </div>
+            <Skeleton className="h-6 w-24" />
           </div>
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4 text-gray-400" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Clock className="h-4 w-4 text-gray-400" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
         </CardContent>
       </Card>
     ));
@@ -428,18 +428,18 @@ const MyAppointments = () => {
         <div className="rounded-full bg-primary/10 p-3 mb-4">
           <Calendar className="h-8 w-8 text-primary" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-1">No appointments found</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-1">No appointments found</h3>
         <p className="text-sm text-gray-500 mb-6 max-w-md">
-          {activeTab === "upcoming" 
+        {activeTab === "upcoming" 
             ? "You don't have any upcoming appointments scheduled. Book a new appointment to get started." 
             : "You don't have any past appointments yet. Once you complete an appointment, it will appear here."}
-        </p>
-        {activeTab === "upcoming" && (
+      </p>
+      {activeTab === "upcoming" && (
           <Button onClick={() => navigate("/doctors")} className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4" />
-            Book an Appointment
-          </Button>
-        )}
+          Book an Appointment
+        </Button>
+      )}
       </CardContent>
     </Card>
   );
@@ -482,13 +482,13 @@ const MyAppointments = () => {
       <div className="container max-w-5xl mx-auto px-4 py-8">
         {/* Header with statistics */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h1 className="text-2xl font-bold mb-4 md:mb-0">My Appointments</h1>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <h1 className="text-2xl font-bold mb-4 md:mb-0">My Appointments</h1>
             <Button onClick={() => navigate("/doctors")} className="w-full md:w-auto flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
-              Book New Appointment
-            </Button>
-          </div>
+            Book New Appointment
+          </Button>
+        </div>
 
           {/* Appointment Stats */}
           {!isLoading && !error && (
@@ -540,28 +540,28 @@ const MyAppointments = () => {
         {/* Tabs with view toggle */}
         <div className="flex justify-between items-center border-b mb-6">
           <div className="flex">
-            <button
+          <button
               className={`px-6 py-3 font-medium text-sm border-b-2 ${
-                activeTab === "upcoming"
+              activeTab === "upcoming"
                   ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-              onClick={() => handleTabChange("upcoming")}
-              disabled={isPending}
-            >
-              Upcoming
-            </button>
-            <button
+            }`}
+            onClick={() => handleTabChange("upcoming")}
+            disabled={isPending}
+          >
+            Upcoming
+          </button>
+          <button
               className={`px-6 py-3 font-medium text-sm border-b-2 ${
-                activeTab === "past"
+              activeTab === "past"
                   ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-              onClick={() => handleTabChange("past")}
-              disabled={isPending}
-            >
-              Past
-            </button>
+            }`}
+            onClick={() => handleTabChange("past")}
+            disabled={isPending}
+          >
+            Past
+          </button>
           </div>
           
           {/* View toggle */}
@@ -589,96 +589,96 @@ const MyAppointments = () => {
         <Card className="mb-6">
           <CardContent className="p-4">
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
                   placeholder="Search by doctor, reason, or date..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
                       {filterStatus === "all" ? "All Statuses" : 
                         filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1).replace('_', ' ')}
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={() => setFilterStatus("all")}>
-                        All Statuses
-                        {filterStatus === "all" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterStatus("scheduled")}>
-                        Scheduled
-                        {filterStatus === "scheduled" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterStatus("confirmed")}>
-                        Confirmed
-                        {filterStatus === "confirmed" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterStatus("completed")}>
-                        Completed
-                        {filterStatus === "completed" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterStatus("cancelled")}>
-                        Cancelled
-                        {filterStatus === "cancelled" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterStatus("no_show")}>
-                        No Show
-                        {filterStatus === "no_show" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      Sort
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={() => setSortOrder("newest")}>
-                        Newest First
-                        {sortOrder === "newest" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
-                        Oldest First
-                        {sortOrder === "oldest" && <Check className="h-4 w-4 ml-2" />}
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                {(filterStatus !== "all" || searchQuery !== "" || sortOrder !== "newest") && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={clearFilters}
-                    title="Clear filters"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => setFilterStatus("all")}>
+                    All Statuses
+                    {filterStatus === "all" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus("scheduled")}>
+                    Scheduled
+                    {filterStatus === "scheduled" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus("confirmed")}>
+                    Confirmed
+                    {filterStatus === "confirmed" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus("completed")}>
+                    Completed
+                    {filterStatus === "completed" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus("cancelled")}>
+                    Cancelled
+                    {filterStatus === "cancelled" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus("no_show")}>
+                    No Show
+                    {filterStatus === "no_show" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  Sort
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => setSortOrder("newest")}>
+                    Newest First
+                    {sortOrder === "newest" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
+                    Oldest First
+                    {sortOrder === "oldest" && <Check className="h-4 w-4 ml-2" />}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {(filterStatus !== "all" || searchQuery !== "" || sortOrder !== "newest") && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={clearFilters}
+                title="Clear filters"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
           </CardContent>
         </Card>
 
@@ -837,15 +837,15 @@ const MyAppointments = () => {
                                 "DR"}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
+                    <div>
                             <h3 className="font-medium">{renderDoctorName(appointment.doctor)}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                               {renderSpecialization(appointment.doctor)}
-                            </p>
-                          </div>
+                      </p>
+                    </div>
                         </div>
                         <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2">
-                          {renderStatusBadge(appointment.status)}
+                    {renderStatusBadge(appointment.status)}
                           <div className="ml-2">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -874,28 +874,28 @@ const MyAppointments = () => {
                             </DropdownMenu>
                           </div>
                         </div>
-                      </div>
-                      
+                  </div>
+                  
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                        <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
                           <div className="bg-primary/10 p-2 rounded-full">
                             <Calendar className="h-4 w-4 text-primary" />
                           </div>
-                          <span className="text-sm">
-                            {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
+                    <span className="text-sm">
+                      {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
                           <div className="bg-primary/10 p-2 rounded-full">
                             <Clock className="h-4 w-4 text-primary" />
                           </div>
-                          <span className="text-sm">
-                            {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
-                            {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
-                          </span>
-                        </div>
-
+                    <span className="text-sm">
+                      {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
+                      {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
+                    </span>
+                  </div>
+                  
                         {appointment.reason && (
                           <div className="flex items-center space-x-2 md:col-span-2">
                             <div className="bg-primary/10 p-2 rounded-full">
@@ -909,15 +909,15 @@ const MyAppointments = () => {
                       </div>
                       
                       <div className="flex mt-4 space-x-2 justify-end">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewDetails(appointment)}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewDetails(appointment)}
                           className="sm:hidden"
-                        >
-                          View Details
-                        </Button>
-                        
+                    >
+                      View Details
+                    </Button>
+                    
                         {activeTab === "upcoming" && appointment.status !== "cancelled" && (
                           <div className="sm:hidden flex space-x-2">
                             <Button
@@ -980,8 +980,8 @@ const MyAppointments = () => {
                                 <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                                   View Details
                                 </DropdownMenuItem>
-                                {activeTab === "upcoming" && appointment.status !== "cancelled" && (
-                                  <>
+                    {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                      <>
                                     <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
                                       Reschedule
                                     </DropdownMenuItem>
@@ -1043,21 +1043,21 @@ const MyAppointments = () => {
                         
                         {activeTab === "upcoming" && appointment.status !== "cancelled" && (
                           <div className="sm:hidden flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleReschedule(appointment.id)}
-                            >
-                              Reschedule
-                            </Button>
-                            
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleCancelAppointment(appointment)}
-                            >
-                              Cancel
-                            </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReschedule(appointment.id)}
+                        >
+                          Reschedule
+                        </Button>
+                        
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleCancelAppointment(appointment)}
+                        >
+                          Cancel
+                        </Button>
                           </div>
                         )}
                       </div>
@@ -1114,13 +1114,13 @@ const MyAppointments = () => {
                                     >
                                       Cancel
                                     </DropdownMenuItem>
-                                  </>
-                                )}
+                      </>
+                    )}
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          </div>
-                        </div>
-                      </div>
+                  </div>
+                </div>
+              </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div className="flex items-center space-x-2">
@@ -1469,7 +1469,7 @@ const MyAppointments = () => {
                         "DR"}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
+                <div>
                     <h3 className="font-semibold text-lg">{renderDoctorName(selectedAppointment.doctor)}</h3>
                     <p className="text-gray-500">{renderSpecialization(selectedAppointment.doctor)}</p>
                   </div>
@@ -1490,35 +1490,35 @@ const MyAppointments = () => {
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium">Date & Time</span>
-                      </div>
+                    </div>
                       <div className="pl-6">
                         <p className="text-sm">
                           {format(parseISO(selectedAppointment.appointment_date), "EEEE, MMMM d, yyyy")}
                         </p>
                         <p className="text-sm">
-                          {format(parseISO(`2000-01-01T${selectedAppointment.start_time}`), "h:mm a")} - 
-                          {format(parseISO(`2000-01-01T${selectedAppointment.end_time}`), "h:mm a")}
+                        {format(parseISO(`2000-01-01T${selectedAppointment.start_time}`), "h:mm a")} - 
+                        {format(parseISO(`2000-01-01T${selectedAppointment.end_time}`), "h:mm a")}
                         </p>
-                      </div>
                     </div>
-
+                  </div>
+                  
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <FileText className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium">Reason for Visit</span>
                       </div>
                       <p className="text-sm pl-6">{selectedAppointment.reason}</p>
-                    </div>
-
-                    {selectedAppointment.notes && (
+                  </div>
+                  
+                  {selectedAppointment.notes && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <FileText className="h-4 w-4 text-primary" />
                           <span className="text-sm font-medium">Additional Notes</span>
                         </div>
                         <p className="text-sm pl-6">{selectedAppointment.notes}</p>
-                      </div>
-                    )}
+                    </div>
+                  )}
                   </CardContent>
                 </Card>
                 
@@ -1537,8 +1537,8 @@ const MyAppointments = () => {
                           ? selectedAppointment.doctor.phone_number
                           : "Phone number not available"}
                       </p>
-                    </div>
-
+                  </div>
+                  
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <MapPin className="h-4 w-4 text-primary" />
@@ -1550,11 +1550,11 @@ const MyAppointments = () => {
                          selectedAppointment.doctor.address
                           ? selectedAppointment.doctor.address
                           : "Address not available"}
-                      </p>
-                    </div>
+                    </p>
+                  </div>
                   </CardContent>
                 </Card>
-                
+                  
                 {/* Appointment Tracking */}
                 <div className="text-xs text-gray-500">
                   <p>Appointment Created: {format(parseISO(selectedAppointment.created_at), "MMMM d, yyyy 'at' h:mm a")}</p>
@@ -1564,33 +1564,33 @@ const MyAppointments = () => {
                 </div>
               </div>
             </ScrollArea>
-            
-            {activeTab === "upcoming" && selectedAppointment.status !== "cancelled" && (
+                
+                {activeTab === "upcoming" && selectedAppointment.status !== "cancelled" && (
               <div className="flex space-x-2 pt-2 mt-4">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setIsDetailsOpen(false);
-                    handleReschedule(selectedAppointment.id!);
-                  }}
-                >
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setIsDetailsOpen(false);
+                        handleReschedule(selectedAppointment.id!);
+                      }}
+                    >
                   <Calendar className="h-4 w-4 mr-2" />
-                  Reschedule
-                </Button>
-                <Button
-                  variant="destructive"
-                  className="flex-1"
-                  onClick={() => {
-                    setIsDetailsOpen(false);
-                    handleCancelAppointment(selectedAppointment);
-                  }}
-                >
+                      Reschedule
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => {
+                        setIsDetailsOpen(false);
+                        handleCancelAppointment(selectedAppointment);
+                      }}
+                    >
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-              </div>
-            )}
+                      Cancel
+                    </Button>
+                  </div>
+                )}
           </DialogContent>
         </Dialog>
       )}
