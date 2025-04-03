@@ -1,9 +1,32 @@
 [build]
-  command = "npm run build"
+  command = "npm run build && pip install -r backend/requirements.txt && python backend/manage.py collectstatic --noinput"
   publish = "dist"
+  functions = "netlify/functions"
+
+# Environment variable inheritance
+[build.environment]
+  NODE_VERSION = "18"
+  PYTHON_VERSION = "3.9"
 
 # Handle SPA routing - redirect all paths to index.html so the React router can handle them
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200 
+  status = 200
+  force = false
+  conditions = {Role = ["guest", "member"]}
+
+# API redirects - redirect API requests to the serverless function
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+# For CORS preflight requests
+[[headers]]
+  for = "/*"
+    [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept, Authorization" 
