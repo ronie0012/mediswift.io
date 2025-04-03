@@ -72,56 +72,7 @@ The application will be available at `http://localhost:8080`.
 
 ## Deployment
 
-### Deploying to Netlify
-
-This project is configured for deployment on Netlify, which will host both the frontend React application and the backend Django API using serverless functions.
-
-#### Prerequisites
-
-1. A Netlify account
-2. Git repository with your project
-3. PostgreSQL database (such as Supabase or a managed PostgreSQL service)
-
-#### Steps to Deploy
-
-1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
-
-2. Log in to your Netlify account and click "New site from Git"
-
-3. Connect to your Git provider and select your repository
-
-4. Configure the build settings:
-   - Build command: (this is configured in netlify.toml)
-   - Publish directory: (this is configured in netlify.toml)
-
-5. Configure the required environment variables in Netlify:
-   - `DATABASE_URL`: Your PostgreSQL connection string
-   - `SECRET_KEY`: A secure random string for Django
-   - `DJANGO_SETTINGS_MODULE`: Set to `mediswift_backend.netlify_settings`
-   - Other environment variables as needed (email settings, API keys, etc.)
-
-6. Deploy the site
-
-7. After the initial deployment, you might need to run database migrations manually:
-   - Go to Netlify site settings > Functions > Console
-   - Run: `cd backend && python manage.py migrate`
-
-#### How It Works
-
-- The React frontend is built and served as static files
-- API requests to `/api/*` are routed to serverless functions
-- The Django backend runs as a serverless function
-- Static files are served by Netlify's CDN
-- The Django database uses an external PostgreSQL service
-
-#### Troubleshooting
-
-If you encounter issues after deployment:
-
-1. Check the Netlify function logs for errors
-2. Verify environment variables are set correctly
-3. Ensure database connections are working
-4. Check CORS settings if frontend can't communicate with backend
+Deploy the application using your preferred hosting service.
 
 ## Environment Variables
 
