@@ -1,6 +1,8 @@
 import axios from 'axios';
 
+// Get the environment variables
 const API_URL = import.meta.env.VITE_API_URL || '/api';
+const IS_PRODUCTION = import.meta.env.VITE_APP_ENV === 'production';
 
 // Create an instance of axios with a base URL
 const api = axios.create({
@@ -8,6 +10,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add withCredentials for CORS if needed
+  withCredentials: IS_PRODUCTION, 
 });
 
 // Request interceptor to add the auth token to every request
