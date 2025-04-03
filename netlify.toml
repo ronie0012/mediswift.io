@@ -9,13 +9,11 @@
   PYTHON_VERSION = "3.9"
   PYTHONPATH = "/opt/build/repo:/opt/build/repo/backend"
 
-# Handle SPA routing - redirect all paths to index.html so the React router can handle them
+# Primary redirect rule for SPA - should always be the last rule
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
-  conditions = {Role = ["guest", "member"]}
 
 # API redirects - redirect API requests to the serverless function
 [[redirects]]
