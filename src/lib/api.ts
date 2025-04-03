@@ -1,4 +1,6 @@
+
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -8,6 +10,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 seconds timeout
 });
 
 // Request interceptor to add the auth token to every request
@@ -66,8 +69,10 @@ api.interceptors.response.use(
     // For network errors or other issues
     if (!error.response) {
       console.error('Network Error:', error.message);
-      // Optionally show a user-friendly message
-      // toast.error('Network error. Please check your connection.');
+      toast.error('Network error. Please check your connection.');
+    } else if (error.response.status >= 500) {
+      console.error('Server Error:', error.response.data);
+      toast.error('Server error. Please try again later.');
     }
     
     return Promise.reject(error);

@@ -1,5 +1,17 @@
+
 import api from './api';
-import { handleApiError, handleApiSuccess } from './errorHandling';
+import { z } from 'zod';
+
+// Define the user schema to match the Django backend
+const userSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  email: z.string().email(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional()
+});
+
+type User = z.infer<typeof userSchema>;
 
 interface LoginData {
   username: string;
@@ -15,156 +27,103 @@ interface RegisterData {
   last_name: string;
 }
 
-interface ChangePasswordData {
-  old_password: string;
-  new_password: string;
-  new_password2: string;
+interface AuthResponse {
+  user: User;
+  tokens: {
+    access: string;
+    refresh: string;
+  };
 }
 
-interface ResetPasswordRequestData {
-  email: string;
-}
-
-interface ResetPasswordConfirmData {
-  token: string;
-  uidb64: string;
-  password: string;
-  password2: string;
-}
-
-export const authService = {
-  // Login with username and password, returns tokens and user data
-  login: async (data: LoginData) => {
-    try {
-      const response = await api.post('/auth/token/', data);
-      
-      // Store tokens in localStorage
-      if (response.data.access) {
-        localStorage.setItem('access_token', response.data.access);
-        localStorage.setItem('refresh_token', response.data.refresh);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        handleApiSuccess('Login successful');
+const authService = {
+  login: async (credentials: LoginData): Promise<AuthResponse> => {
+    const response = await api.post('/auth/token/', credentials);
+    
+    const { access, refresh, user } = response.data;
+    
+    // Store tokens in localStorage
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    return {
+      user,
+      tokens: {
+        access,
+        refresh
       }
-      
-      return response.data;
-    } catch (error) {
-      console.error('Login error:', error);
-      handleApiError(error, 'Login failed. Please check your credentials.');
-      throw error;
-    }
+    };
   },
-
-  // Register a new user
-  register: async (data: RegisterData) => {
-    try {
-      const response = await api.post('/auth/register/', data);
-      
-      // Store tokens in localStorage if received
-      if (response.data.tokens) {
-        localStorage.setItem('access_token', response.data.tokens.access);
-        localStorage.setItem('refresh_token', response.data.tokens.refresh);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        handleApiSuccess('Registration successful! Please check your email to verify your account.');
-      }
-      
-      return response.data;
-    } catch (error) {
-      console.error('Registration error:', error);
-      handleApiError(error, 'Registration failed. Please check your information.');
-      throw error;
-    }
+  
+  register: async (data: RegisterData): Promise<AuthResponse> => {
+    const response = await api.post('/auth/register/', data);
+    
+    const { user, tokens } = response.data;
+    
+    // Store tokens in localStorage
+    localStorage.setItem('access_token', tokens.access);
+    localStorage.setItem('refresh_token', tokens.refresh);
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    return {
+      user,
+      tokens
+    };
   },
-
-  // Logout - remove tokens from storage
+  
   logout: () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-    handleApiSuccess('Logged out successfully');
-  },
-
-  // Get current user profile
-  getCurrentUser: async () => {
-    try {
-      const response = await api.get('/auth/me/');
-      return response.data;
-    } catch (error) {
-      console.error('Get current user error:', error);
-      handleApiError(error, 'Failed to get current user.');
-      throw error;
-    }
-  },
-
-  // Change password for logged in user
-  changePassword: async (data: ChangePasswordData) => {
-    try {
-      const response = await api.post('/auth/password/change/', data);
-      handleApiSuccess('Password changed successfully.');
-      return response.data;
-    } catch (error) {
-      console.error('Change password error:', error);
-      handleApiError(error, 'Failed to change password.');
-      throw error;
-    }
-  },
-
-  // Request password reset email
-  requestPasswordReset: async (data: ResetPasswordRequestData) => {
-    try {
-      const response = await api.post('/auth/password/reset/', data);
-      handleApiSuccess('Password reset email sent. Please check your inbox.');
-      return response.data;
-    } catch (error) {
-      console.error('Password reset request error:', error);
-      handleApiError(error, 'Failed to send password reset email.');
-      throw error;
-    }
-  },
-
-  // Confirm password reset with token
-  confirmPasswordReset: async (data: ResetPasswordConfirmData) => {
-    try {
-      const response = await api.post('/auth/password/reset/confirm/', data);
-      handleApiSuccess('Password has been reset successfully.');
-      return response.data;
-    } catch (error) {
-      console.error('Password reset confirmation error:', error);
-      handleApiError(error, 'Failed to reset password.');
-      throw error;
-    }
-  },
-
-  // Verify if user is authenticated
-  isAuthenticated: () => {
-    return !!localStorage.getItem('access_token');
-  },
-
-  // Get the stored user data
-  getUser: () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        return JSON.parse(userStr);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('user');
-        return null;
-      }
-    }
-    return null;
   },
   
-  // Verify token validity
-  verifyToken: async (token: string) => {
+  getUser: (): User | null => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
+    
     try {
-      const response = await api.post('/auth/token/verify/', { token });
-      handleApiSuccess('Token is valid.');
-      return response.data;
+      const user = JSON.parse(userStr);
+      return userSchema.parse(user);
     } catch (error) {
-      console.error('Token verification error:', error);
-      handleApiError(error, 'Token is invalid.');
-      throw error;
+      console.error('Error parsing user data:', error);
+      return null;
     }
+  },
+  
+  isAuthenticated: (): boolean => {
+    return !!localStorage.getItem('access_token');
+  },
+  
+  verifyToken: async (token: string): Promise<boolean> => {
+    try {
+      await api.post('/auth/token/verify/', { token });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
+  
+  refreshToken: async (): Promise<string | null> => {
+    const refresh = localStorage.getItem('refresh_token');
+    if (!refresh) return null;
+    
+    try {
+      const response = await api.post('/auth/token/refresh/', { refresh });
+      const { access } = response.data;
+      
+      localStorage.setItem('access_token', access);
+      return access;
+    } catch (error) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      return null;
+    }
+  },
+  
+  getCurrentUser: async (): Promise<User> => {
+    const response = await api.get('/auth/me/');
+    return response.data;
   }
 };
 

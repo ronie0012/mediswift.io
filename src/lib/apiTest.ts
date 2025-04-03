@@ -1,72 +1,45 @@
-import api from './api';
-import authService from './auth.service';
-import healthcareService from './healthcare.service';
-import mainService from './main.service';
-import { handleApiError, handleApiSuccess } from './errorHandling';
 
-/**
- * Utility to test API connectivity and authentication
- * This can be used during development to verify that the backend is working correctly
- */
-export const apiTest = {
-  /**
-   * Test the health check endpoint
-   * @returns True if the API is reachable
-   */
+import api from './api';
+import { toast } from 'sonner';
+
+const apiTest = {
+  // Test the health check endpoint
   testHealth: async (): Promise<boolean> => {
     try {
-      await mainService.healthCheck();
-      console.log('✅ API Health check passed');
-      handleApiSuccess('API server is online', true);
-      return true;
+      const response = await api.get('/health/');
+      return response.status === 200;
     } catch (error) {
-      console.error('❌ API Health check failed:', error);
-      handleApiError(error, 'API server is offline', true);
+      console.error('Health check failed:', error);
       return false;
     }
   },
-
-  /**
-   * Test authentication by verifying the current token
-   * @returns True if authenticated
-   */
+  
+  // Test authentication endpoint
   testAuth: async (): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        console.log('❌ No authentication token found');
-        return false;
-      }
-
-      await authService.verifyToken(token);
-      console.log('✅ Authentication token is valid');
-      return true;
+      // Test if we can access an authenticated endpoint
+      // This will trigger the token refresh if the token is expired
+      const response = await api.get('/auth/me/');
+      return response.status === 200;
     } catch (error) {
-      console.error('❌ Authentication test failed:', error);
+      console.error('Auth test failed:', error);
       return false;
     }
   },
-
-  /**
-   * Test healthcare API endpoints
-   * @returns True if healthcare API is working
-   */
+  
+  // Test healthcare API endpoints
   testHealthcareAPI: async (): Promise<boolean> => {
     try {
-      // Try to fetch specializations as a simple test
-      await healthcareService.getSpecializations();
-      console.log('✅ Healthcare API test passed');
-      return true;
+      // Try to get specializations as a simple test
+      const response = await api.get('/healthcare/specializations/');
+      return response.status === 200;
     } catch (error) {
-      console.error('❌ Healthcare API test failed:', error);
+      console.error('Healthcare API test failed:', error);
       return false;
     }
   },
-
-  /**
-   * Run all API tests
-   * @returns Object with test results
-   */
+  
+  // Run all tests
   runAllTests: async (): Promise<{
     health: boolean;
     auth: boolean;
@@ -75,14 +48,12 @@ export const apiTest = {
     const health = await apiTest.testHealth();
     const auth = await apiTest.testAuth();
     const healthcare = await apiTest.testHealthcareAPI();
-
-    console.log('==== API Test Results ====');
-    console.log(`Health Check: ${health ? '✅ PASS' : '❌ FAIL'}`);
-    console.log(`Authentication: ${auth ? '✅ PASS' : '❌ FAIL'}`);
-    console.log(`Healthcare API: ${healthcare ? '✅ PASS' : '❌ FAIL'}`);
-    console.log('=========================');
-
-    return { health, auth, healthcare };
+    
+    return {
+      health,
+      auth,
+      healthcare
+    };
   }
 };
 
