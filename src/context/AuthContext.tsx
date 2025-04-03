@@ -38,6 +38,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Check if user is logged in on initial load
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuth = await checkAuthStatus();
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error checking auth status:", error);
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+  
   const checkAuthStatus = async (): Promise<boolean> => {
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -71,21 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
   };
-  
-  // Check if user is logged in on initial load
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const isAuth = await checkAuthStatus();
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error checking auth status:", error);
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuth();
-  }, []);
   
   const validatePassword = (password: string): boolean => {
     // Django's default password validator requires at least 8 characters
