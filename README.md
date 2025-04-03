@@ -72,19 +72,7 @@ The application will be available at `http://localhost:8080`.
 
 ## Deployment
 
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Configure environment variables in Vercel
-4. Deploy!
-
-### Netlify
-
-1. Push your code to GitHub
-2. Connect your repository to Netlify
-3. Configure environment variables in Netlify
-4. Deploy!
+Deploy the application using your preferred hosting service.
 
 ## Environment Variables
 

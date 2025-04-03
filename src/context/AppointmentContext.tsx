@@ -48,13 +48,6 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  // Load appointments when the component mounts or user changes
-  useEffect(() => {
-    if (user) {
-      fetchUpcomingAppointments();
-    }
-  }, [user]);
-
   // Helper function to ensure doctor data is properly structured
   const processAppointmentData = useCallback((data: Appointment[]): Appointment[] => {
     return data.map(appointment => {
@@ -72,7 +65,7 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
   }, []);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -129,9 +122,9 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [processAppointmentData]);
 
-  const fetchUpcomingAppointments = async () => {
+  const fetchUpcomingAppointments = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -188,7 +181,14 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [processAppointmentData]);
+
+  // Load appointments when the component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      fetchUpcomingAppointments();
+    }
+  }, [user, fetchUpcomingAppointments]);
 
   const addAppointment = async (appointmentData: CreateAppointmentData) => {
     setIsLoading(true);
