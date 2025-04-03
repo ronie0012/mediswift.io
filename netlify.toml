@@ -1,5 +1,5 @@
 [build]
-  command = "cd backend && python manage.py migrate && npm run build && pip install -r backend/requirements.txt && python backend/manage.py collectstatic --noinput"
+  command = "pip install -r backend/requirements.txt && export PYTHONPATH=$PYTHONPATH:$(pwd)/backend && cd backend && python manage.py migrate && cd .. && npm run build && python backend/manage.py collectstatic --noinput"
   publish = "dist"
   functions = "netlify/functions"
 
@@ -7,6 +7,7 @@
 [build.environment]
   NODE_VERSION = "18"
   PYTHON_VERSION = "3.9"
+  PYTHONPATH = "/opt/build/repo:/opt/build/repo/backend"
 
 # Handle SPA routing - redirect all paths to index.html so the React router can handle them
 [[redirects]]
