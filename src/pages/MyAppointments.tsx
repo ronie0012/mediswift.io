@@ -142,6 +142,38 @@ const renderSpecialization = (doctor: any) => {
   return <Skeleton className="h-4 w-24" />;
 };
 
+// Helper function to get avatar initials
+const getAvatarInitials = (doctor: any): string => {
+  if (!doctor) return "DR";
+  
+  if (typeof doctor === 'number') return "DR";
+  
+  if (doctor.user && doctor.user.first_name && doctor.user.last_name) {
+    return `${doctor.user.first_name[0]}${doctor.user.last_name[0]}`;
+  }
+  
+  if (doctor.name) {
+    const nameParts = doctor.name.split(' ');
+    if (nameParts.length > 1) {
+      return `${nameParts[0][0]}${nameParts[1][0]}`;
+    }
+    return doctor.name[0];
+  }
+  
+  return "DR";
+};
+
+// Helper function to safely parse date
+const safeParseISO = (dateString: string | undefined | null): Date => {
+  if (!dateString) return new Date();
+  try {
+    return parseISO(dateString);
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return new Date();
+  }
+};
+
 const MyAppointments = () => {
   const { user } = useAuth();
   const { appointments, isLoading, error, fetchAppointments, fetchUpcomingAppointments, cancelAppointment } = useAppointments();
@@ -310,8 +342,8 @@ const MyAppointments = () => {
   const confirmCancelAppointment = async () => {
     if (!cancelAppointmentId) return;
     
-      setIsCancelling(true);
-      try {
+    setIsCancelling(true);
+    try {
       // Find the appointment to cancel
       const appointmentToCancel = allAppointments.find(apt => apt.id === cancelAppointmentId);
       
@@ -319,34 +351,34 @@ const MyAppointments = () => {
         throw new Error("Appointment not found");
       }
       
-        // Check if it's a mock appointment from localStorage
+      // Check if it's a mock appointment from localStorage
       if (appointmentToCancel.id > 1000000) { // Assuming mock IDs are large numbers (from Date.now())
-          const mockAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-          const updatedMockAppointments = mockAppointments.map((apt: Appointment) => 
+        const mockAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
+        const updatedMockAppointments = mockAppointments.map((apt: Appointment) => 
           apt.id === appointmentToCancel.id ? { ...apt, status: 'cancelled' as const } : apt
-          );
-          localStorage.setItem('mockAppointments', JSON.stringify(updatedMockAppointments));
-          
-          // Update the local state
-          setAllAppointments(prev => 
+        );
+        localStorage.setItem('mockAppointments', JSON.stringify(updatedMockAppointments));
+        
+        // Update the local state
+        setAllAppointments(prev => 
           prev.map(apt => apt.id === appointmentToCancel.id ? { ...apt, status: 'cancelled' as const } : apt)
-          );
-          
-          toast.success('Appointment cancelled successfully');
-        } else {
-          // Real API appointment
+        );
+        
+        toast.success('Appointment cancelled successfully');
+      } else {
+        // Real API appointment
         await cancelAppointment(appointmentToCancel.id);
-          
-          // Update all appointments state after cancellation
-          setAllAppointments(prev => 
+        
+        // Update all appointments state after cancellation
+        setAllAppointments(prev => 
           prev.map(apt => apt.id === appointmentToCancel.id ? { ...apt, status: 'cancelled' as const } : apt)
-          );
-        }
-      } catch (error) {
-        console.error('Error cancelling appointment:', error);
-        toast.error('Failed to cancel appointment');
-      } finally {
-        setIsCancelling(false);
+        );
+      }
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      toast.error('Failed to cancel appointment');
+    } finally {
+      setIsCancelling(false);
       setShowCancelDialog(false);
       setCancelAppointmentId(null);
     }
@@ -354,6 +386,10 @@ const MyAppointments = () => {
 
   // Handle appointment rescheduling
   const handleReschedule = (appointmentId: number) => {
+    if (!appointmentId) {
+      toast.error("Cannot reschedule: Invalid appointment ID");
+      return;
+    }
     navigate(`/reschedule-appointment/${appointmentId}`);
   };
 
@@ -464,6 +500,33 @@ const MyAppointments = () => {
       </div>
     );
   };
+
+  // Add this useEffect to handle appointment data loading
+  useEffect(() => {
+    if (user && !isLoading && error) {
+      // If there was an error loading appointments, show an error message
+      toast.error(`Error loading appointments: ${error}`);
+    }
+  }, [user, isLoading, error]);
+
+  // UpdateAllAppointments function to handle appointment state updates
+  const updateAppointmentStatus = useCallback((appointmentId: number, newStatus: AppointmentStatus) => {
+    setAllAppointments(prev => 
+      prev.map(apt => apt.id === appointmentId ? { ...apt, status: newStatus } : apt)
+    );
+  }, []);
+
+  // Add at top of component before return statement
+  // Check if there are any invalid appointment objects
+  useEffect(() => {
+    const hasInvalidData = allAppointments.some(
+      apt => !apt || !apt.appointment_date || !apt.start_time || !apt.end_time
+    );
+    
+    if (hasInvalidData && allAppointments.length > 0) {
+      console.warn("Some appointments have invalid or missing data");
+    }
+  }, [allAppointments]);
 
   if (!user) {
     return (
@@ -709,9 +772,7 @@ const MyAppointments = () => {
                         <div className="flex items-center gap-3">
                           <Avatar className="hidden sm:flex h-10 w-10">
                             <AvatarFallback>
-                              {typeof appointment.doctor === 'object' && appointment.doctor.user ? 
-                                `${appointment.doctor.user.first_name[0]}${appointment.doctor.user.last_name[0]}` : 
-                                "DR"}
+                              {getAvatarInitials(appointment.doctor)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -734,7 +795,7 @@ const MyAppointments = () => {
                                 <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                                   View Details
                                 </DropdownMenuItem>
-                                {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                                {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                                   <>
                                     <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
                                       Reschedule
@@ -759,7 +820,7 @@ const MyAppointments = () => {
                             <Calendar className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                            {format(safeParseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
                           </span>
                         </div>
                         
@@ -768,8 +829,8 @@ const MyAppointments = () => {
                             <Clock className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
-                            {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
+                            {format(safeParseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
+                            {format(safeParseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
                           </span>
                         </div>
 
@@ -795,7 +856,7 @@ const MyAppointments = () => {
                           View Details
                         </Button>
                         
-                        {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                        {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                           <div className="sm:hidden flex space-x-2">
                             <Button
                               variant="outline"
@@ -832,9 +893,7 @@ const MyAppointments = () => {
                         <div className="flex items-center gap-3">
                           <Avatar className="hidden sm:flex h-10 w-10">
                             <AvatarFallback>
-                              {typeof appointment.doctor === 'object' && appointment.doctor.user ? 
-                                `${appointment.doctor.user.first_name[0]}${appointment.doctor.user.last_name[0]}` : 
-                                "DR"}
+                              {getAvatarInitials(appointment.doctor)}
                             </AvatarFallback>
                           </Avatar>
                     <div>
@@ -857,7 +916,7 @@ const MyAppointments = () => {
                                 <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                                   View Details
                                 </DropdownMenuItem>
-                                {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                                {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                                   <>
                                     <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
                                       Reschedule
@@ -882,7 +941,7 @@ const MyAppointments = () => {
                             <Calendar className="h-4 w-4 text-primary" />
                           </div>
                     <span className="text-sm">
-                      {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                      {format(safeParseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
                     </span>
                   </div>
                   
@@ -891,8 +950,8 @@ const MyAppointments = () => {
                             <Clock className="h-4 w-4 text-primary" />
                           </div>
                     <span className="text-sm">
-                      {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
-                      {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
+                      {format(safeParseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
+                      {format(safeParseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
                     </span>
                   </div>
                   
@@ -918,7 +977,7 @@ const MyAppointments = () => {
                       View Details
                     </Button>
                     
-                        {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                        {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                           <div className="sm:hidden flex space-x-2">
                             <Button
                               variant="outline"
@@ -955,9 +1014,7 @@ const MyAppointments = () => {
                         <div className="flex items-center gap-3">
                           <Avatar className="hidden sm:flex h-10 w-10">
                             <AvatarFallback>
-                              {typeof appointment.doctor === 'object' && appointment.doctor.user ? 
-                                `${appointment.doctor.user.first_name[0]}${appointment.doctor.user.last_name[0]}` : 
-                                "DR"}
+                              {getAvatarInitials(appointment.doctor)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -980,7 +1037,7 @@ const MyAppointments = () => {
                                 <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                                   View Details
                                 </DropdownMenuItem>
-                    {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                    {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                       <>
                                     <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
                                       Reschedule
@@ -1005,7 +1062,7 @@ const MyAppointments = () => {
                             <Calendar className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                            {format(safeParseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
                           </span>
                         </div>
                         
@@ -1014,8 +1071,8 @@ const MyAppointments = () => {
                             <Clock className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
-                            {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
+                            {format(safeParseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
+                            {format(safeParseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
                           </span>
                         </div>
 
@@ -1041,7 +1098,7 @@ const MyAppointments = () => {
                           View Details
                         </Button>
                         
-                        {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                        {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                           <div className="sm:hidden flex space-x-2">
                         <Button
                           variant="outline"
@@ -1078,9 +1135,7 @@ const MyAppointments = () => {
                         <div className="flex items-center gap-3">
                           <Avatar className="hidden sm:flex h-10 w-10">
                             <AvatarFallback>
-                              {typeof appointment.doctor === 'object' && appointment.doctor.user ? 
-                                `${appointment.doctor.user.first_name[0]}${appointment.doctor.user.last_name[0]}` : 
-                                "DR"}
+                              {getAvatarInitials(appointment.doctor)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -1103,7 +1158,7 @@ const MyAppointments = () => {
                                 <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                                   View Details
                                 </DropdownMenuItem>
-                                {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                                {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                                   <>
                                     <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
                                       Reschedule
@@ -1128,7 +1183,7 @@ const MyAppointments = () => {
                             <Calendar className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                            {format(safeParseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
                           </span>
                         </div>
                         
@@ -1137,8 +1192,8 @@ const MyAppointments = () => {
                             <Clock className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
-                            {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
+                            {format(safeParseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
+                            {format(safeParseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
                           </span>
                         </div>
 
@@ -1164,7 +1219,7 @@ const MyAppointments = () => {
                           View Details
                         </Button>
                         
-                        {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                        {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                           <div className="sm:hidden flex space-x-2">
                             <Button
                               variant="outline"
@@ -1201,9 +1256,7 @@ const MyAppointments = () => {
                         <div className="flex items-center gap-3">
                           <Avatar className="hidden sm:flex h-10 w-10">
                             <AvatarFallback>
-                              {typeof appointment.doctor === 'object' && appointment.doctor.user ? 
-                                `${appointment.doctor.user.first_name[0]}${appointment.doctor.user.last_name[0]}` : 
-                                "DR"}
+                              {getAvatarInitials(appointment.doctor)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -1226,7 +1279,7 @@ const MyAppointments = () => {
                                 <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                                   View Details
                                 </DropdownMenuItem>
-                                {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                                {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                                   <>
                                     <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
                                       Reschedule
@@ -1251,7 +1304,7 @@ const MyAppointments = () => {
                             <Calendar className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                            {format(safeParseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
                           </span>
                         </div>
                         
@@ -1260,8 +1313,8 @@ const MyAppointments = () => {
                             <Clock className="h-4 w-4 text-primary" />
                           </div>
                           <span className="text-sm">
-                            {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
-                            {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
+                            {format(safeParseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
+                            {format(safeParseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
                           </span>
                         </div>
 
@@ -1287,7 +1340,7 @@ const MyAppointments = () => {
                           View Details
                         </Button>
                         
-                        {activeTab === "upcoming" && appointment.status !== "cancelled" && (
+                        {appointment.status !== "cancelled" && activeTab === "upcoming" && (
                           <div className="sm:hidden flex space-x-2">
                             <Button
                               variant="outline"
@@ -1328,9 +1381,7 @@ const MyAppointments = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="hidden sm:flex h-10 w-10">
                         <AvatarFallback>
-                          {typeof appointment.doctor === 'object' && appointment.doctor.user ? 
-                            `${appointment.doctor.user.first_name[0]}${appointment.doctor.user.last_name[0]}` : 
-                            "DR"}
+                          {getAvatarInitials(appointment.doctor)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -1353,19 +1404,6 @@ const MyAppointments = () => {
                             <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                               View Details
                             </DropdownMenuItem>
-                            {activeTab === "upcoming" && appointment.status !== "cancelled" && (
-                              <>
-                                <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
-                                  Reschedule
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  className="text-red-500"
-                                  onClick={() => handleCancelAppointment(appointment)}
-                                >
-                                  Cancel
-                                </DropdownMenuItem>
-                              </>
-                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -1378,7 +1416,7 @@ const MyAppointments = () => {
                         <Calendar className="h-4 w-4 text-primary" />
                       </div>
                       <span className="text-sm">
-                        {format(parseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                        {format(safeParseISO(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
                       </span>
                     </div>
                     
@@ -1387,8 +1425,8 @@ const MyAppointments = () => {
                         <Clock className="h-4 w-4 text-primary" />
                       </div>
                       <span className="text-sm">
-                        {format(parseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
-                        {format(parseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
+                        {format(safeParseISO(`2000-01-01T${appointment.start_time}`), "h:mm a")} - 
+                        {format(safeParseISO(`2000-01-01T${appointment.end_time}`), "h:mm a")}
                       </span>
                     </div>
 
@@ -1413,26 +1451,6 @@ const MyAppointments = () => {
                     >
                       View Details
                     </Button>
-                    
-                    {activeTab === "upcoming" && appointment.status !== "cancelled" && (
-                      <div className="sm:hidden flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReschedule(appointment.id)}
-                        >
-                          Reschedule
-                        </Button>
-                        
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleCancelAppointment(appointment)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1454,7 +1472,7 @@ const MyAppointments = () => {
             <DialogHeader>
               <DialogTitle>Appointment Details</DialogTitle>
               <DialogDescription>
-                {selectedAppointment.appointment_date && format(parseISO(selectedAppointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                {selectedAppointment.appointment_date && format(safeParseISO(selectedAppointment.appointment_date), "EEEE, MMMM d, yyyy")}
               </DialogDescription>
             </DialogHeader>
             
@@ -1464,9 +1482,7 @@ const MyAppointments = () => {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
                     <AvatarFallback className="bg-primary/10 text-primary">
-                      {typeof selectedAppointment.doctor === 'object' && selectedAppointment.doctor.user ? 
-                        `${selectedAppointment.doctor.user.first_name[0]}${selectedAppointment.doctor.user.last_name[0]}` : 
-                        "DR"}
+                      {getAvatarInitials(selectedAppointment.doctor)}
                     </AvatarFallback>
                   </Avatar>
                 <div>
@@ -1493,11 +1509,11 @@ const MyAppointments = () => {
                     </div>
                       <div className="pl-6">
                         <p className="text-sm">
-                          {format(parseISO(selectedAppointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                          {format(safeParseISO(selectedAppointment.appointment_date), "EEEE, MMMM d, yyyy")}
                         </p>
                         <p className="text-sm">
-                        {format(parseISO(`2000-01-01T${selectedAppointment.start_time}`), "h:mm a")} - 
-                        {format(parseISO(`2000-01-01T${selectedAppointment.end_time}`), "h:mm a")}
+                        {format(safeParseISO(`2000-01-01T${selectedAppointment.start_time}`), "h:mm a")} - 
+                        {format(safeParseISO(`2000-01-01T${selectedAppointment.end_time}`), "h:mm a")}
                         </p>
                     </div>
                   </div>
@@ -1557,9 +1573,9 @@ const MyAppointments = () => {
                   
                 {/* Appointment Tracking */}
                 <div className="text-xs text-gray-500">
-                  <p>Appointment Created: {format(parseISO(selectedAppointment.created_at), "MMMM d, yyyy 'at' h:mm a")}</p>
+                  <p>Appointment Created: {format(safeParseISO(selectedAppointment.created_at), "MMMM d, yyyy 'at' h:mm a")}</p>
                   {selectedAppointment.updated_at !== selectedAppointment.created_at && (
-                    <p>Last Updated: {format(parseISO(selectedAppointment.updated_at), "MMMM d, yyyy 'at' h:mm a")}</p>
+                    <p>Last Updated: {format(safeParseISO(selectedAppointment.updated_at), "MMMM d, yyyy 'at' h:mm a")}</p>
                   )}
                 </div>
               </div>
@@ -1572,7 +1588,11 @@ const MyAppointments = () => {
                       className="flex-1"
                       onClick={() => {
                         setIsDetailsOpen(false);
-                        handleReschedule(selectedAppointment.id!);
+                        if (selectedAppointment.id) {
+                          handleReschedule(selectedAppointment.id);
+                        } else {
+                          toast.error("Cannot reschedule: Invalid appointment ID");
+                        }
                       }}
                     >
                   <Calendar className="h-4 w-4 mr-2" />
