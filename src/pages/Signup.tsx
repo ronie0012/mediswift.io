@@ -20,10 +20,12 @@ const Signup = () => {
   const navigate = useNavigate();
   const { signup, isLoading, validatePassword } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,12 +37,17 @@ const Signup = () => {
     }
     
     if (!validatePassword(password)) {
-      toast.error("Password must be at least 8 characters long and contain at least one number and one special character");
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+    
+    if (password !== password2) {
+      toast.error("Passwords do not match");
       return;
     }
     
     try {
-      await signup(name, email, phone, password);
+      await signup(username, email, password, password2, firstName, lastName);
       navigate("/");
     } catch (error) {
       // Error is already handled in the AuthContext
@@ -63,15 +70,49 @@ const Signup = () => {
           
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <div className="relative">
+                    <Input
+                      id="firstName"
+                      type="text"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                    <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <div className="relative">
+                    <Input
+                      id="lastName"
+                      type="text"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                    <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <Input
-                    id="name"
+                    id="username"
                     type="text"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    placeholder="johndoe123"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="pl-10"
                     required
                   />
@@ -92,22 +133,6 @@ const Signup = () => {
                     required
                   />
                   <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="relative">
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (123) 456-7890"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                  <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
               
@@ -137,8 +162,24 @@ const Signup = () => {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Password must be at least 8 characters long with a number and a special character.
+                  Password must be at least 8 characters long.
                 </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password2">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password2"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password2}
+                    onChange={(e) => setPassword2(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                  <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                </div>
               </div>
               
               <div className="flex items-center space-x-2">

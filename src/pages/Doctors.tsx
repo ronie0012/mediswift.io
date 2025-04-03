@@ -1,40 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Search, 
-  Star, 
-  Calendar, 
-  Clock, 
-  Video, 
-  MapPin, 
-  Filter, 
-  ChevronDown,
-  Phone,
-  MessageCircle,
-  Heart
-} from "lucide-react";
-import Layout from "@/components/layout/Layout";
-import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Search, Filter, Star, MapPin, Clock, CalendarClock } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Sample data
-const specialties = [
-  "All Specialties",
-  "General Physician",
-  "Cardiology",
-  "Neurology",
-  "Pediatrics",
-  "Dermatology",
-  "Gynecology",
-  "Orthopedics"
-];
-
-const doctors = [
+// Define actual doctor data
+const actualDoctors = [
   {
     id: 1,
     name: "Dr. Anil Sharma",
@@ -42,720 +20,274 @@ const doctors = [
     experience: "12 years",
     rating: 4.5,
     reviewCount: 150,
-    consultationFee: 800,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 2:30 PM",
+    availability: "Available Today",
     image: "https://randomuser.me/api/portraits/men/65.jpg",
-    hospital: "MediCare Hospital",
-    location: "Mumbai, Maharashtra",
-    education: "MBBS - General Medicine",
-    languages: ["English", "Hindi"]
+    bio: "Dr. Anil Sharma is a seasoned general physician with expertise in treating a wide range of common illnesses and chronic conditions."
   },
   {
     id: 2,
-    name: "Dr. Priya Deshmukh",
-    specialty: "General Physician",
-    experience: "8 years",
-    rating: 4.2,
-    reviewCount: 120,
-    consultationFee: 600,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 4:00 PM",
-    image: "https://randomuser.me/api/portraits/women/32.jpg",
-    hospital: "City Medical Center",
-    location: "Pune, Maharashtra",
-    education: "MBBS - General Medicine",
-    languages: ["English", "Hindi", "Marathi"]
-  },
-  {
-    id: 3,
     name: "Dr. Vikram Patel",
-    specialty: "Cardiology",
+    specialty: "Cardiologist",
     experience: "18 years",
     rating: 4.8,
     reviewCount: 200,
-    consultationFee: 1500,
-    availableToday: false,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Tomorrow, 10:00 AM",
+    availability: "Available Tomorrow",
     image: "https://randomuser.me/api/portraits/men/45.jpg",
-    hospital: "Heart Care Institute",
-    location: "Delhi, NCR",
-    education: "MBBS, MD, DM - Cardiology",
-    languages: ["English", "Hindi"]
+    bio: "Dr. Vikram Patel is a distinguished cardiologist specializing in interventional procedures and cardiac care."
   },
   {
-    id: 4,
-    name: "Dr. Neha Kulkarni",
-    specialty: "Cardiology",
-    experience: "10 years",
-    rating: 4.6,
-    reviewCount: 180,
-    consultationFee: 1200,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 3:30 PM",
-    image: "https://randomuser.me/api/portraits/women/45.jpg",
-    hospital: "Cardio Care Center",
-    location: "Bangalore, Karnataka",
-    education: "MBBS, MD, DM - Cardiology",
-    languages: ["English", "Hindi", "Kannada"]
-  },
-  {
-    id: 5,
+    id: 3,
     name: "Dr. Sanjay Gupta",
-    specialty: "Neurology",
+    specialty: "Neurologist",
     experience: "15 years",
     rating: 4.7,
     reviewCount: 160,
-    consultationFee: 1800,
-    availableToday: false,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Tomorrow, 11:00 AM",
+    availability: "Available Today",
     image: "https://randomuser.me/api/portraits/men/32.jpg",
-    hospital: "Neuro Care Institute",
-    location: "Chennai, Tamil Nadu",
-    education: "MBBS, MD, DM - Neurology",
-    languages: ["English", "Hindi", "Tamil"]
+    bio: "Dr. Sanjay Gupta is an experienced neurologist specializing in movement disorders and neurodegenerative diseases."
   },
   {
-    id: 6,
-    name: "Dr. Meera Rao",
-    specialty: "Neurology",
-    experience: "9 years",
-    rating: 4.4,
-    reviewCount: 140,
-    consultationFee: 1300,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 5:00 PM",
-    image: "https://randomuser.me/api/portraits/women/65.jpg",
-    hospital: "Brain & Spine Center",
-    location: "Hyderabad, Telangana",
-    education: "MBBS, MD, DM - Neurology",
-    languages: ["English", "Hindi", "Telugu"]
-  },
-  {
-    id: 7,
+    id: 4,
     name: "Dr. Rohan Joshi",
-    specialty: "Pediatrics",
+    specialty: "Pediatrician",
     experience: "14 years",
     rating: 4.9,
     reviewCount: 220,
-    consultationFee: 1000,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 2:00 PM",
+    availability: "Available in 2 days",
     image: "https://randomuser.me/api/portraits/men/86.jpg",
-    hospital: "Children's Hospital",
-    location: "Mumbai, Maharashtra",
-    education: "MBBS, MD - Pediatrics",
-    languages: ["English", "Hindi", "Marathi"]
-  },
-  {
-    id: 8,
-    name: "Dr. Aarti Singh",
-    specialty: "Pediatrics",
-    experience: "7 years",
-    rating: 4.3,
-    reviewCount: 130,
-    consultationFee: 800,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 4:30 PM",
-    image: "https://randomuser.me/api/portraits/women/22.jpg",
-    hospital: "Kids Care Center",
-    location: "Delhi, NCR",
-    education: "MBBS, MD - Pediatrics",
-    languages: ["English", "Hindi"]
-  },
-  {
-    id: 9,
-    name: "Dr. Kavita Mehra",
-    specialty: "Dermatology",
-    experience: "11 years",
-    rating: 4.6,
-    reviewCount: 170,
-    consultationFee: 1200,
-    availableToday: false,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Tomorrow, 9:30 AM",
-    image: "https://randomuser.me/api/portraits/women/32.jpg",
-    hospital: "Skin Care Clinic",
-    location: "Bangalore, Karnataka",
-    education: "MBBS, MD - Dermatology",
-    languages: ["English", "Hindi", "Kannada"]
-  },
-  {
-    id: 10,
-    name: "Dr. Sameer Khan",
-    specialty: "Dermatology",
-    experience: "16 years",
-    rating: 4.8,
-    reviewCount: 190,
-    consultationFee: 1500,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 3:00 PM",
-    image: "https://randomuser.me/api/portraits/men/54.jpg",
-    hospital: "Derma Solutions",
-    location: "Mumbai, Maharashtra",
-    education: "MBBS, MD - Dermatology",
-    languages: ["English", "Hindi", "Urdu"]
-  },
-  {
-    id: 11,
-    name: "Dr. Sunita Iyer",
-    specialty: "Gynecology",
-    experience: "20 years",
-    rating: 4.9,
-    reviewCount: 240,
-    consultationFee: 1600,
-    availableToday: false,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Tomorrow, 10:30 AM",
-    image: "https://randomuser.me/api/portraits/women/45.jpg",
-    hospital: "Women's Health Center",
-    location: "Chennai, Tamil Nadu",
-    education: "MBBS, MS - Obstetrics & Gynecology",
-    languages: ["English", "Hindi", "Tamil"]
-  },
-  {
-    id: 12,
-    name: "Dr. Ritu Nair",
-    specialty: "Gynecology",
-    experience: "13 years",
-    rating: 4.5,
-    reviewCount: 160,
-    consultationFee: 1200,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 4:00 PM",
-    image: "https://randomuser.me/api/portraits/women/65.jpg",
-    hospital: "FemCare Hospital",
-    location: "Delhi, NCR",
-    education: "MBBS, MS - Obstetrics & Gynecology",
-    languages: ["English", "Hindi"]
-  },
-  {
-    id: 13,
-    name: "Dr. Arjun Malhotra",
-    specialty: "Orthopedics",
-    experience: "17 years",
-    rating: 4.7,
-    reviewCount: 180,
-    consultationFee: 1400,
-    availableToday: false,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Tomorrow, 11:30 AM",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
-    hospital: "Ortho Care Institute",
-    location: "Mumbai, Maharashtra",
-    education: "MBBS, MS - Orthopedics",
-    languages: ["English", "Hindi"]
-  },
-  {
-    id: 14,
-    name: "Dr. Shalini Verma",
-    specialty: "Orthopedics",
-    experience: "10 years",
-    rating: 4.4,
-    reviewCount: 140,
-    consultationFee: 1100,
-    availableToday: true,
-    availableForVideo: true,
-    availableForInClinic: true,
-    nextAvailable: "Today, 3:30 PM",
-    image: "https://randomuser.me/api/portraits/women/32.jpg",
-    hospital: "Bone & Joint Center",
-    location: "Bangalore, Karnataka",
-    education: "MBBS, MS - Orthopedics",
-    languages: ["English", "Hindi", "Kannada"]
+    bio: "Dr. Rohan Joshi is a compassionate pediatrician dedicated to providing comprehensive care for children from infancy through adolescence."
   }
 ];
 
-interface FilterState {
-  fees: string[];
-  availability: string[];
-  gender: string;
+// Define specializations
+const actualSpecializations = [
+  { id: 1, name: "General Physician" },
+  { id: 2, name: "Cardiologist" },
+  { id: 3, name: "Neurologist" },
+  { id: 4, name: "Pediatrician" }
+];
+
+interface Doctor {
+  id: number;
+  name: string;
+  specialty: string;
+  experience: string;
+  rating: number;
+  reviewCount: number;
+  availability: string;
+  image: string;
+  bio: string;
 }
 
-const DoctorCard = ({ doctor }: { doctor: any }) => {
-  const [consultationType, setConsultationType] = useState("video");
-  const [isFavorite, setIsFavorite] = useState(false);
-  
-  return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        <div className="p-6">
-          <div className="flex items-start">
-            <Avatar className="h-16 w-16 rounded-lg">
-              <AvatarImage src={doctor.image} alt={doctor.name} />
-              <AvatarFallback>{doctor.name[0]}{doctor.name.split(' ')[1][0]}</AvatarFallback>
-            </Avatar>
-            <div className="ml-4 flex-1">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-bold text-gray-900">{doctor.name}</h3>
-                  <p className="text-medical-600">{doctor.specialty}</p>
-                </div>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className={`${isFavorite ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
-                  onClick={() => setIsFavorite(!isFavorite)}
-                >
-                  <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-                </Button>
-              </div>
-              <div className="flex items-center mt-1">
-                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                <span className="text-sm font-medium ml-1">{doctor.rating}</span>
-                <span className="text-xs text-gray-500 ml-1">({doctor.reviewCount} reviews)</span>
-              </div>
-              <div className="flex flex-wrap items-center mt-2 text-sm text-gray-600">
-                <span className="mr-4 flex items-center">
-                  <Clock className="h-4 w-4 mr-1" />
-                  {doctor.experience}
-                </span>
-                <span className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  {doctor.location}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-4">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {doctor.availableForVideo && (
-                <Badge variant={consultationType === "video" ? "default" : "outline"} 
-                  className={`cursor-pointer ${consultationType === "video" ? "bg-medical-500" : ""}`}
-                  onClick={() => setConsultationType("video")}
-                >
-                  <Video className="h-3 w-3 mr-1" />
-                  Video Consult
-                </Badge>
-              )}
-              {doctor.availableForInClinic && (
-                <Badge variant={consultationType === "clinic" ? "default" : "outline"} 
-                  className={`cursor-pointer ${consultationType === "clinic" ? "bg-medical-500" : ""}`}
-                  onClick={() => setConsultationType("clinic")}
-                >
-                  <MapPin className="h-3 w-3 mr-1" />
-                  In-Clinic
-                </Badge>
-              )}
-              <Badge variant={consultationType === "phone" ? "default" : "outline"} 
-                className={`cursor-pointer ${consultationType === "phone" ? "bg-medical-500" : ""}`}
-                onClick={() => setConsultationType("phone")}
-              >
-                <Phone className="h-3 w-3 mr-1" />
-                Phone
-              </Badge>
-              <Badge variant={consultationType === "chat" ? "default" : "outline"} 
-                className={`cursor-pointer ${consultationType === "chat" ? "bg-medical-500" : ""}`}
-                onClick={() => setConsultationType("chat")}
-              >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                Chat
-              </Badge>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Next Available</p>
-                <p className="font-medium text-gray-800">
-                  {doctor.availableToday ? 
-                    <span className="text-green-600">{doctor.nextAvailable}</span> : 
-                    doctor.nextAvailable
-                  }
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Consultation Fee</p>
-                <p className="font-bold text-gray-900">₹{doctor.consultationFee}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-4 border-t border-gray-100">
-          <Button asChild className="w-full rounded-none rounded-b-lg h-12 bg-medical-500 hover:bg-medical-600">
-            <Link 
-              to={`/doctors/${doctor.id}`}
-              state={{ doctor, consultationType }}
-            >
-              Book Appointment
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const Doctors = () => {
-  const [activeTab, setActiveTab] = useState("all");
-  const [activeSpecialty, setActiveSpecialty] = useState("All Specialties");
+const DoctorsPage = () => {
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState("relevance");
-  const [filters, setFilters] = useState<FilterState>({
-    fees: [],
-    availability: [],
-    gender: "any"
-  });
-  const [visibleDoctors, setVisibleDoctors] = useState(6);
+  const [selectedSpecialization, setSelectedSpecialization] = useState<number | null>(null);
+  const [specializations, setSpecializations] = useState<{id: number, name: string}[]>([]);
+  
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Use the actual doctors data instead of fetching from API
+    loadDoctors();
+  }, []);
+
+  useEffect(() => {
+    filterDoctors();
+  }, [searchQuery, selectedSpecialization, doctors]);
+
+  const loadDoctors = () => {
+    setIsLoading(true);
+    // Simulate loading delay
+    setTimeout(() => {
+      setDoctors(actualDoctors);
+      setFilteredDoctors(actualDoctors);
+      setSpecializations(actualSpecializations);
+      setIsLoading(false);
+    }, 500);
+  };
   
   const filterDoctors = () => {
     let filtered = [...doctors];
     
-    // Filter by tab
-    if (activeTab === "available-today") {
-      filtered = filtered.filter(doctor => doctor.availableToday);
-    } else if (activeTab === "video-consult") {
-      filtered = filtered.filter(doctor => doctor.availableForVideo);
-    } else if (activeTab === "in-clinic") {
-      filtered = filtered.filter(doctor => doctor.availableForInClinic);
-    }
-    
-    // Filter by specialty
-    if (activeSpecialty !== "All Specialties") {
-      filtered = filtered.filter(doctor => doctor.specialty === activeSpecialty);
-    }
-    
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(doctor => 
-        doctor.name.toLowerCase().includes(query) || 
-        doctor.specialty.toLowerCase().includes(query) ||
-        doctor.location.toLowerCase().includes(query)
+    // Filter by specialization
+    if (selectedSpecialization !== null) {
+      const selectedSpecialtyName = specializations.find(
+        spec => spec.id === selectedSpecialization
+      )?.name;
+      
+      filtered = filtered.filter(
+        (doctor) => doctor.specialty === selectedSpecialtyName
       );
     }
     
-    // Filter by consultation fee
-    if (filters.fees.length > 0) {
-      filtered = filtered.filter(doctor => {
-        const fee = doctor.consultationFee;
-        return filters.fees.some(range => {
-          if (range === "under-500") return fee < 500;
-          if (range === "500-1000") return fee >= 500 && fee <= 1000;
-          if (range === "1000-1500") return fee > 1000 && fee <= 1500;
-          if (range === "above-1500") return fee > 1500;
-          return true;
-        });
-      });
+    // Filter by search query (doctor name or specialization)
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (doctor) =>
+        doctor.name.toLowerCase().includes(query) || 
+        doctor.specialty.toLowerCase().includes(query) ||
+          doctor.bio.toLowerCase().includes(query)
+      );
     }
     
-    // Filter by availability
-    if (filters.availability.length > 0) {
-      filtered = filtered.filter(doctor => {
-        return filters.availability.some(avail => {
-          if (avail === "today") return doctor.availableToday;
-          if (avail === "tomorrow") return doctor.nextAvailable.includes("Tomorrow");
-          if (avail === "this-week") return true; // Assuming all doctors are available this week
-          return true;
-        });
-      });
+    setFilteredDoctors(filtered);
+  };
+
+  const handleBookAppointment = (doctorId: number) => {
+    if (!user) {
+      toast.error("Please login to book an appointment");
+      navigate("/login");
+      return;
     }
     
-    // Filter by gender
-    if (filters.gender !== "any") {
-      filtered = filtered.filter(doctor => {
-        const doctorGender = doctor.name.startsWith("Dr. Mr.") ? "male" : "female";
-        return doctorGender === filters.gender;
-      });
+    navigate(`/doctors/${doctorId}`);
+  };
+
+  const handleSpecializationFilter = (specializationId: number) => {
+    if (selectedSpecialization === specializationId) {
+      setSelectedSpecialization(null);
+    } else {
+      setSelectedSpecialization(specializationId);
     }
-    
-    // Sort doctors
-    filtered.sort((a, b) => {
-      if (sortOption === "rating") return b.rating - a.rating;
-      if (sortOption === "fee-low") return a.consultationFee - b.consultationFee;
-      if (sortOption === "fee-high") return b.consultationFee - a.consultationFee;
-      if (sortOption === "experience") {
-        return parseInt(b.experience) - parseInt(a.experience);
-      }
-      return 0;
-    });
-    
-    return filtered;
   };
-  
-  const filteredDoctors = filterDoctors();
-  
-  const handleFilterChange = (type: keyof FilterState, value: string) => {
-    setFilters(prev => {
-      if (type === "gender") {
-        return { ...prev, gender: value };
-      }
-      
-      const array = prev[type] as string[];
-      const newArray = array.includes(value)
-        ? array.filter(item => item !== value)
-        : [...array, value];
-        
-      return { ...prev, [type]: newArray };
-    });
-  };
-  
-  const clearFilters = () => {
-    setFilters({
-      fees: [],
-      availability: [],
-      gender: "any"
-    });
-    setActiveSpecialty("All Specialties");
-    setSearchQuery("");
-    setSortOption("relevance");
-    setActiveTab("all");
-  };
-  
-  const loadMore = () => {
-    setVisibleDoctors(prev => prev + 6);
-  };
+
+  const renderDoctorSkeleton = () => (
+    Array(4).fill(0).map((_, index) => (
+      <Card key={index} className="shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-4 pb-2">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-1 flex-1">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-9 w-full" />
+        </CardFooter>
+      </Card>
+    ))
+  );
   
   return (
     <Layout>
-      <div className="bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Find & Book Doctor Appointments</h1>
-              <p className="text-gray-600">Consult with top specialists online or in-person</p>
-            </div>
-            <div className="mt-4 md:mt-0 relative">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Find a Doctor</h1>
+
+          {/* Search and Filter Section */}
+          <div className="bg-card rounded-lg border p-4 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
-                className="pl-10 pr-4 py-2 w-full md:w-80" 
-                placeholder="Search doctors, specialties..."
+                  placeholder="Search by doctor name or specialty..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
               />
-            </div>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="available-today">Available Today</TabsTrigger>
-              <TabsTrigger value="video-consult">Video Consult</TabsTrigger>
-              <TabsTrigger value="in-clinic">In-Clinic</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="bg-white rounded-xl shadow-sm p-6 h-fit">
-              <h3 className="font-bold text-lg mb-4">Filter By</h3>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">Specialty</label>
-                  <Select value={activeSpecialty} onValueChange={setActiveSpecialty}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select specialty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {specialties.map((specialty) => (
-                        <SelectItem key={specialty} value={specialty}>
-                          {specialty}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">Consultation Fee</label>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="fee-1" 
-                        checked={filters.fees.includes("under-500")}
-                        onChange={() => handleFilterChange("fees", "under-500")}
-                        className="rounded text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="fee-1" className="ml-2 text-gray-600">Under ₹500</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="fee-2" 
-                        checked={filters.fees.includes("500-1000")}
-                        onChange={() => handleFilterChange("fees", "500-1000")}
-                        className="rounded text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="fee-2" className="ml-2 text-gray-600">₹500 - ₹1000</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="fee-3" 
-                        checked={filters.fees.includes("1000-1500")}
-                        onChange={() => handleFilterChange("fees", "1000-1500")}
-                        className="rounded text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="fee-3" className="ml-2 text-gray-600">₹1000 - ₹1500</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="fee-4" 
-                        checked={filters.fees.includes("above-1500")}
-                        onChange={() => handleFilterChange("fees", "above-1500")}
-                        className="rounded text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="fee-4" className="ml-2 text-gray-600">Above ₹1500</label>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">Availability</label>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="avail-1" 
-                        checked={filters.availability.includes("today")}
-                        onChange={() => handleFilterChange("availability", "today")}
-                        className="rounded text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="avail-1" className="ml-2 text-gray-600">Available Today</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="avail-2" 
-                        checked={filters.availability.includes("tomorrow")}
-                        onChange={() => handleFilterChange("availability", "tomorrow")}
-                        className="rounded text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="avail-2" className="ml-2 text-gray-600">Available Tomorrow</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="avail-3" 
-                        checked={filters.availability.includes("this-week")}
-                        onChange={() => handleFilterChange("availability", "this-week")}
-                        className="rounded text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="avail-3" className="ml-2 text-gray-600">Available This Week</label>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">Gender</label>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="gender" 
-                        id="gender-any" 
-                        checked={filters.gender === "any"}
-                        onChange={() => handleFilterChange("gender", "any")}
-                        className="text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="gender-any" className="ml-2 text-gray-600">Any</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="gender" 
-                        id="gender-male" 
-                        checked={filters.gender === "male"}
-                        onChange={() => handleFilterChange("gender", "male")}
-                        className="text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="gender-male" className="ml-2 text-gray-600">Male</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="gender" 
-                        id="gender-female" 
-                        checked={filters.gender === "female"}
-                        onChange={() => handleFilterChange("gender", "female")}
-                        className="text-medical-600 focus:ring-medical-500" 
-                      />
-                      <label htmlFor="gender-female" className="ml-2 text-gray-600">Female</label>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="pt-2">
-                  <Button 
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className={!selectedSpecialization ? "bg-primary text-primary-foreground" : ""} onClick={() => setSelectedSpecialization(null)}>
+                  All
+                </Badge>
+                {specializations.map((spec) => (
+                  <Badge
+                    key={spec.id}
                     variant="outline" 
-                    className="w-full"
-                    onClick={clearFilters}
+                    className={selectedSpecialization === spec.id ? "bg-primary text-primary-foreground" : "cursor-pointer hover:bg-muted"}
+                    onClick={() => handleSpecializationFilter(spec.id)}
                   >
-                    Clear All Filters
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="lg:col-span-3">
-              <div className="flex justify-between items-center mb-6">
-                <p className="text-gray-600">{filteredDoctors.length} doctors found</p>
-                <Select value={sortOption} onValueChange={setSortOption}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevance">Relevance</SelectItem>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                    <SelectItem value="fee-low">Fees: Low to High</SelectItem>
-                    <SelectItem value="fee-high">Fees: High to Low</SelectItem>
-                    <SelectItem value="experience">Experience</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredDoctors.slice(0, visibleDoctors).map((doctor) => (
-                  <DoctorCard key={doctor.id} doctor={doctor} />
+                    {spec.name}
+                  </Badge>
                 ))}
               </div>
-              
-              {filteredDoctors.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 mb-4">No doctors found matching your criteria.</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={clearFilters}
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              )}
-              
-              {filteredDoctors.length > visibleDoctors && (
-                <div className="mt-8 text-center">
-                  <Button variant="outline" className="mx-auto" onClick={loadMore}>
-                    Load More Doctors
-                  </Button>
-                </div>
-              )}
             </div>
+              </div>
+              
+          {error && (
+            <div className="bg-red-50 text-red-600 rounded-lg p-4 mb-6 border border-red-100">
+              <p>{error}</p>
+              <Button variant="outline" className="mt-2" onClick={loadDoctors}>
+                Try Again
+                  </Button>
+                </div>
+              )}
+              
+          {/* Doctors Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {isLoading ? renderDoctorSkeleton() : (
+              filteredDoctors.length > 0 ? (
+                filteredDoctors.map((doctor) => (
+                  <Card key={doctor.id} className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-start gap-4 pb-2">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={doctor.image} alt={doctor.name} />
+                        <AvatarFallback>
+                          {doctor.name.split(' ')[1][0]}{doctor.name.split(' ')[2]?.[0] || ''}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-xl">
+                          {doctor.name}
+                        </CardTitle>
+                        <CardDescription className="flex items-center mt-1">
+                          {doctor.specialty}
+                        </CardDescription>
+                        <div className="flex items-center mt-1">
+                          <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                          <span className="text-sm">
+                            {doctor.rating} ({doctor.reviewCount} reviews)
+                          </span>
+                          <span className="mx-2">•</span>
+                          <span className="text-sm">{doctor.experience}</span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm line-clamp-3">
+                        {doctor.bio || "No biography available."}
+                      </p>
+                      
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4 mr-2" />
+                          <span>{doctor.availability}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button 
+                        className="w-full" 
+                        onClick={() => handleBookAppointment(doctor.id)}
+                      >
+                        Book Appointment
+                  </Button>
+                    </CardFooter>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full text-center p-8">
+                  <h3 className="text-lg font-medium">No doctors found</h3>
+                  <p className="text-muted-foreground mt-2">
+                    Try adjusting your search or filters
+                  </p>
+                </div>
+              )
+              )}
           </div>
         </div>
       </div>
@@ -763,4 +295,4 @@ const Doctors = () => {
   );
 };
 
-export default Doctors;
+export default DoctorsPage;

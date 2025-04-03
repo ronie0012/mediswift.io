@@ -1,14 +1,19 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 
-type CartItem = {
+export type CartItem = {
   id: number;
   name: string;
   image: string;
   price: number;
   quantity: number;
   brandName?: string;
+  description?: string;
+  category?: string;
+  inStock?: boolean;
+  discountedPrice?: number;
+  // Include any other fields from the original product
+  [key: string]: any;
 };
 
 interface CartContextType {
@@ -45,6 +50,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [items]);
 
   const addToCart = (product: any, quantity: number) => {
+    // Log the product being added to help with debugging
+    console.log("Adding product to cart:", product);
+    
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
 
@@ -58,14 +66,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.success(`Updated quantity for ${product.name}`);
         return updatedItems;
       } else {
-        // Add new item
+        // Add new item - preserve all original product properties
         const newItem: CartItem = {
+          ...product, // Copy all product properties
           id: product.id,
           name: product.name,
-          image: product.image,
+          image: product.image || product.imageUrl || '/placeholder-medicine.jpg',
           price: product.discountedPrice || product.price,
           quantity: quantity,
-          brandName: product.brandName,
+          brandName: product.brandName || product.brand,
         };
         toast.success(`Added ${product.name} to cart`);
         return [...prevItems, newItem];

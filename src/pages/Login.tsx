@@ -8,7 +8,8 @@ import {
   Mail, 
   Lock, 
   Eye, 
-  EyeOff 
+  EyeOff,
+  User
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   
@@ -26,7 +27,7 @@ const Login = () => {
     e.preventDefault();
     
     try {
-      await login(email, password, rememberMe);
+      await login(username, password, rememberMe);
       navigate("/");
     } catch (error) {
       // Error is already handled in the AuthContext
@@ -50,28 +51,23 @@ const Login = () => {
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="username"
+                    type="text"
+                    placeholder="your_username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="pl-10"
                     required
                   />
-                  <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                  <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link to="/forgot-password" className="text-sm text-medical-600 hover:underline">
-                    Forgot Password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"

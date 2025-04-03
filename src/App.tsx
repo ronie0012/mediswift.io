@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import TestLogin from "./pages/TestLogin";
 import Medicines from "./pages/Medicines";
 import Doctors from "./pages/Doctors";
 import DoctorAppointment from "./pages/DoctorAppointment";
@@ -24,6 +25,8 @@ import AppointmentSuccess from "./pages/AppointmentSuccess";
 import { Suspense, lazy } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LoadingSpinner from "./components/LoadingSpinner";
+import { AddressProvider } from "@/context/AddressContext";
+import { OrderProvider } from "@/context/OrderContext";
 
 // Lazy load the new pages
 const About = lazy(() => import("./pages/About"));
@@ -56,48 +59,53 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <CartProvider>
-            <AppointmentProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Suspense fallback={<LoadingSpinner size={32} />}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/medicines" element={<Medicines />} />
-                    <Route path="/medicines/:id" element={<MedicineDetails />} />
-                    <Route path="/doctors" element={<Doctors />} />
-                    <Route path="/doctors/:id" element={<DoctorAppointment />} />
-                    <Route path="/appointment-success" element={<AppointmentSuccess />} />
-                    <Route path="/ambulance" element={<AmbulanceBooking />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/my-appointments" element={<MyAppointments />} />
-                    <Route path="/my-orders" element={<MyOrders />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/reschedule-appointment/:id" element={<RescheduleAppointment />} />
-                    
-                    {/* New routes for footer links */}
-                    <Route path="/about" element={<About />} />
-                    <Route path="/health-packages" element={<HealthPackages />} />
-                    <Route path="/careers" element={<Careers />} />
-                    <Route path="/medicine-delivery" element={<MedicineDelivery />} />
-                    <Route path="/online-consultation" element={<OnlineConsultation />} />
-                    <Route path="/emergency-services" element={<EmergencyServices />} />
-                    <Route path="/health-records" element={<HealthRecords />} />
-                    <Route path="/lab-tests" element={<LabTests />} />
-                    <Route path="/health-blogs" element={<HealthBlogs />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/support" element={<Support />} />
-                    <Route path="/refund" element={<Refund />} />
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </BrowserRouter>
-            </AppointmentProvider>
+            <AddressProvider>
+              <OrderProvider>
+                <AppointmentProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Suspense fallback={<LoadingSpinner size={32} />}>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/test-login" element={<TestLogin />} />
+                        <Route path="/medicines" element={<Medicines />} />
+                        <Route path="/medicines/:id" element={<MedicineDetails />} />
+                        <Route path="/doctors" element={<Doctors />} />
+                        <Route path="/doctors/:id" element={<DoctorAppointment />} />
+                        <Route path="/appointment-success" element={<AppointmentSuccess />} />
+                        <Route path="/ambulance" element={<AmbulanceBooking />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/my-appointments" element={<MyAppointments />} />
+                        <Route path="/my-orders" element={<MyOrders />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/reschedule-appointment/:id" element={<RescheduleAppointment />} />
+                        
+                        {/* New routes for footer links */}
+                        <Route path="/about" element={<About />} />
+                        <Route path="/health-packages" element={<HealthPackages />} />
+                        <Route path="/careers" element={<Careers />} />
+                        <Route path="/medicine-delivery" element={<MedicineDelivery />} />
+                        <Route path="/online-consultation" element={<OnlineConsultation />} />
+                        <Route path="/emergency-services" element={<EmergencyServices />} />
+                        <Route path="/health-records" element={<HealthRecords />} />
+                        <Route path="/lab-tests" element={<LabTests />} />
+                        <Route path="/health-blogs" element={<HealthBlogs />} />
+                        <Route path="/faq" element={<FAQ />} />
+                        <Route path="/terms" element={<Terms />} />
+                        <Route path="/privacy" element={<Privacy />} />
+                        <Route path="/support" element={<Support />} />
+                        <Route path="/refund" element={<Refund />} />
+                        
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </BrowserRouter>
+                </AppointmentProvider>
+              </OrderProvider>
+            </AddressProvider>
           </CartProvider>
         </AuthProvider>
       </TooltipProvider>

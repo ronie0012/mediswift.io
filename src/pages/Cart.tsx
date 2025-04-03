@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
-import { useCart } from "@/context/CartContext";
+import { useCart, CartItem } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useOrders } from "@/context/OrderContext";
 import { Button } from "@/components/ui/button";
 import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck, MapPin, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,9 +16,26 @@ import AddressSelector from "@/components/address/AddressSelector";
 import { AddressProvider, useAddress } from "@/context/AddressContext";
 import OrderTracker from "@/components/order/OrderTracker";
 
+// Helper function to get proper image URL
+const getImageUrl = (item: CartItem): string => {
+  // Check for valid image URL
+  if (item.image && typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('/'))) {
+    return item.image;
+  }
+  
+  // Check for other image fields
+  if (item.imageUrl && typeof item.imageUrl === 'string') {
+    return item.imageUrl;
+  }
+  
+  // Fallback to placeholder
+  return '/placeholder-medicine.jpg';
+};
+
 const CartContent = () => {
   const { items, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { isAuthenticated, user } = useAuth();
+  const { createOrder, getOrderById, isLoading: isOrderLoading } = useOrders();
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState<"card" | "upi" | "cod">("card");
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -29,6 +47,11 @@ const CartContent = () => {
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   
   const { selectedAddress } = useAddress();
+  
+  // Debug cart items
+  useEffect(() => {
+    console.log("Current cart items:", items);
+  }, [items]);
   
   // Check if user is authenticated on component mount and when auth status changes
   useEffect(() => {
@@ -67,16 +90,27 @@ const CartContent = () => {
     
     setProcessingPayment(true);
     
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Format the address as a string
+    const addressString = `${selectedAddress.name}, ${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.pincode}, Phone: ${selectedAddress.phone}`;
     
-    if (Math.random() > 0.1) { // 90% success rate for demo
-      const newOrderId = "ORD" + Math.floor(100000 + Math.random() * 900000);
+    // Create the order using OrderContext
+    const newOrderId = await createOrder({
+      items: items,
+      totalAmount: total,
+      deliveryAddress: addressString,
+      paymentMethod: paymentMethod
+    });
+    
+    if (newOrderId) {
       setOrderId(newOrderId);
       setPaymentComplete(true);
-      setOrderPlaced(true);
-      // Generate random estimated delivery time between 10-20 minutes
-      setEstimatedDeliveryTime(Math.floor(Math.random() * 11) + 10);
+      
+      // Get the order to get the estimated delivery time
+      const order = getOrderById(newOrderId);
+      if (order && order.estimatedDeliveryTime) {
+        setEstimatedDeliveryTime(order.estimatedDeliveryTime);
+      }
+      
       toast.success("Payment successful! Your order is confirmed.");
       clearCart();
     } else {
@@ -112,6 +146,9 @@ const CartContent = () => {
               <Button asChild className="bg-medical-500 hover:bg-medical-600 mb-4">
                 <Link to="/medicines">Continue Shopping</Link>
               </Button>
+              <Button asChild variant="outline" className="ml-2">
+                <Link to="/my-orders">View All Orders</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -135,12 +172,18 @@ const CartContent = () => {
               <Link to="/medicines">Continue Shopping</Link>
             </Button>
             <Button 
+              variant="outline" 
+              className="w-full mb-3"
+              onClick={() => setOrderPlaced(true)}
+            >
+              Track Your Order
+            </Button>
+            <Button 
               asChild 
               variant="outline" 
               className="w-full"
-              onClick={() => setOrderPlaced(true)}
             >
-              <Link to="#">Track Your Order</Link>
+              <Link to="/my-orders">View All Orders</Link>
             </Button>
           </div>
         </div>
@@ -204,16 +247,23 @@ const CartContent = () => {
                     <div key={item.id} className="p-4 flex items-center">
                       <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                         <img
-                          src={item.image}
+                          src={getImageUrl(item)}
                           alt={item.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Set a fallback image if the main image fails to load
+                            (e.target as HTMLImageElement).src = '/placeholder-medicine.jpg';
+                          }}
                         />
                       </div>
 
                       <div className="ml-4 flex-grow">
                         <h3 className="font-medium text-gray-900">{item.name}</h3>
-                        {item.brandName && (
-                          <p className="text-sm text-gray-500">{item.brandName}</p>
+                        {(item.brandName || item.brand) && (
+                          <p className="text-sm text-gray-500">{item.brandName || item.brand}</p>
+                        )}
+                        {item.description && (
+                          <p className="text-xs text-gray-500 line-clamp-1">{item.description}</p>
                         )}
                         <div className="mt-1 text-sm font-bold text-gray-900">
                           ₹{item.price.toFixed(2)}
@@ -492,9 +542,9 @@ const CartContent = () => {
                             <Button 
                               type="submit" 
                               className="w-full bg-medical-500 hover:bg-medical-600"
-                              disabled={processingPayment}
+                              disabled={processingPayment || isOrderLoading}
                             >
-                              {processingPayment ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
+                              {(processingPayment || isOrderLoading) ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
                             </Button>
                           </div>
                         </form>

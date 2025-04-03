@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useOrders, Order, OrderStatus } from "@/context/OrderContext";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -31,88 +32,29 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 
-interface Order {
-  id: string;
-  items: {
-    name: string;
-    quantity: number;
-    price: number;
-  }[];
-  totalAmount: number;
-  status: "processing" | "shipped" | "delivered" | "cancelled";
-  orderDate: string;
-  deliveryDate: string | null;
-  deliveryAddress: string;
-}
+// Define the type for filter status to include "all" or any valid OrderStatus
+type FilterStatusType = "all" | OrderStatus;
 
 const MyOrders = () => {
   const { user } = useAuth();
+  const { getUserOrders, cancelOrder, isLoading } = useOrders();
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
-  const [filterStatus, setFilterStatus] = useState<"all" | "processing" | "shipped" | "delivered" | "cancelled">("all");
+  const [filterStatus, setFilterStatus] = useState<FilterStatusType>("all");
+  const [orders, setOrders] = useState<Order[]>([]);
 
-  // In a real app, this would come from an API
-  const orders: Order[] = [
-    {
-      id: "ORD001",
-      items: [
-        {
-          name: "Paracetamol 500mg",
-          quantity: 2,
-          price: 50
-        },
-        {
-          name: "Vitamin C 1000mg",
-          quantity: 1,
-          price: 150
-        }
-      ],
-      totalAmount: 250,
-      status: "processing",
-      orderDate: "2024-03-18",
-      deliveryDate: null,
-      deliveryAddress: "123 Main St, Bangalore, Karnataka 560001"
-    },
-    {
-      id: "ORD002",
-      items: [
-        {
-          name: "Blood Pressure Monitor",
-          quantity: 1,
-          price: 1500
-        }
-      ],
-      totalAmount: 1500,
-      status: "delivered",
-      orderDate: "2024-03-15",
-      deliveryDate: "2024-03-17",
-      deliveryAddress: "456 Park Road, Bangalore, Karnataka 560002"
-    },
-    {
-      id: "ORD003",
-      items: [
-        {
-          name: "First Aid Kit",
-          quantity: 1,
-          price: 800
-        },
-        {
-          name: "Hand Sanitizer 500ml",
-          quantity: 2,
-          price: 120
-        }
-      ],
-      totalAmount: 1040,
-      status: "shipped",
-      orderDate: "2024-03-20",
-      deliveryDate: null,
-      deliveryAddress: "789 Lake View, Bangalore, Karnataka 560003"
+  // Get user orders when the component mounts
+  useEffect(() => {
+    if (user) {
+      const userOrders = getUserOrders();
+      console.log("User orders:", userOrders);
+      setOrders(userOrders);
     }
-  ];
+  }, [user, getUserOrders]);
 
   // Filter and sort orders
   const filteredOrders = orders
@@ -122,7 +64,7 @@ const MyOrders = () => {
         return false;
       }
       
-      if (activeTab === "completed" && (order.status === "processing" || order.status === "shipped")) {
+      if (activeTab === "completed" && (order.status !== "delivered" && order.status !== "cancelled")) {
         return false;
       }
       
@@ -152,26 +94,15 @@ const MyOrders = () => {
         : dateA.getTime() - dateB.getTime();
     });
 
-  const getStatusColor = (status: Order["status"]) => {
+  const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
-      case "processing":
-        return "bg-yellow-100 text-yellow-800";
-      case "shipped":
-        return "bg-blue-100 text-blue-800";
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusBadgeVariant = (status: Order["status"]) => {
-    switch (status) {
+      case "order_placed":
+        return "outline";
       case "processing":
         return "outline";
       case "shipped":
+        return "secondary";
+      case "out_for_delivery":
         return "secondary";
       case "delivered":
         return "default";
@@ -192,6 +123,20 @@ const MyOrders = () => {
     setIsDetailsOpen(true);
   };
 
+  const handleCancelOrder = async (order: Order) => {
+    if (window.confirm(`Are you sure you want to cancel order ${order.id}?`)) {
+      const success = await cancelOrder(order.id);
+      if (success) {
+        // Update the local order list to reflect the cancellation
+        setOrders(prevOrders => 
+          prevOrders.map(o => 
+            o.id === order.id ? { ...o, status: "cancelled" } : o
+          )
+        );
+      }
+    }
+  };
+
   const clearSearch = () => {
     setSearchQuery("");
   };
@@ -202,20 +147,43 @@ const MyOrders = () => {
     setSearchQuery("");
   };
 
-  // Map the order status to the OrderTracker component's status
-  const mapOrderStatusToTrackerStatus = (status: Order["status"]) => {
-    switch (status) {
-      case "processing": return "processing";
-      case "shipped": return "shipped";
-      case "delivered": return "delivered";
-      case "cancelled": return "cancelled";
-      default: return "order_placed";
-    }
-  };
+  const mapOrderStatusToTrackerStatus = (status: OrderStatus) => status;
 
   const handleDownloadInvoice = (orderId: string) => {
     // In a real app, this would generate and download an invoice
     toast.success(`Invoice for Order #${orderId} downloaded successfully`);
+  };
+
+  // Format date nicely
+  const formatOrderDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMMM d, yyyy");
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString;
+    }
+  };
+
+  // Get a user-friendly status name
+  const getStatusDisplayName = (status: OrderStatus): string => {
+    switch (status) {
+      case "order_placed":
+        return "Order Placed";
+      case "processing":
+        return "Processing";
+      case "shipped":
+        return "Shipped";
+      case "out_for_delivery":
+        return "Out for Delivery";
+      case "delivered":
+        return "Delivered";
+      case "cancelled":
+        return "Cancelled";
+      default:
+        // Since we've handled all known cases, this should never happen
+        // but TypeScript doesn't know that, so we'll provide a safe default
+        return "Unknown Status";
+    }
   };
 
   if (!user) {
@@ -283,11 +251,17 @@ const MyOrders = () => {
                     <DropdownMenuItem onClick={() => setFilterStatus("all")}>
                       <span className={filterStatus === "all" ? "font-semibold" : ""}>All Statuses</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterStatus("order_placed")}>
+                      <span className={filterStatus === "order_placed" ? "font-semibold" : ""}>Order Placed</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setFilterStatus("processing")}>
                       <span className={filterStatus === "processing" ? "font-semibold" : ""}>Processing</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setFilterStatus("shipped")}>
                       <span className={filterStatus === "shipped" ? "font-semibold" : ""}>Shipped</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterStatus("out_for_delivery")}>
+                      <span className={filterStatus === "out_for_delivery" ? "font-semibold" : ""}>Out for Delivery</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setFilterStatus("delivered")}>
                       <span className={filterStatus === "delivered" ? "font-semibold" : ""}>Delivered</span>
@@ -327,7 +301,11 @@ const MyOrders = () => {
           </div>
 
           <div className="space-y-6">
-            {filteredOrders.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p>Loading your orders...</p>
+              </div>
+            ) : filteredOrders.length > 0 ? (
               filteredOrders.map((order) => (
                 <div
                   key={order.id}
@@ -338,18 +316,18 @@ const MyOrders = () => {
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="text-lg font-semibold">Order #{order.id}</h3>
                         <Badge variant={getStatusBadgeVariant(order.status)}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          {getStatusDisplayName(order.status)}
                         </Badge>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center text-gray-600">
                           <Calendar className="h-5 w-5 mr-2 text-medical-500" />
-                          Ordered on {format(new Date(order.orderDate), "MMMM d, yyyy")}
+                          Ordered on {formatOrderDate(order.orderDate)}
                         </div>
                         {order.deliveryDate && (
                           <div className="flex items-center text-gray-600">
                             <Package className="h-5 w-5 mr-2 text-medical-500" />
-                            Delivered on {format(new Date(order.deliveryDate), "MMMM d, yyyy")}
+                            Delivered on {formatOrderDate(order.deliveryDate)}
                           </div>
                         )}
                         <div className="flex items-center text-gray-600">
@@ -367,7 +345,7 @@ const MyOrders = () => {
                       >
                         View Details
                       </Button>
-                      {(order.status === "processing" || order.status === "shipped") && (
+                      {(order.status === "order_placed" || order.status === "processing" || order.status === "shipped" || order.status === "out_for_delivery") && (
                         <Button 
                           variant="secondary" 
                           size="sm"
@@ -388,6 +366,16 @@ const MyOrders = () => {
                           Invoice
                         </Button>
                       )}
+                      {(order.status === "order_placed" || order.status === "processing") && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleCancelOrder(order)}
+                          className="w-full sm:w-auto text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          Cancel
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -396,7 +384,7 @@ const MyOrders = () => {
                       <span className="text-sm text-gray-500">{order.items.length} item{order.items.length !== 1 ? "s" : ""}</span>
                       <div className="flex items-center font-semibold">
                         <IndianRupee className="h-4 w-4 mr-1" />
-                        {order.totalAmount}
+                        {order.totalAmount.toFixed(2)}
                       </div>
                     </div>
                     <div className="text-sm text-gray-600 line-clamp-1">
@@ -420,7 +408,13 @@ const MyOrders = () => {
       </div>
 
       {/* Order Tracking Dialog */}
-      <Dialog open={isTrackingOpen} onOpenChange={setIsTrackingOpen}>
+      <Dialog open={isTrackingOpen} onOpenChange={(isOpen) => {
+        setIsTrackingOpen(isOpen);
+        if (!isOpen) {
+          // Reset selected order when dialog closes after a short delay for animation
+          setTimeout(() => setSelectedOrder(null), 300);
+        }
+      }}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Track Your Order</DialogTitle>
@@ -429,7 +423,7 @@ const MyOrders = () => {
             <OrderTracker 
               orderId={selectedOrder.id} 
               currentStatus={mapOrderStatusToTrackerStatus(selectedOrder.status)}
-              estimatedTime={selectedOrder.status === "delivered" ? 0 : 15} 
+              estimatedTime={selectedOrder.estimatedDeliveryTime || 15} 
               orderDate={selectedOrder.orderDate}
             />
           )}
@@ -437,7 +431,13 @@ const MyOrders = () => {
       </Dialog>
 
       {/* Order Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+      <Dialog open={isDetailsOpen} onOpenChange={(isOpen) => {
+        setIsDetailsOpen(isOpen);
+        if (!isOpen) {
+          // Reset selected order when dialog closes after a short delay for animation
+          setTimeout(() => setSelectedOrder(null), 300);
+        }
+      }}>
         <DialogContent className="sm:max-w-[650px]">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
@@ -449,11 +449,11 @@ const MyOrders = () => {
                 <div>
                   <h3 className="text-lg font-semibold">Order #{selectedOrder.id}</h3>
                   <p className="text-sm text-gray-500">
-                    Placed on {format(new Date(selectedOrder.orderDate), "MMMM d, yyyy")}
+                    Placed on {formatOrderDate(selectedOrder.orderDate)}
                   </p>
                 </div>
                 <Badge variant={getStatusBadgeVariant(selectedOrder.status)} className="w-fit">
-                  {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                  {getStatusDisplayName(selectedOrder.status)}
                 </Badge>
               </div>
               
@@ -474,7 +474,7 @@ const MyOrders = () => {
                         </div>
                         <div className="flex items-center font-medium">
                           <IndianRupee className="h-4 w-4 mr-1" />
-                          {item.price * item.quantity}
+                          {(item.price * item.quantity).toFixed(2)}
                         </div>
                       </div>
                     ))}
@@ -486,7 +486,7 @@ const MyOrders = () => {
                     <span className="font-medium">Subtotal</span>
                     <div className="flex items-center">
                       <IndianRupee className="h-4 w-4 mr-1" />
-                      {selectedOrder.totalAmount}
+                      {selectedOrder.totalAmount.toFixed(2)}
                     </div>
                   </div>
                   
@@ -503,12 +503,12 @@ const MyOrders = () => {
                     <span>Total</span>
                     <div className="flex items-center text-lg">
                       <IndianRupee className="h-5 w-5 mr-1" />
-                      {selectedOrder.totalAmount}
+                      {selectedOrder.totalAmount.toFixed(2)}
                     </div>
                   </div>
                   
-                  {selectedOrder.status === "delivered" && (
-                    <div className="pt-4">
+                  <div className="pt-4 space-y-2">
+                    {selectedOrder.status === "delivered" && (
                       <Button 
                         variant="outline" 
                         className="w-full"
@@ -517,8 +517,21 @@ const MyOrders = () => {
                         <Download className="h-4 w-4 mr-2" />
                         Download Invoice
                       </Button>
-                    </div>
-                  )}
+                    )}
+                    
+                    {(selectedOrder.status === "order_placed" || selectedOrder.status === "processing") && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => {
+                          handleCancelOrder(selectedOrder);
+                          setIsDetailsOpen(false);
+                        }}
+                      >
+                        Cancel Order
+                      </Button>
+                    )}
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="shipping" className="space-y-4 pt-4">
@@ -529,13 +542,20 @@ const MyOrders = () => {
                     </div>
                     
                     <div>
+                      <h3 className="font-medium">Payment Method</h3>
+                      <p className="text-gray-700 mt-1 capitalize">
+                        {selectedOrder.paymentMethod || "Online Payment"}
+                      </p>
+                    </div>
+                    
+                    <div>
                       <h3 className="font-medium">Estimated Delivery</h3>
                       <p className="text-gray-700 mt-1">
                         {selectedOrder.deliveryDate 
-                          ? `Delivered on ${format(new Date(selectedOrder.deliveryDate), "MMMM d, yyyy")}`
+                          ? `Delivered on ${formatOrderDate(selectedOrder.deliveryDate)}`
                           : selectedOrder.status === "cancelled"
                             ? "Order cancelled"
-                            : "Within 3-5 business days"}
+                            : `Within ${selectedOrder.estimatedDeliveryTime || 15} minutes`}
                       </p>
                     </div>
                   </div>
@@ -545,7 +565,7 @@ const MyOrders = () => {
                   <OrderTracker 
                     orderId={selectedOrder.id} 
                     currentStatus={mapOrderStatusToTrackerStatus(selectedOrder.status)}
-                    estimatedTime={selectedOrder.status === "delivered" ? 0 : 15} 
+                    estimatedTime={selectedOrder.estimatedDeliveryTime || 15} 
                     orderDate={selectedOrder.orderDate}
                   />
                 </TabsContent>
