@@ -69,10 +69,11 @@ export interface Notification {
 // Fetch all medicines
 export const fetchMedicines = async (): Promise<Medicine[]> => {
   try {
+    // Use the more generic from() method instead of specifying a typed table
     const { data, error } = await supabase
       .from('medicines')
       .select('*')
-      .order('name');
+      .order('name') as { data: Medicine[] | null, error: any };
     
     if (error) throw error;
     return data || [];
@@ -90,7 +91,7 @@ export const fetchMedicineById = async (id: number): Promise<Medicine | null> =>
       .from('medicines')
       .select('*')
       .eq('id', id)
-      .single();
+      .single() as { data: Medicine | null, error: any };
     
     if (error) throw error;
     return data;
@@ -108,7 +109,7 @@ export const fetchMedicinesByCategory = async (category: string): Promise<Medici
       .from('medicines')
       .select('*')
       .eq('category', category)
-      .order('name');
+      .order('name') as { data: Medicine[] | null, error: any };
     
     if (error) throw error;
     return data || [];
@@ -125,7 +126,7 @@ export const fetchMedicineCategories = async (): Promise<MedicineCategory[]> => 
     const { data, error } = await supabase
       .from('medicine_categories')
       .select('*')
-      .order('name');
+      .order('name') as { data: MedicineCategory[] | null, error: any };
     
     if (error) throw error;
     return data || [];
@@ -143,7 +144,7 @@ export const fetchMedicineInventory = async (medicineId: number): Promise<Medici
       .from('medicine_inventory')
       .select('*')
       .eq('medicine_id', medicineId)
-      .order('expiry_date');
+      .order('expiry_date') as { data: MedicineInventory[] | null, error: any };
     
     if (error) throw error;
     return data || [];
@@ -163,7 +164,7 @@ export const fetchUserNotifications = async (): Promise<Notification[]> => {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: Notification[] | null, error: any };
     
     if (error) throw error;
     return data || [];
@@ -198,7 +199,7 @@ export const fetchUserPrescriptions = async (): Promise<Prescription[]> => {
     const { data, error } = await supabase
       .from('prescriptions')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: Prescription[] | null, error: any };
     
     if (error) throw error;
     return data || [];
@@ -217,7 +218,7 @@ export const fetchPrescriptionDetails = async (prescriptionId: string): Promise<
       .from('prescriptions')
       .select('*')
       .eq('id', prescriptionId)
-      .single();
+      .single() as { data: Prescription | null, error: any };
     
     if (prescriptionError) throw prescriptionError;
     if (!prescription) return null;
@@ -229,7 +230,10 @@ export const fetchPrescriptionDetails = async (prescriptionId: string): Promise<
         *,
         medicine:medicine_id (*)
       `)
-      .eq('prescription_id', prescriptionId);
+      .eq('prescription_id', prescriptionId) as { 
+        data: Array<PrescriptionItem & {medicine: Medicine}> | null, 
+        error: any 
+      };
     
     if (itemsError) throw itemsError;
     
