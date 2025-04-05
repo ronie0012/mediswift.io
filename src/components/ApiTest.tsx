@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '@/lib/api';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -23,8 +23,9 @@ const ApiTest = () => {
     setLoading(true);
     setError(null);
     try {
-      // Try to make a simple API call
-      const response = await api.get('/auth/test/', { timeout: 5000 });
+      // Test connection to the real API
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const response = await axios.get(`${apiUrl}/health/`, { timeout: 8000 });
       setApiResponse(JSON.stringify(response.data, null, 2));
     } catch (err: any) {
       console.error('API Test Error:', err);
@@ -34,13 +35,14 @@ const ApiTest = () => {
           : `Network Error: ${err.message}`
       );
       
-      // Try a direct fetch to the backend
+      // Try alternative endpoints if the health endpoint fails
       try {
-        const directResponse = await fetch(`${import.meta.env.VITE_API_URL.replace('/api', '')}/api/auth/test/`);
-        const data = await directResponse.json();
-        setApiResponse(`Direct fetch worked: ${JSON.stringify(data, null, 2)}`);
-      } catch (directErr: any) {
-        setError((prev) => `${prev}\n\nDirect fetch also failed: ${directErr.message}`);
+        const apiUrl = import.meta.env.VITE_API_URL;
+        // Try the main API URL
+        const response = await axios.get(apiUrl, { timeout: 5000 });
+        setApiResponse(`Alternative endpoint worked: ${JSON.stringify(response.data, null, 2)}`);
+      } catch (altErr: any) {
+        setError((prev) => `${prev}\n\nAlternative endpoint also failed: ${altErr.message}`);
       }
     } finally {
       setLoading(false);
@@ -51,7 +53,7 @@ const ApiTest = () => {
     <Card className="w-full max-w-lg mx-auto my-8">
       <CardHeader>
         <CardTitle>API Connection Test</CardTitle>
-        <CardDescription>Test the connection to the backend API</CardDescription>
+        <CardDescription>Testing connection to your Vercel backend API</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
