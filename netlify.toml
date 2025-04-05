@@ -7,3 +7,19 @@
   from = "/*"
   to = "/index.html"
   status = 200 
+
+# Environment variables
+[build.environment]
+  VITE_API_URL = "https://mediswift-backend.vercel.app/api"
+  VITE_APP_URL = "https://mediswifttt.netlify.app"
+  VITE_APP_ENV = "production"
+
+# Add headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()" 
