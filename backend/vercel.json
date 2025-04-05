@@ -1,14 +1,14 @@
 {
   "builds": [
     {
-      "src": "mediswift_backend/wsgi.py",
+      "src": "mediswift_backend/wsgi_application.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "mediswift_backend/wsgi.py"
+      "dest": "mediswift_backend/wsgi_application.py"
     }
   ],
   "env": {

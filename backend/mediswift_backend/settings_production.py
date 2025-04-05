@@ -5,26 +5,40 @@ import os
 SECRET_KEY = os.environ.get('SECRET_KEY', 'TtiZWmcaUOpRB2eFAgLG7kNzzqSptdrGkqHkXitOIFkwn113sEcMMH1aNKXi7LWCOIs')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['.vercel.app', '.now.sh', 'your-custom-domain.com']
+ALLOWED_HOSTS = ['*', '.vercel.app', '.now.sh', 'your-custom-domain.com']
 
-# Database
-# Use SQLite for Vercel deployment
-# For a real production environment, consider using a managed database service
+# Database - For serverless, use in-memory SQLite or PostgreSQL
+# Note: SQLite is not ideal for production, and in-memory won't persist between function invocations
+# For real production, use a proper database service (PostgreSQL on RDS, Supabase, etc.)
+import dj_database_url
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': ':memory:',  # Use in-memory SQLite for serverless
     }
 }
 
-# CORS settings for production
+# Use DATABASE_URL environment variable if provided (for a managed database)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+
+# CORS settings for production - update with your Netlify domain
 CORS_ALLOWED_ORIGINS = [
-    "https://mediswift-io.vercel.app",  # Your frontend Vercel domain
-    "https://your-custom-domain.com",    # Any custom domain you might use
+    "https://mediswift-io.vercel.app",
+    "https://mediswift-io.netlify.app",  # Add your Netlify domain
+    "http://localhost:5173",
+    "http://localhost:8080",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True  # Temporarily allow all origins for testing
 CORS_ALLOW_CREDENTIALS = True
 
 # Update JWT settings for production
