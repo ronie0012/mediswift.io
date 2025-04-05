@@ -145,6 +145,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://localhost:5173",  # Default Vite port
     "http://127.0.0.1:5173",
+    "https://mediswifttt.netlify.app",  # Netlify deployed frontend
 ]
 
 CORS_ALLOW_CREDENTIALS = True

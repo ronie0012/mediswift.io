@@ -19,6 +19,7 @@
   ],
   "env": {
     "VITE_API_URL": "https://mediswift-backend.vercel.app/api",
+    "VITE_APP_URL": "https://mediswifttt.netlify.app",
     "VITE_APP_ENV": "production"
   }
 } 
