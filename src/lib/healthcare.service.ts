@@ -216,22 +216,43 @@ export const healthcareService = {
 
   createAppointment: async (data: CreateAppointmentData) => {
     try {
+      // Log the input data for debugging
+      console.log('Creating appointment with data:', data);
+      
+      // Make sure we have required fields
+      if (!data.doctor_id) {
+        throw new Error('doctor_id is required');
+      }
+      
+      if (!data.patient_id) {
+        throw new Error('patient_id is required');
+      }
+      
       // Convert from CreateAppointmentData to the format expected by the API
       const appointmentData = {
-        doctor: data.doctor_id,
-        patient: data.patient_id,
+        doctor: data.doctor_id, // Backend expects 'doctor' field, not doctor_id
+        patient: data.patient_id, // Backend expects 'patient' field, not patient_id
         appointment_date: data.appointment_date,
         start_time: data.start_time,
         end_time: data.end_time,
         reason: data.reason,
-        notes: data.notes
+        notes: data.notes || ""
       };
+      
+      // Log transformed data
+      console.log('Transformed appointment data for API:', appointmentData);
       
       const response = await api.post('/healthcare/appointments/', appointmentData);
       handleApiSuccess('Appointment created successfully');
       return response.data;
     } catch (error) {
       console.error('Error creating appointment:', error);
+      const apiError = error as any;
+      // Log detailed error info
+      if (apiError.response) {
+        console.error('Error response data:', apiError.response.data);
+        console.error('Error response status:', apiError.response.status);
+      }
       handleApiError(error, 'Failed to create appointment');
       throw error;
     }

@@ -126,7 +126,7 @@ interface Doctor {
 }
 
 // Or create it locally if not exported
-interface LocalAppointmentForm {
+interface AppointmentFormData {
   doctor_id: number;
   patient_id?: number;
   appointment_date: string;

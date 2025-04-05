@@ -2,7 +2,7 @@ from .settings import *
 import os
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'your-default-secret-key-here')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'TtiZWmcaUOpRB2eFAgLG7kNzzqSptdrGkqHkXitOIFkwn113sEcMMH1aNKXi7LWCOIs')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
