@@ -32,10 +32,6 @@ if DATABASE_URL:
 
 # CORS settings for production - update with your Netlify domain
 CORS_ALLOWED_ORIGINS = [
-    "https://mediswift.vercel.app",
-    "https://mediswift.netlify.app",
-    "https://mediswifttt.netlify.app",
-    "https://mediswift-io-ronitwindows04-gmailcoms-projects.vercel.app",
     "http://localhost:5173",
     "http://localhost:8080",
 ]
