@@ -1,5 +1,6 @@
 from .settings import *
 import os
+import dj_database_url
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'TtiZWmcaUOpRB2eFAgLG7kNzzqSptdrGkqHkXitOIFkwn113sEcMMH1aNKXi7LWCOIs')
@@ -7,31 +8,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'TtiZWmcaUOpRB2eFAgLG7kNzzqSptdrGkqHkX
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*', '.vercel.app', '.now.sh', 'your-custom-domain.com']
-
-# Database - For serverless, use in-memory SQLite or PostgreSQL
-# Note: SQLite is not ideal for production, and in-memory won't persist between function invocations
-# For real production, use a proper database service (PostgreSQL on RDS, Supabase, etc.)
-import dj_database_url
-
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',  # Use in-memory SQLite for serverless
-    }
-}
-
-# Use DATABASE_URL environment variable if provided (for a managed database)
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    DATABASES['default'] = dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        conn_health_checks=True,
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600
     )
+}
 
 # CORS settings for production - update with your Netlify domain
 CORS_ALLOWED_ORIGINS = [
+    "https://mediswift-io.onrender.com",
     "http://localhost:5173",
     "http://localhost:8080",
 ]
@@ -68,8 +56,7 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-# Static and media files
-# Vercel uses a different approach for static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -95,4 +82,16 @@ SECURE_HSTS_PRELOAD = True
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-X_FRAME_OPTIONS = 'DENY' 
+X_FRAME_OPTIONS = 'DENY'
+
+# Add whitenoise for static files
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # ... other middleware
+]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Define ALLOWED_HOSTS from environment variable
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '.onrender.com').split(',') 
