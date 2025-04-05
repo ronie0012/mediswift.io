@@ -1,4 +1,3 @@
-
 import api from './api';
 import { z } from 'zod';
 
@@ -37,14 +36,38 @@ interface AuthResponse {
 
 const authService = {
   login: async (credentials: LoginData): Promise<AuthResponse> => {
-    const response = await api.post('/auth/token/', credentials);
+    const response = await api.post('/api/auth/token/', credentials);
     
-    const { access, refresh, user } = response.data;
+    // The Django REST framework JWT response structure might be different
+    // Handle both possible structures
+    let user, access, refresh;
+    
+    if (response.data.user && response.data.access) {
+      // Structure: { access, refresh, user }
+      ({ access, refresh, user } = response.data);
+    } else if (response.data.user && response.data.tokens) {
+      // Structure: { user, tokens: { access, refresh } }
+      user = response.data.user;
+      access = response.data.tokens.access;
+      refresh = response.data.tokens.refresh;
+    } else {
+      // Fallback for simple token response without user data
+      access = response.data.access;
+      refresh = response.data.refresh;
+      
+      // Fetch user data separately if not included in login response
+      const userResponse = await api.get('/auth/me/');
+      user = userResponse.data;
+    }
     
     // Store tokens in localStorage
     localStorage.setItem('access_token', access);
     localStorage.setItem('refresh_token', refresh);
-    localStorage.setItem('user', JSON.stringify(user));
+    
+    // Only store user if we have it
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    }
     
     return {
       user,
@@ -56,7 +79,7 @@ const authService = {
   },
   
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await api.post('/auth/register/', data);
+    const response = await api.post('/api/auth/register/', data);
     
     const { user, tokens } = response.data;
     
@@ -96,7 +119,7 @@ const authService = {
   
   verifyToken: async (token: string): Promise<boolean> => {
     try {
-      await api.post('/auth/token/verify/', { token });
+      await api.post('/api/auth/token/verify/', { token });
       return true;
     } catch (error) {
       return false;
@@ -108,12 +131,20 @@ const authService = {
     if (!refresh) return null;
     
     try {
-      const response = await api.post('/auth/token/refresh/', { refresh });
-      const { access } = response.data;
+      const response = await api.post('/api/auth/token/refresh/', { refresh });
       
-      localStorage.setItem('access_token', access);
-      return access;
+      // Make sure we have an access token in the response
+      if (response.data && response.data.access) {
+        const { access } = response.data;
+        localStorage.setItem('access_token', access);
+        return access;
+      } else {
+        console.error('Invalid refresh token response:', response.data);
+        throw new Error('Invalid refresh token response');
+      }
     } catch (error) {
+      console.error('Failed to refresh token:', error);
+      // Clear all auth data on token refresh failure
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
@@ -122,7 +153,7 @@ const authService = {
   },
   
   getCurrentUser: async (): Promise<User> => {
-    const response = await api.get('/auth/me/');
+    const response = await api.get('/api/auth/me/');
     return response.data;
   }
 };

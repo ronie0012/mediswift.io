@@ -6,6 +6,7 @@ import FeaturedMedicines from "@/components/home/FeaturedMedicines";
 import DoctorsSection from "@/components/home/DoctorsSection";
 import StatisticsSection from "@/components/home/StatisticsSection";
 import NewsSection from "@/components/home/NewsSection";
+import ApiTest from '@/components/ApiTest';
 import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from 'react-error-boundary';
 import { HeartPulse, Sparkles, Stethoscope, ChevronDown } from "lucide-react";
@@ -192,6 +193,17 @@ const Index = () => {
       >
         <NewsSection />
       </motion.div>
+      
+      {/* API Test (temporary for debugging) */}
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold">Backend Connection Test</h2>
+            <p className="text-gray-600">Testing the connection to our backend API</p>
+          </div>
+          <ApiTest />
+        </div>
+      </section>
       
       {/* Back to top indicator */}
       <motion.div 

@@ -17,9 +17,10 @@ DATABASES = {
     )
 }
 
-# CORS settings for production - update with your Netlify domain
+# CORS settings for production
 CORS_ALLOWED_ORIGINS = [
-    "https://mediswift-io.onrender.com",
+    "https://mediswift-io.onrender.com",  # Frontend deployed on Render
+    "https://mediswift-backend.onrender.com",  # Backend deployed on Render
     "http://localhost:5173",
     "http://localhost:8080",
 ]

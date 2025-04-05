@@ -23,10 +23,25 @@ const ApiTest = () => {
     setLoading(true);
     setError(null);
     try {
-      // Test connection to the real API
+      // First try the root endpoint to see if the API is accessible
       const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await axios.get(`${apiUrl}/health/`, { timeout: 8000 });
-      setApiResponse(JSON.stringify(response.data, null, 2));
+      const response = await axios.get(`${apiUrl}/`, { timeout: 8000 });
+      setApiResponse(`Root endpoint response: ${JSON.stringify(response.data, null, 2)}`);
+      
+      // If successful, try other endpoints
+      try {
+        const authResponse = await axios.get(`${apiUrl}/api/auth/`, { timeout: 5000 });
+        setApiResponse(prev => `${prev}\n\nAuth endpoint response: ${JSON.stringify(authResponse.data, null, 2)}`);
+      } catch (authErr: any) {
+        setApiResponse(prev => `${prev}\n\nAuth endpoint not available: ${authErr.message}`);
+      }
+      
+      try {
+        const healthcareResponse = await axios.get(`${apiUrl}/api/healthcare/`, { timeout: 5000 });
+        setApiResponse(prev => `${prev}\n\nHealthcare endpoint response: ${JSON.stringify(healthcareResponse.data, null, 2)}`);
+      } catch (healthcareErr: any) {
+        setApiResponse(prev => `${prev}\n\nHealthcare endpoint not available: ${healthcareErr.message}`);
+      }
     } catch (err: any) {
       console.error('API Test Error:', err);
       setError(
@@ -34,16 +49,6 @@ const ApiTest = () => {
           ? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}`
           : `Network Error: ${err.message}`
       );
-      
-      // Try alternative endpoints if the health endpoint fails
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL;
-        // Try the main API URL
-        const response = await axios.get(apiUrl, { timeout: 5000 });
-        setApiResponse(`Alternative endpoint worked: ${JSON.stringify(response.data, null, 2)}`);
-      } catch (altErr: any) {
-        setError((prev) => `${prev}\n\nAlternative endpoint also failed: ${altErr.message}`);
-      }
     } finally {
       setLoading(false);
     }
@@ -53,7 +58,7 @@ const ApiTest = () => {
     <Card className="w-full max-w-lg mx-auto my-8">
       <CardHeader>
         <CardTitle>API Connection Test</CardTitle>
-        <CardDescription>Testing connection to your Vercel backend API</CardDescription>
+        <CardDescription>Testing connection to your Render backend API</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-4">

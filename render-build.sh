@@ -9,7 +9,7 @@ npm install
 npm run build
 
 # Create a .env.production file for deployment
-echo "VITE_API_URL=$RENDER_EXTERNAL_URL/api" > .env.production
+echo "VITE_API_URL=https://mediswift-backend.onrender.com" > .env.production
 echo "VITE_APP_URL=https://mediswift-io.onrender.com" >> .env.production
 echo "VITE_APP_ENV=production" >> .env.production
 

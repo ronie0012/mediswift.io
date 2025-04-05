@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -46,18 +45,28 @@ api.interceptors.response.use(
         }
         
         // Use the correct endpoint for token refresh
-        const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
+        const response = await axios.post(`${API_URL}/api/auth/token/refresh/`, {
           refresh: refreshToken,
         });
         
-        if (response.data.access) {
+        // Check if we have a valid response with access token
+        if (response.data && response.data.access) {
           localStorage.setItem('access_token', response.data.access);
           // Update the Authorization header for the retry request
           originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
           return api(originalRequest);
+        } else {
+          // Invalid response format, clear auth data and redirect
+          console.error('Invalid token refresh response:', response.data);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          return Promise.reject(new Error('Invalid token refresh response'));
         }
       } catch (refreshError) {
         // Refresh token failed, clear storage and redirect to login
+        console.error('Token refresh failed:', refreshError);
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
