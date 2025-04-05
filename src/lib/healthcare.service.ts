@@ -282,14 +282,32 @@ export const healthcareService = {
     }
   },
 
-  getUpcomingAppointments: async () => {
+  getUpcomingAppointments: async (params: any = {}) => {
     try {
-      const response = await api.get('/healthcare/appointments/upcoming/');
-      return response.data;
+      // Attempt to get upcoming appointments from the specific endpoint
+      try {
+        const response = await api.get('/healthcare/appointments/upcoming/', { params });
+        return response.data;
+      } catch (endpointError) {
+        // If the specific endpoint fails, fall back to filtering all appointments
+        console.warn('Upcoming appointments endpoint not available, falling back to all appointments');
+        const allAppointments = await api.get('/healthcare/appointments/', { params });
+        
+        // Filter appointments by date (appointments after today)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Filter out appointments that have already passed
+        return allAppointments.data.filter((appointment: any) => {
+          const appointmentDate = new Date(appointment.appointment_date);
+          return appointmentDate >= today || appointment.status === 'scheduled' || appointment.status === 'confirmed';
+        });
+      }
     } catch (error) {
       console.error('Error fetching upcoming appointments:', error);
       handleApiError(error, 'Failed to fetch upcoming appointments');
-      throw error;
+      // Return empty array instead of throwing to prevent UI crashes
+      return [];
     }
   },
 

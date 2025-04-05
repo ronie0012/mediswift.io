@@ -202,12 +202,12 @@ const renderDoctorName = (doctor: any) => {
     // First check for loading state
     if (!doctor) {
       console.warn('Doctor object is null or undefined');
-      return <Skeleton className="h-5 w-32" />;
+      return "Unknown Doctor";
     }
     
     if (typeof doctor === 'number') {
       console.warn(`Doctor is just a number ID: ${doctor}`);
-      return <>Doctor #{doctor}</>;
+      return `Doctor #${doctor}`;
     }
     
     // For debugging - log doctor structure to help identify issues
@@ -243,7 +243,7 @@ const renderDoctorName = (doctor: any) => {
         return `Dr. ${doctor.first_name} ${doctor.last_name}`;
       }
       
-      // If we got here but none of the conditions matched, log details
+      // If we got here but none of the conditions matched, log details but don't crash
       if (process.env.NODE_ENV === 'development') {
         console.warn('Failed to extract doctor name from:', doctor);
       }
@@ -465,7 +465,9 @@ const forceAddTestAppointment = () => {
 
 // Helper function to standardize doctor data structure for consistency
 const standardizeDoctorData = (doctor: any): Doctor => {
-  if (!doctor) {
+  // Handle completely null or undefined doctor
+  if (doctor === null || doctor === undefined) {
+    console.warn('Received null or undefined doctor, creating placeholder');
     return {
       id: 0,
       user: {
@@ -480,6 +482,7 @@ const standardizeDoctorData = (doctor: any): Doctor => {
   
   // If doctor is just an ID, convert to object
   if (typeof doctor === 'number') {
+    console.log(`Converting doctor ID ${doctor} to object`);
     return {
       id: doctor,
       user: {
@@ -491,80 +494,174 @@ const standardizeDoctorData = (doctor: any): Doctor => {
       }
     } as Doctor;
   }
-  
-  // Create a clean doctor object to avoid reference issues
-  const cleanDoctor = { ...doctor } as Doctor;
-  
-  // Make sure it has an ID
-  if (!cleanDoctor.id) {
-    cleanDoctor.id = Math.floor(Math.random() * 1000) + 1;
+
+  try {
+    // Create a clean doctor object to avoid reference issues
+    const cleanDoctor = { ...doctor } as Doctor;
+    
+    // Make sure it has an ID
+    if (cleanDoctor.id === undefined || cleanDoctor.id === null) {
+      cleanDoctor.id = Math.floor(Math.random() * 1000) + 1;
+      console.warn(`Doctor missing ID, assigned random ID: ${cleanDoctor.id}`);
+    }
+    
+    // Ensure user property exists and is properly structured
+    if (!cleanDoctor.user || typeof cleanDoctor.user !== 'object') {
+      cleanDoctor.user = {
+        first_name: doctor.first_name || "Unknown",
+        last_name: doctor.last_name || "Doctor"
+      };
+      console.log('Created user object for doctor without user property');
+    } else {
+      // Create a new user object to avoid reference issues
+      cleanDoctor.user = { 
+        ...cleanDoctor.user,
+        first_name: cleanDoctor.user.first_name || doctor.first_name || "Unknown",
+        last_name: cleanDoctor.user.last_name || doctor.last_name || "Doctor"
+      };
+    }
+    
+    // Ensure specialization property exists
+    if (!cleanDoctor.specialization || typeof cleanDoctor.specialization !== 'object') {
+      cleanDoctor.specialization = {
+        name: doctor.specialty || (doctor.specialties && doctor.specialties[0]) || "General Practice"
+      };
+      console.log('Created specialization object for doctor without specialization property');
+    } else {
+      // Create a new specialization object to avoid reference issues
+      cleanDoctor.specialization = { 
+        ...cleanDoctor.specialization,
+        name: cleanDoctor.specialization.name || doctor.specialty || "General Practice"
+      };
+    }
+    
+    return cleanDoctor;
+  } catch (error) {
+    console.error('Error standardizing doctor data:', error, 'for doctor:', doctor);
+    // Return a safe default doctor object in case of any errors
+    return {
+      id: typeof doctor === 'object' && doctor.id ? doctor.id : 0,
+      user: {
+        first_name: "Error",
+        last_name: "Processing"
+      },
+      specialization: {
+        name: "General Practice"
+      }
+    } as Doctor;
   }
-  
-  // Ensure user property exists and is properly structured
-  if (!cleanDoctor.user) {
-    cleanDoctor.user = {
-      first_name: doctor.first_name || "Unknown",
-      last_name: doctor.last_name || "Doctor"
-    };
-  } else {
-    // Create a new user object to avoid reference issues
-    cleanDoctor.user = { 
-      ...cleanDoctor.user,
-      first_name: cleanDoctor.user.first_name || doctor.first_name || "Unknown",
-      last_name: cleanDoctor.user.last_name || doctor.last_name || "Doctor"
-    };
-  }
-  
-  // Ensure specialization property exists
-  if (!cleanDoctor.specialization) {
-    cleanDoctor.specialization = {
-      name: doctor.specialty || doctor.specialties?.[0] || "General Practice"
-    };
-  } else {
-    // Create a new specialization object to avoid reference issues
-    cleanDoctor.specialization = { 
-      ...cleanDoctor.specialization,
-      name: cleanDoctor.specialization.name || doctor.specialty || "General Practice"
-    };
-  }
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Standardized doctor object:', cleanDoctor);
-  }
-  
-  return cleanDoctor;
 };
 
 // Function to process an appointment object for consistent structure
 const standardizeAppointmentData = (apt: any): Appointment => {
-  const processedAppointment: Appointment = {
-    id: apt.id || Math.floor(Math.random() * 10000) + 1,
-    doctor: standardizeDoctorData(apt.doctor),
-    patient: apt.patient || {
+  try {
+    // Handle null or undefined appointment
+    if (!apt) {
+      console.warn('Received null or undefined appointment data');
+      // Return a minimal valid appointment object
+      return {
+        id: Math.floor(Math.random() * 10000) + 1,
+        doctor: standardizeDoctorData(null),
+        patient: {
+          id: 1,
+          user: {
+            first_name: "Current",
+            last_name: "Patient"
+          }
+        },
+        appointment_date: new Date().toISOString().split('T')[0],
+        start_time: "09:00:00",
+        end_time: "09:30:00",
+        status: "scheduled" as AppointmentStatus,
+        reason: "General checkup",
+        notes: "",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
+    
+    // Ensure we have a valid date string
+    let appointmentDate = apt.appointment_date;
+    if (!appointmentDate) {
+      console.warn('Missing appointment_date, using today\'s date');
+      appointmentDate = new Date().toISOString().split('T')[0];
+    } else if (typeof appointmentDate !== 'string') {
+      try {
+        // Try to convert to ISO date string
+        appointmentDate = new Date(appointmentDate).toISOString().split('T')[0];
+      } catch {
+        console.warn('Invalid appointment_date, using today\'s date');
+        appointmentDate = new Date().toISOString().split('T')[0];
+      }
+    }
+    
+    // Create a valid doctor object using our helper function
+    const doctor = standardizeDoctorData(apt.doctor);
+    
+    // Create a valid patient object
+    const patient = apt.patient || {
       id: 1,
       user: {
         first_name: "Current",
         last_name: "Patient"
       }
-    },
-    appointment_date: apt.appointment_date,
-    start_time: apt.start_time,
-    end_time: apt.end_time,
-    status: apt.status as AppointmentStatus,
-    reason: apt.reason || "General checkup",
-    notes: apt.notes || "",
-    created_at: apt.created_at || new Date().toISOString(),
-    updated_at: apt.updated_at || new Date().toISOString()
-  };
-  
-  // Add the API fields back to the processed appointment for possible API calls
-  const extendedAppointment = processedAppointment as any;
-  extendedAppointment.doctor_id = apt.doctor_id || 
-                                (typeof apt.doctor === 'number' ? apt.doctor : apt.doctor?.id) || 
-                                processedAppointment.doctor.id;
-  extendedAppointment.patient_id = apt.patient_id || apt.patient?.id || 1;
-  
-  return processedAppointment;
+    };
+    
+    // Ensure we have valid time strings
+    const start_time = apt.start_time || "09:00:00";
+    const end_time = apt.end_time || "09:30:00";
+    
+    // Ensure we have a valid status
+    const validStatuses = ["scheduled", "completed", "cancelled", "no_show"];
+    const status = apt.status && validStatuses.includes(apt.status) ? 
+      apt.status as AppointmentStatus : 
+      "scheduled" as AppointmentStatus;
+      
+    const processedAppointment: Appointment = {
+      id: apt.id || Math.floor(Math.random() * 10000) + 1,
+      doctor,
+      patient,
+      appointment_date: appointmentDate,
+      start_time,
+      end_time,
+      status,
+      reason: apt.reason || "General checkup",
+      notes: apt.notes || "",
+      created_at: apt.created_at || new Date().toISOString(),
+      updated_at: apt.updated_at || new Date().toISOString()
+    };
+    
+    // Add the API fields back to the processed appointment for possible API calls
+    const extendedAppointment = processedAppointment as any;
+    extendedAppointment.doctor_id = apt.doctor_id || 
+                                  (typeof apt.doctor === 'number' ? apt.doctor : apt.doctor?.id) || 
+                                  processedAppointment.doctor.id;
+    extendedAppointment.patient_id = apt.patient_id || apt.patient?.id || 1;
+    
+    return processedAppointment;
+  } catch (error) {
+    console.error('Error standardizing appointment data:', error);
+    // Return a minimal valid appointment object in case of errors
+    return {
+      id: Math.floor(Math.random() * 10000) + 1,
+      doctor: standardizeDoctorData(null),
+      patient: {
+        id: 1,
+        user: {
+          first_name: "Current",
+          last_name: "Patient"
+        }
+      },
+      appointment_date: new Date().toISOString().split('T')[0],
+      start_time: "09:00:00",
+      end_time: "09:30:00",
+      status: "scheduled" as AppointmentStatus,
+      reason: "Error processing appointment",
+      notes: "",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  }
 };
 
 const MyAppointments = () => {
@@ -913,21 +1010,37 @@ const MyAppointments = () => {
           }));
         }
         
-        // Load appropriate appointments based on active tab
-        if (activeTab === "upcoming") {
-          await fetchUpcomingAppointments();
-        } else {
-          await fetchAppointments();
+        // Load appropriate appointments based on active tab with error handling
+        try {
+          if (activeTab === "upcoming") {
+            await fetchUpcomingAppointments();
+          } else {
+            await fetchAppointments();
+          }
+        } catch (apiError) {
+          console.error('Error fetching appointments from API:', apiError);
+          // Don't throw here, continue with local storage fallback
         }
         
         if (mounted) {
           // Load all appointments (API + mock)
-          await loadAllAppointments();
+          try {
+            await loadAllAppointments();
+          } catch (loadError) {
+            console.error('Error loading all appointments:', loadError);
+            // Continue with direct loading as fallback
+          }
           
           // As a fallback, also directly load from localStorage if we have no appointments
-          if (allAppointments.length === 0) {
-            // Try direct loading as fallback
-            directlyLoadAppointments();
+          if (!allAppointments || allAppointments.length === 0) {
+            try {
+              // Try direct loading as fallback
+              directlyLoadAppointments();
+            } catch (directLoadError) {
+              console.error('Error directly loading appointments:', directLoadError);
+              // Last resort: create an empty appointments array to prevent crash
+              safelyUpdateAppointments([]);
+            }
           }
           
           // Always ensure we update initialLoading to false
@@ -941,10 +1054,17 @@ const MyAppointments = () => {
         console.error('Error in initial load:', error);
         
         if (mounted) {
-          // Even if API fails, try to load from localStorage
-          directlyLoadAppointments();
+          // Even if everything fails, ensure we have a valid appointments array
+          safelyUpdateAppointments([]);
           
-          setError('API Loading failed. Loaded from local storage as fallback.');
+          // Even if API fails, try to load from localStorage
+          try {
+            directlyLoadAppointments();
+          } catch (fallbackError) {
+            console.error('Fallback loading also failed:', fallbackError);
+          }
+          
+          setError('Loading failed. Please try refreshing the page.');
           setPageState(prev => ({ 
             ...prev, 
             initialLoading: false,
@@ -956,8 +1076,12 @@ const MyAppointments = () => {
     };
 
     initialLoad();
-    return () => { mounted = false; };
-  }, [user, activeTab, fetchAppointments, fetchUpcomingAppointments, loadAllAppointments, directlyLoadAppointments, allAppointments, pageState.isDataLoaded]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [user, activeTab, fetchUpcomingAppointments, fetchAppointments, loadAllAppointments, 
+      directlyLoadAppointments, pageState.isDataLoaded, allAppointments, safelyUpdateAppointments]);
 
   // Set up periodic refresh
   useEffect(() => {
@@ -1266,140 +1390,82 @@ const MyAppointments = () => {
 
   // Render appointment card for grid view
   const renderAppointmentCard = useCallback((appointment: Appointment) => {
-    const appointmentDate = new Date(`${appointment.appointment_date}T${appointment.start_time}`);
-    const formattedDate = format(appointmentDate, "EEEE, MMMM d, yyyy");
-    const formattedStartTime = format(appointmentDate, "h:mm a");
-    const endTimeDate = new Date(`${appointment.appointment_date}T${appointment.end_time}`);
-    const formattedEndTime = format(endTimeDate, "h:mm a");
-    
-    // Debug the doctor object
-    if (process.env.NODE_ENV === 'development') {
-      console.group(`Rendering appointment card ${appointment.id}`);
-      console.log('Appointment:', appointment);
-      console.log('Doctor data:', appointment.doctor);
-      console.groupEnd();
+    // Safety check for null or undefined appointment
+    if (!appointment) {
+      console.error('Received null or undefined appointment in renderAppointmentCard');
+      return null;
     }
-    
-    // Use direct rendering functions instead of helper functions
-    // This ensures we don't have stale closures in the useCallback
-    const isLoading = !appointment.doctor || 
-                     typeof appointment.doctor === 'number' ||
-                     (typeof appointment.doctor === 'object' && 
-                     (!appointment.doctor.user || 
-                      !appointment.doctor.user.first_name || 
-                      !appointment.doctor.user.last_name));
-    
-    // Get doctor name directly
-    let doctorName = "Unknown Doctor";
-    let specialty = "Specialty unknown";
-    
-    if (appointment.doctor && typeof appointment.doctor === 'object') {
-      if (appointment.doctor.user?.first_name && appointment.doctor.user?.last_name) {
-        doctorName = `Dr. ${appointment.doctor.user.first_name} ${appointment.doctor.user.last_name}`;
-      } else if (appointment.doctor.name) {
-        doctorName = appointment.doctor.name;
-      } else if (appointment.doctor.first_name && appointment.doctor.last_name) {
-        doctorName = `Dr. ${appointment.doctor.first_name} ${appointment.doctor.last_name}`;
-      }
-      
-      if (appointment.doctor.specialization?.name) {
-        specialty = appointment.doctor.specialization.name;
-      } else if (appointment.doctor.specialty) {
-        specialty = appointment.doctor.specialty;
-      } else if (appointment.doctor.specialties?.[0]) {
-        specialty = appointment.doctor.specialties[0];
-      }
+
+    // Safely parse dates with error handling
+    let appointmentDate: Date;
+    let formattedDate: string;
+    let formattedStartTime: string;
+    let formattedEndTime: string;
+
+    try {
+      appointmentDate = new Date(`${appointment.appointment_date || '2023-01-01'}T${appointment.start_time || '09:00:00'}`);
+      formattedDate = format(appointmentDate, "EEEE, MMMM d, yyyy");
+      formattedStartTime = format(new Date(`2023-01-01T${appointment.start_time || '09:00:00'}`), "h:mm a");
+      formattedEndTime = format(new Date(`2023-01-01T${appointment.end_time || '09:30:00'}`), "h:mm a");
+    } catch (dateError) {
+      console.error('Error formatting appointment date/time:', dateError);
+      formattedDate = 'Unknown date';
+      formattedStartTime = 'Unknown time';
+      formattedEndTime = 'Unknown time';
     }
+
+    // Get doctor information safely
+    const doctorName = renderDoctorName(appointment.doctor);
+    const specialty = renderSpecialization(appointment.doctor);
     
-    // Get status color
-    const getStatusColor = () => {
-      switch(appointment.status) {
-        case "confirmed": return "bg-green-50 border-green-200";
-        case "scheduled": return "bg-blue-50 border-blue-200";
-        case "completed": return "bg-purple-50 border-purple-200";
-        case "cancelled": return "bg-red-50 border-red-200";
-        case "no_show": return "bg-orange-50 border-orange-200";
-        default: return "";
-      }
-    };
-    
-    // Calculate if appointment is today
-    const isToday = format(appointmentDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-    
-    // Calculate countdown
-    const getTimeRemaining = () => {
-      const now = new Date();
-      const diffMs = appointmentDate.getTime() - now.getTime();
-      
-      if (diffMs <= 0) return null;
-      
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      
-      if (diffDays > 0) {
-        return `in ${diffDays} day${diffDays > 1 ? 's' : ''}`;
-      } else if (diffHours > 0) {
-        return `in ${diffHours} hour${diffHours > 1 ? 's' : ''}`;
-      } else {
-        return `in ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''}`;
-      }
-    };
-    
-    const timeRemaining = getTimeRemaining();
-    
+    // Get appointment status safely
+    const status = appointment.status || 'scheduled';
+
     return (
-      <Card 
-        key={appointment.id} 
-        className={`mb-4 overflow-hidden border transition-all hover:shadow-md ${getStatusColor()}`}
-      >
-        {/* Top badge for upcoming today appointments */}
-        {isToday && activeTab === "upcoming" && (
-          <div className="bg-primary text-primary-foreground text-xs font-medium py-1 px-3 text-center">
-            Today's Appointment {timeRemaining && `(${timeRemaining})`}
-          </div>
-        )}
-        
-        <CardHeader className="pb-2 pt-4">
+      <Card key={appointment.id} className="mb-4">
+        <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              {isLoading ? (
+              {isDoctorLoading(appointment.doctor) ? (
                 <>
-                  <Skeleton className="h-5 w-32 mb-1" />
-                  <Skeleton className="h-4 w-24" />
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                  <Skeleton className="h-4 w-24 mt-1" />
                 </>
               ) : (
                 <>
-                  <div className="flex items-center">
-                    <Avatar className="h-6 w-6 mr-2">
-                      <AvatarFallback className="text-xs">
-                        {doctorName.split(' ').map(n => n[0]).join('')}
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {doctorName && doctorName.split(' ').map(n => n[0] || '').join('')}
                       </AvatarFallback>
                       {typeof appointment.doctor === 'object' && 
-                       appointment.doctor.profile_image && (
+                       appointment.doctor?.profile_image && (
                         <AvatarImage src={appointment.doctor.profile_image} alt="Doctor" />
                       )}
                     </Avatar>
                     <CardTitle className="text-lg font-semibold">
-                      {doctorName}
+                      {doctorName || 'Unknown Doctor'}
                     </CardTitle>
                   </div>
                   <CardDescription className="text-sm">
-                    {specialty}
+                    {specialty || 'Specialty unknown'}
                   </CardDescription>
                 </>
               )}
             </div>
             <Badge 
               variant={
-                appointment.status === "confirmed" ? "default" :
-                appointment.status === "scheduled" ? "outline" :
-                appointment.status === "completed" ? "secondary" :
+                status === "confirmed" ? "default" :
+                status === "scheduled" ? "outline" :
+                status === "completed" ? "secondary" :
                 "destructive"
               }
               className="ml-2"
             >
-              {appointment.status.replace('_', ' ')}
+              {(status || '').replace('_', ' ')}
             </Badge>
           </div>
         </CardHeader>
@@ -1415,7 +1481,7 @@ const MyAppointments = () => {
             </div>
             <div className="mt-2">
               <h4 className="text-sm font-medium">Reason for Visit</h4>
-              <p className="text-sm opacity-90">{appointment.reason}</p>
+              <p className="text-sm opacity-90">{appointment.reason || 'No reason provided'}</p>
             </div>
           </div>
         </CardContent>
@@ -1433,7 +1499,7 @@ const MyAppointments = () => {
             Details
           </Button>
           
-          {appointment.status !== "cancelled" && appointment.status !== "completed" ? (
+          {(status !== "cancelled" && status !== "completed") ? (
             <Button
               variant="destructive"
               size="sm"
@@ -1455,7 +1521,7 @@ const MyAppointments = () => {
             </Button>
           )}
           
-          {activeTab === "upcoming" && (appointment.status === "confirmed" || appointment.status === "scheduled") && (
+          {activeTab === "upcoming" && (status === "confirmed" || status === "scheduled") && (
             <Button
               variant="default"
               size="sm"
@@ -1476,12 +1542,30 @@ const MyAppointments = () => {
 
   // Render appointment row for list view
   const renderAppointmentRow = useCallback((appointment: Appointment) => {
-    const appointmentDate = new Date(`${appointment.appointment_date}T${appointment.start_time}`);
-    const formattedDate = format(appointmentDate, "MMM d, yyyy");
-    const formattedTime = format(appointmentDate, "h:mm a");
+    // Safety check for null or undefined appointment
+    if (!appointment) {
+      console.error('Received null or undefined appointment in renderAppointmentRow');
+      return null;
+    }
+    
+    let formattedDate: string;
+    let formattedTime: string;
+    
+    try {
+      const appointmentDate = new Date(`${appointment.appointment_date || '2023-01-01'}T${appointment.start_time || '09:00:00'}`);
+      formattedDate = format(appointmentDate, "MMM d, yyyy");
+      formattedTime = format(appointmentDate, "h:mm a");
+    } catch (dateError) {
+      console.error('Error formatting appointment date/time in row:', dateError);
+      formattedDate = 'Unknown date';
+      formattedTime = 'Unknown time';
+    }
+    
+    // Get appointment status safely
+    const status = appointment.status || 'scheduled';
     
     return (
-      <TableRow key={appointment.id}>
+      <TableRow key={appointment.id || 'unknown-id'}>
         <TableCell>
           <div className="font-medium">{renderDoctorName(appointment.doctor)}</div>
           <div className="text-sm text-muted-foreground">{renderSpecialization(appointment.doctor)}</div>
@@ -1490,19 +1574,19 @@ const MyAppointments = () => {
           <div className="font-medium">{formattedDate}</div>
           <div className="text-sm text-muted-foreground">{formattedTime}</div>
         </TableCell>
-        <TableCell className="max-w-[200px] truncate" title={appointment.reason}>
-          {appointment.reason}
+        <TableCell className="max-w-[200px] truncate" title={appointment.reason || 'No reason provided'}>
+          {appointment.reason || 'No reason provided'}
         </TableCell>
         <TableCell>
           <Badge 
             variant={
-              appointment.status === "confirmed" ? "default" :
-              appointment.status === "scheduled" ? "outline" :
-              appointment.status === "completed" ? "secondary" :
+              status === "confirmed" ? "default" :
+              status === "scheduled" ? "outline" :
+              status === "completed" ? "secondary" :
               "destructive"
             }
           >
-            {appointment.status.replace('_', ' ')}
+            {(status || '').replace('_', ' ')}
           </Badge>
         </TableCell>
         <TableCell>
@@ -1524,7 +1608,7 @@ const MyAppointments = () => {
                   <FileText className="mr-2 h-4 w-4" />
                   View Details
                 </DropdownMenuItem>
-                {appointment.status !== "cancelled" && appointment.status !== "completed" && (
+                {status !== "cancelled" && status !== "completed" && (
                   <DropdownMenuItem 
                     className="text-destructive focus:text-destructive"
                     onClick={() => handleCancelAppointment(appointment)}
@@ -2044,6 +2128,111 @@ const MyAppointments = () => {
         </Card>
       </div>
     );
+  };
+
+  // Filter and render appointments based on search, filter, and sorting
+  const renderFilteredAppointments = () => {
+    if (!allAppointments) {
+      console.warn('allAppointments is null or undefined');
+      return <div className="text-center py-8">No appointments available</div>;
+    }
+    
+    // Filter by search query
+    let filteredAppointments = [...allAppointments].filter(apt => {
+      if (!apt) return false;
+      
+      const doctorName = renderDoctorName(apt.doctor).toLowerCase();
+      const reason = (apt.reason || '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      
+      return doctorName.includes(query) || reason.includes(query);
+    });
+    
+    // Filter by status
+    if (filterStatus !== "all") {
+      filteredAppointments = filteredAppointments.filter(apt => {
+        return apt && apt.status === filterStatus;
+      });
+    }
+    
+    // Sort by date
+    filteredAppointments.sort((a, b) => {
+      try {
+        if (!a || !a.appointment_date || !a.start_time) return sortOrder === "newest" ? -1 : 1;
+        if (!b || !b.appointment_date || !b.start_time) return sortOrder === "newest" ? 1 : -1;
+        
+        const dateA = new Date(`${a.appointment_date}T${a.start_time}`);
+        const dateB = new Date(`${b.appointment_date}T${b.start_time}`);
+        
+        if (sortOrder === "newest") {
+          return dateB.getTime() - dateA.getTime();
+        } else {
+          return dateA.getTime() - dateB.getTime();
+        }
+      } catch (error) {
+        console.error('Error sorting appointments:', error);
+        return 0;
+      }
+    });
+    
+    // Check if we have any appointments after filtering
+    if (filteredAppointments.length === 0) {
+      return (
+        <div className="text-center py-8 border border-dashed rounded-lg flex flex-col items-center justify-center" style={{ minHeight: "250px" }}>
+          <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">No appointments found</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {searchQuery ? 
+              "No appointments match your search criteria" : 
+              `You don't have any ${activeTab} appointments`}
+          </p>
+          <Button onClick={() => navigate("/book-appointment")}>
+            <Calendar className="mr-2 h-4 w-4" />
+            Book an Appointment
+          </Button>
+        </div>
+      );
+    }
+    
+    // Render based on view mode
+    if (viewMode === "grid") {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredAppointments.map(appointment => {
+            try {
+              return appointment ? renderAppointmentCard(appointment) : null;
+            } catch (renderError) {
+              console.error(`Error rendering appointment card for appointment ${appointment?.id}:`, renderError);
+              return null;
+            }
+          })}
+        </div>
+      );
+    } else {
+      return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Doctor</TableHead>
+              <TableHead>Date & Time</TableHead>
+              <TableHead>Reason</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[60px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAppointments.map(appointment => {
+              try {
+                return appointment ? renderAppointmentRow(appointment) : null;
+              } catch (renderError) {
+                console.error(`Error rendering appointment row for appointment ${appointment?.id}:`, renderError);
+                return null;
+              }
+            })}
+          </TableBody>
+        </Table>
+      );
+    }
   };
 
   if (!user) {

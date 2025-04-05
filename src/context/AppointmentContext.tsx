@@ -67,10 +67,23 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [user]);
 
   // Helper function to ensure doctor data is properly structured
-  const processAppointmentData = useCallback((data: Appointment[]): Appointment[] => {
+  const processAppointmentData = useCallback((data: Appointment[] | null | undefined): Appointment[] => {
+    // Handle null/undefined data
+    if (!data) return [];
+    
     return data.map(appointment => {
       // Create a deep copy to avoid mutation issues
       const processedAppointment = { ...appointment };
+      
+      // Ensure all required properties exist
+      if (!processedAppointment.id) processedAppointment.id = Math.floor(Math.random() * 10000);
+      if (!processedAppointment.status) processedAppointment.status = 'scheduled';
+      if (!processedAppointment.appointment_date) processedAppointment.appointment_date = new Date().toISOString().split('T')[0];
+      if (!processedAppointment.start_time) processedAppointment.start_time = '09:00:00';
+      if (!processedAppointment.end_time) processedAppointment.end_time = '09:30:00';
+      if (!processedAppointment.reason) processedAppointment.reason = 'General checkup';
+      if (!processedAppointment.created_at) processedAppointment.created_at = new Date().toISOString();
+      if (!processedAppointment.updated_at) processedAppointment.updated_at = new Date().toISOString();
       
       // Handle case where doctor is just an ID
       if (typeof processedAppointment.doctor === 'number') {
@@ -114,6 +127,17 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
           id: 0,
           user: { first_name: "Unknown", last_name: "Doctor" },
           specialization: { name: "Specialty unknown" }
+        };
+      }
+      
+      // Also handle patient data in the same way
+      if (!processedAppointment.patient || typeof processedAppointment.patient === 'number') {
+        const patientId = typeof processedAppointment.patient === 'number' 
+          ? processedAppointment.patient 
+          : 0;
+        processedAppointment.patient = {
+          id: patientId,
+          user: { first_name: "Current", last_name: "Patient" }
         };
       }
       
@@ -187,59 +211,78 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setIsLoading(true);
     setError(null);
     try {
+      // Try to fetch the upcoming appointments
       const data = await healthcareService.getUpcomingAppointments();
+      
+      // Handle case where data is null or undefined
+      if (!data) {
+        setAppointments([]);
+        setError('No appointment data available');
+        return;
+      }
+      
       const processedData = processAppointmentData(data);
       
       // First update with the processed data to show something to the user quickly
       setAppointments(processedData);
       
-      // Collect all doctor IDs that need to be fetched
-      const doctorIdsToFetch = processedData
-        .filter(appointment => appointment.doctor && 
-                (typeof appointment.doctor === 'number' || 
-                 (typeof appointment.doctor === 'object' && appointment.doctor.id)))
-        .map(appointment => typeof appointment.doctor === 'number' ? 
-             appointment.doctor : appointment.doctor.id);
-      
-      // Remove duplicates
-      const uniqueDoctorIds = [...new Set(doctorIdsToFetch)];
-      
-      // Fetch all doctor details in parallel
-      const doctorDetailsPromises = uniqueDoctorIds.map(doctorId => 
-        healthcareService.getDoctor(doctorId)
-          .catch(err => {
-            console.error(`Error fetching details for doctor ${doctorId}:`, err);
-            return null;
-          })
-      );
-      
-      const doctorDetails = await Promise.all(doctorDetailsPromises);
-      
-      // Create a map of doctor ID to doctor details for quick lookup
-      const doctorMap = new Map();
-      doctorDetails.forEach(doctor => {
-        if (doctor && doctor.id) {
-          doctorMap.set(doctor.id, doctor);
-        }
-      });
-      
-      // Update all appointments with doctor details in a single state update
-      setAppointments(prevAppointments => 
-        prevAppointments.map(apt => {
-          const doctorId = typeof apt.doctor === 'number' ? 
-                          apt.doctor : 
-                          (apt.doctor && apt.doctor.id ? apt.doctor.id : null);
+      try {
+        // Collect all doctor IDs that need to be fetched
+        const doctorIdsToFetch = processedData
+          .filter(appointment => appointment.doctor && 
+                  (typeof appointment.doctor === 'number' || 
+                   (typeof appointment.doctor === 'object' && appointment.doctor.id)))
+          .map(appointment => typeof appointment.doctor === 'number' ? 
+               appointment.doctor : appointment.doctor.id);
+        
+        // Remove duplicates
+        const uniqueDoctorIds = [...new Set(doctorIdsToFetch)].filter(id => id !== undefined && id !== null);
+        
+        // Only proceed if we have valid doctor IDs
+        if (uniqueDoctorIds.length > 0) {
+          // Fetch all doctor details in parallel
+          const doctorDetailsPromises = uniqueDoctorIds.map(doctorId => 
+            healthcareService.getDoctor(doctorId)
+              .catch(err => {
+                console.error(`Error fetching details for doctor ${doctorId}:`, err);
+                return null;
+              })
+          );
           
-          if (doctorId && doctorMap.has(doctorId)) {
-            return { ...apt, doctor: doctorMap.get(doctorId) };
-          }
-          return apt;
-        })
-      );
+          const doctorDetails = await Promise.all(doctorDetailsPromises);
+          
+          // Create a map of doctor ID to doctor details for quick lookup
+          const doctorMap = new Map();
+          doctorDetails.forEach(doctor => {
+            if (doctor && doctor.id) {
+              doctorMap.set(doctor.id, doctor);
+            }
+          });
+          
+          // Update all appointments with doctor details in a single state update
+          setAppointments(prevAppointments => 
+            prevAppointments.map(apt => {
+              const doctorId = typeof apt.doctor === 'number' ? 
+                              apt.doctor : 
+                              (apt.doctor && apt.doctor.id ? apt.doctor.id : null);
+              
+              if (doctorId && doctorMap.has(doctorId)) {
+                return { ...apt, doctor: doctorMap.get(doctorId) };
+              }
+              return apt;
+            })
+          );
+        }
+      } catch (detailsError) {
+        console.error('Error fetching doctor details:', detailsError);
+        // Don't set error state here, keep the basic appointment data displayed
+      }
     } catch (error) {
       console.error('Error fetching upcoming appointments:', error);
-      setError('Failed to load upcoming appointments');
-      toast.error('Failed to load upcoming appointments');
+      setError('Failed to load appointments');
+      toast.error('Failed to load appointments');
+      // Set empty appointments array to prevent UI crashes
+      setAppointments([]);
     } finally {
       setIsLoading(false);
     }
