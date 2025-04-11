@@ -1,9 +1,8 @@
-
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 
 // Handle API errors consistently across the application
-export const handleApiError = (error: unknown, defaultMessage = 'An error occurred') => {
+export const handleApiError = (error: unknown, defaultMessage = 'An error occurred', showToast = true) => {
   const axiosError = error as AxiosError<any>;
   
   // Log the error for debugging
@@ -44,8 +43,10 @@ export const handleApiError = (error: unknown, defaultMessage = 'An error occurr
     errorMessage = axiosError.message || defaultMessage;
   }
   
-  // Show the error to the user
-  toast.error(errorMessage);
+  // Show the error to the user if showToast is true
+  if (showToast) {
+    toast.error(errorMessage);
+  }
   
   return errorMessage;
 };

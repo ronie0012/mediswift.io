@@ -216,9 +216,6 @@ export const healthcareService = {
 
   createAppointment: async (data: CreateAppointmentData) => {
     try {
-      // Log the input data for debugging
-      console.log('Creating appointment with data:', data);
-      
       // Make sure we have required fields
       if (!data.doctor_id) {
         throw new Error('doctor_id is required');
@@ -238,9 +235,6 @@ export const healthcareService = {
         reason: data.reason,
         notes: data.notes || ""
       };
-      
-      // Log transformed data
-      console.log('Transformed appointment data for API:', appointmentData);
       
       const response = await api.post('/healthcare/appointments/', appointmentData);
       handleApiSuccess('Appointment created successfully');
@@ -284,28 +278,58 @@ export const healthcareService = {
 
   getUpcomingAppointments: async (params: any = {}) => {
     try {
-      // Attempt to get upcoming appointments from the specific endpoint
+      // First try the dedicated endpoint
       try {
         const response = await api.get('/healthcare/appointments/upcoming/', { params });
-        return response.data;
+        if (response.data && Array.isArray(response.data)) {
+          return response.data;
+        } else {
+          console.warn('Upcoming appointments endpoint returned invalid data format');
+          throw new Error('Invalid data format');
+        }
       } catch (endpointError) {
-        // If the specific endpoint fails, fall back to filtering all appointments
-        console.warn('Upcoming appointments endpoint not available, falling back to all appointments');
+        // If the specific endpoint fails, log and fall back gracefully
+        console.warn('Upcoming appointments endpoint not available:', endpointError);
+        
+        // Fallback: Get all appointments and filter client-side
         const allAppointments = await api.get('/healthcare/appointments/', { params });
         
-        // Filter appointments by date (appointments after today)
+        if (!allAppointments.data || !Array.isArray(allAppointments.data)) {
+          console.error('All appointments endpoint returned invalid data');
+          return [];
+        }
+        
+        // Create today date for comparison (set to start of day)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        // Filter out appointments that have already passed
+        // Filter appointments by date and status
         return allAppointments.data.filter((appointment: any) => {
-          const appointmentDate = new Date(appointment.appointment_date);
-          return appointmentDate >= today || appointment.status === 'scheduled' || appointment.status === 'confirmed';
+          // Skip appointments with missing data
+          if (!appointment || !appointment.appointment_date) {
+            return false;
+          }
+          
+          try {
+            const appointmentDate = new Date(appointment.appointment_date);
+            
+            // Include appointments that are today or in the future
+            // OR have an active status (scheduled or confirmed)
+            return (
+              appointmentDate >= today || 
+              appointment.status === 'scheduled' || 
+              appointment.status === 'confirmed'
+            ) && appointment.status !== 'cancelled'; // Exclude cancelled appointments
+          } catch (parseError) {
+            console.error('Error parsing appointment date:', parseError);
+            return false;
+          }
         });
       }
     } catch (error) {
       console.error('Error fetching upcoming appointments:', error);
-      handleApiError(error, 'Failed to fetch upcoming appointments');
+      // Don't show toast for this error to prevent UI disruption
+      handleApiError(error, 'Failed to fetch upcoming appointments', false);
       // Return empty array instead of throwing to prevent UI crashes
       return [];
     }

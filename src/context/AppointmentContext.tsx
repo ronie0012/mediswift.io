@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import healthcareService from '../lib/healthcare.service';
 import { useAuth } from './AuthContext';
@@ -49,13 +49,14 @@ interface AppointmentContextType {
   addAppointment: (appointmentData: CreateAppointmentData | AppointmentFormData) => Promise<Appointment>;
   cancelAppointment: (id: number) => Promise<void>;
   getAppointmentById: (id: number) => Promise<Appointment | undefined>;
+  refreshAppointments: () => Promise<void>;
 }
 
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined);
 
 export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -207,86 +208,73 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const fetchUpcomingAppointments = async () => {
+  const fetchUpcomingAppointments = useCallback(async () => {
+    if (!user) return;
+    
     setIsLoading(true);
     setError(null);
+    
     try {
-      // Try to fetch the upcoming appointments
       const data = await healthcareService.getUpcomingAppointments();
       
-      // Handle case where data is null or undefined
       if (!data) {
         setAppointments([]);
-        setError('No appointment data available');
         return;
       }
       
-      const processedData = processAppointmentData(data);
-      
-      // First update with the processed data to show something to the user quickly
-      setAppointments(processedData);
-      
-      try {
-        // Collect all doctor IDs that need to be fetched
-        const doctorIdsToFetch = processedData
-          .filter(appointment => appointment.doctor && 
-                  (typeof appointment.doctor === 'number' || 
-                   (typeof appointment.doctor === 'object' && appointment.doctor.id)))
-          .map(appointment => typeof appointment.doctor === 'number' ? 
-               appointment.doctor : appointment.doctor.id);
-        
-        // Remove duplicates
-        const uniqueDoctorIds = [...new Set(doctorIdsToFetch)].filter(id => id !== undefined && id !== null);
-        
-        // Only proceed if we have valid doctor IDs
-        if (uniqueDoctorIds.length > 0) {
-          // Fetch all doctor details in parallel
-          const doctorDetailsPromises = uniqueDoctorIds.map(doctorId => 
-            healthcareService.getDoctor(doctorId)
-              .catch(err => {
-                console.error(`Error fetching details for doctor ${doctorId}:`, err);
-                return null;
-              })
-          );
-          
-          const doctorDetails = await Promise.all(doctorDetailsPromises);
-          
-          // Create a map of doctor ID to doctor details for quick lookup
-          const doctorMap = new Map();
-          doctorDetails.forEach(doctor => {
-            if (doctor && doctor.id) {
-              doctorMap.set(doctor.id, doctor);
-            }
-          });
-          
-          // Update all appointments with doctor details in a single state update
-          setAppointments(prevAppointments => 
-            prevAppointments.map(apt => {
-              const doctorId = typeof apt.doctor === 'number' ? 
-                              apt.doctor : 
-                              (apt.doctor && apt.doctor.id ? apt.doctor.id : null);
-              
-              if (doctorId && doctorMap.has(doctorId)) {
-                return { ...apt, doctor: doctorMap.get(doctorId) };
-              }
-              return apt;
-            })
-          );
-        }
-      } catch (detailsError) {
-        console.error('Error fetching doctor details:', detailsError);
-        // Don't set error state here, keep the basic appointment data displayed
+      if (!Array.isArray(data)) {
+        console.error('Invalid appointments data format:', data);
+        setError('Invalid data format received from server');
+        setAppointments([]);
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching upcoming appointments:', error);
-      setError('Failed to load appointments');
-      toast.error('Failed to load appointments');
-      // Set empty appointments array to prevent UI crashes
+      
+      // Process appointments and fetch doctor details in parallel
+      const processedAppointments = data.map(appointment => ({
+        ...appointment,
+        appointment_date: new Date(appointment.appointment_date).toISOString().split('T')[0],
+        start_time: appointment.start_time,
+        end_time: appointment.end_time,
+      }));
+      
+      // Update appointments state quickly with processed data
+      setAppointments(processedAppointments);
+      
+      // Fetch doctor details in parallel
+      const doctorIds = [...new Set(processedAppointments.map(a => a.doctor))];
+      const doctorPromises = doctorIds.map(id => 
+        healthcareService.getDoctorDetails(id).catch(err => {
+          console.error(`Error fetching doctor details for ID ${id}:`, err);
+          return null;
+        })
+      );
+      
+      const doctorResults = await Promise.all(doctorPromises);
+      const doctorMap = new Map(
+        doctorResults
+          .filter(Boolean)
+          .map(doctor => [doctor.id, doctor])
+      );
+      
+      // Update appointments with doctor details
+      setAppointments(prevAppointments => 
+        prevAppointments.map(appointment => ({
+          ...appointment,
+          doctor: doctorMap.get(appointment.doctor) || null
+        }))
+      );
+      
+    } catch (error: any) {
+      console.error('Error fetching appointments:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Failed to fetch appointments';
+      setError(errorMessage);
       setAppointments([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   const addAppointment = async (formData: AppointmentFormData) => {
     setIsLoading(true);
@@ -387,28 +375,20 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const cancelAppointment = async (id: number) => {
-    setIsLoading(true);
-    setError(null);
+  const cancelAppointment = useCallback(async (id: number) => {
     try {
-      const canceledAppointment = await healthcareService.cancelAppointment(id);
-      
-      // Update the appointments list with the canceled appointment
-      setAppointments(prevAppointments => 
-        prevAppointments.map(apt => apt.id === id ? canceledAppointment : apt)
-      );
-      
+      await healthcareService.cancelAppointment(id);
       toast.success('Appointment cancelled successfully');
+      await fetchUpcomingAppointments();
     } catch (error: any) {
       console.error('Error cancelling appointment:', error);
-      const errorMessage = error.response?.data?.detail || 'Failed to cancel appointment';
-      setError(errorMessage);
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Failed to cancel appointment';
       toast.error(errorMessage);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [fetchUpcomingAppointments]);
 
   const getAppointmentById = async (id: number) => {
     try {
@@ -466,19 +446,24 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const refreshAppointments = useCallback(async () => {
+    await fetchUpcomingAppointments();
+  }, [fetchUpcomingAppointments]);
+
+  const value = useMemo(() => ({
+    appointments,
+    isLoading,
+    error,
+    fetchAppointments,
+    fetchUpcomingAppointments,
+    addAppointment,
+    cancelAppointment,
+    getAppointmentById,
+    refreshAppointments
+  }), [appointments, isLoading, error, fetchAppointments, fetchUpcomingAppointments, addAppointment, cancelAppointment, getAppointmentById, refreshAppointments]);
+
   return (
-    <AppointmentContext.Provider
-      value={{
-        appointments,
-        isLoading,
-        error,
-        fetchAppointments,
-        fetchUpcomingAppointments,
-        addAppointment,
-        cancelAppointment,
-        getAppointmentById,
-      }}
-    >
+    <AppointmentContext.Provider value={value}>
       {children}
     </AppointmentContext.Provider>
   );

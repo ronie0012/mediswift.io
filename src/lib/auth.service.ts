@@ -36,7 +36,7 @@ interface AuthResponse {
 
 const authService = {
   login: async (credentials: LoginData): Promise<AuthResponse> => {
-    const response = await api.post('/api/auth/token/', credentials);
+    const response = await api.post('/auth/token/', credentials);
     
     // The Django REST framework JWT response structure might be different
     // Handle both possible structures
@@ -79,7 +79,7 @@ const authService = {
   },
   
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await api.post('/api/auth/register/', data);
+    const response = await api.post('/auth/register/', data);
     
     const { user, tokens } = response.data;
     
@@ -119,7 +119,7 @@ const authService = {
   
   verifyToken: async (token: string): Promise<boolean> => {
     try {
-      await api.post('/api/auth/token/verify/', { token });
+      await api.post('/auth/token/verify/', { token });
       return true;
     } catch (error) {
       return false;
@@ -131,7 +131,7 @@ const authService = {
     if (!refresh) return null;
     
     try {
-      const response = await api.post('/api/auth/token/refresh/', { refresh });
+      const response = await api.post('/auth/token/refresh/', { refresh });
       
       // Make sure we have an access token in the response
       if (response.data && response.data.access) {
@@ -153,7 +153,7 @@ const authService = {
   },
   
   getCurrentUser: async (): Promise<User> => {
-    const response = await api.get('/api/auth/me/');
+    const response = await api.get('/auth/me/');
     return response.data;
   }
 };
