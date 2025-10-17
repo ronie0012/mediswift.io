@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: mediswift_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: mediswift
+    ports:
+      - "27020:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - mediswift_network
+
+  # Redis for WebSocket channels
+  redis:
+    image: redis:7-alpine
+    container_name: mediswift_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mediswift_network
+
+  # Backend Django Application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mediswift_backend
+    restart: unless-stopped
+    environment:
+      - DEBUG=False
+      - DJANGO_SETTINGS_MODULE=mediswift_backend.settings_docker
+      - SECRET_KEY=your-secret-key-change-in-production
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_DB_NAME=mediswift
+      - MONGO_USERNAME=admin
+      - MONGO_PASSWORD=password123
+      - MONGO_AUTH_SOURCE=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ALLOWED_HOST=*
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - mediswift_network
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: mediswift_frontend
+    restart: unless-stopped
+    ports:
+      - "9000:80"
+    depends_on:
+      - backend
+    networks:
+      - mediswift_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+  backend_static:
+  backend_media:
+
+networks:
+  mediswift_network:
+    driver: bridge

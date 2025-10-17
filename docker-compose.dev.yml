@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: mediswift_mongodb_dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: mediswift
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - mediswift_dev_network
+
+  # Redis for WebSocket channels
+  redis:
+    image: redis:7-alpine
+    container_name: mediswift_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - mediswift_dev_network
+
+  # Backend Django Application (Development)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mediswift_backend_dev
+    restart: unless-stopped
+    environment:
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=mediswift_backend.settings_docker
+      - SECRET_KEY=dev-secret-key-not-for-production
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_DB_NAME=mediswift
+      - MONGO_USERNAME=admin
+      - MONGO_PASSWORD=password123
+      - MONGO_AUTH_SOURCE=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ALLOWED_HOST=*
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_dev_static:/app/staticfiles
+      - backend_dev_media:/app/media
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - mediswift_dev_network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 mediswift_backend.asgi:application"
+
+volumes:
+  mongodb_dev_data:
+  redis_dev_data:
+  backend_dev_static:
+  backend_dev_media:
+
+networks:
+  mediswift_dev_network:
+    driver: bridge
