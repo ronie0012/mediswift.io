@@ -12,6 +12,7 @@ MediSwift is a comprehensive healthcare platform that provides services for medi
 - Health records management
 - Lab tests booking
 - Health blogs and articles
+- **AI-Powered Chat Assistant** - Real-time chat with an AI healthcare assistant
 
 ## Tech Stack
 
@@ -23,6 +24,7 @@ MediSwift is a comprehensive healthcare platform that provides services for medi
 - React Query
 - React Router
 - Radix UI Components
+- Django Channels (for WebSocket support)
 
 ## Prerequisites
 
@@ -30,6 +32,8 @@ MediSwift is a comprehensive healthcare platform that provides services for medi
 - npm or yarn
 - Supabase account
 - Git
+- Python 3.8+
+- Django 4.2+
 
 ## Getting Started
 
@@ -39,24 +43,56 @@ MediSwift is a comprehensive healthcare platform that provides services for medi
    cd mediswift
    ```
 
-2. Install dependencies:
+2. Install frontend dependencies:
    ```bash
    npm install
    ```
 
-3. Create a `.env` file:
+3. Install backend dependencies:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+4. Create a `.env` file:
    ```bash
    cp .env.example .env
    ```
 
-4. Update the `.env` file with your Supabase credentials and other configuration.
+5. Update the `.env` file with your Supabase credentials and other configuration.
 
-5. Start the development server:
+6. Run database migrations:
    ```bash
+   python manage.py migrate
+   ```
+
+7. Start the development server:
+   ```bash
+   # In one terminal, start the backend
+   cd backend
+   python manage.py runserver
+   
+   # In another terminal, start the frontend
+   cd ..
    npm run dev
    ```
 
-The application will be available at `http://localhost:8080`.
+The application will be available at `http://localhost:5173`.
+
+## Chat Feature
+
+The MediSwift platform includes an AI-powered chat assistant that provides real-time healthcare support:
+
+- Real-time messaging using WebSockets
+- Secure authentication integration
+- Context-aware AI responses
+- Message history persistence
+- Responsive chat interface
+
+To use the chat feature:
+1. Log in to the application
+2. Click the chat icon in the bottom right corner
+3. Start chatting with the AI assistant
 
 ## Building for Production
 
@@ -115,7 +151,3 @@ Project dependencies installed and running successfully.
 ![image](https://github.com/user-attachments/assets/8a0a282e-5f8e-473f-9096-a96cace16228)
 ![image](https://github.com/user-attachments/assets/54cdf950-a051-48c6-88f0-0f5a9593d851)
 ![image](https://github.com/user-attachments/assets/014d9335-dc16-4b35-8e41-482180938efb)
-
-
-
-

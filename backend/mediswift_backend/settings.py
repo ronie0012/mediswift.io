@@ -47,10 +47,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
+    'channels',
     # Local apps
     'main',
     'authentication',
     'healthcare',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -81,8 +83,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'mediswift_backend.wsgi.application'
-
+# WSGI_APPLICATION = 'mediswift_backend.wsgi.application'
+ASGI_APPLICATION = 'mediswift_backend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -228,3 +230,12 @@ DEFAULT_FROM_EMAIL = 'mediswift@example.com'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your-email@example.com'
 # EMAIL_HOST_PASSWORD = 'your-password'
+
+# Channels settings
+ASGI_APPLICATION = 'mediswift_backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}

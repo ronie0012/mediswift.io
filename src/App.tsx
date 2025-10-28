@@ -27,6 +27,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { AddressProvider } from "@/context/AddressContext";
 import { OrderProvider } from "@/context/OrderContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ChatWidget from "./components/chat/ChatWidget";
 
 // Lazy load the new pages
 const About = lazy(() => import("./pages/About"));
@@ -64,6 +66,7 @@ const App = () => (
                 <AppointmentProvider>
                   <Toaster />
                   <Sonner />
+                  <ChatWidget />
                   <BrowserRouter>
                     <Suspense fallback={<LoadingSpinner size={32} />}>
                       <Routes>
@@ -78,10 +81,10 @@ const App = () => (
                         <Route path="/appointment-success" element={<AppointmentSuccess />} />
                         <Route path="/ambulance" element={<AmbulanceBooking />} />
                         <Route path="/cart" element={<Cart />} />
-                        <Route path="/my-appointments" element={<MyAppointments />} />
-                        <Route path="/my-orders" element={<MyOrders />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/reschedule-appointment/:id" element={<RescheduleAppointment />} />
+                        <Route path="/my-appointments" element={<ProtectedRoute><MyAppointments /></ProtectedRoute>} />
+                        <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                        <Route path="/reschedule-appointment/:id" element={<ProtectedRoute><RescheduleAppointment /></ProtectedRoute>} />
                         
                         {/* New routes for footer links */}
                         <Route path="/about" element={<About />} />
