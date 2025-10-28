@@ -70,6 +70,7 @@ const Index = () => {
   // Ensure we only try to render the 3D component on the client side
   useEffect(() => {
     setIsClient(true);
+    console.log("Index page rendered");
   }, []);
 
   return (
@@ -169,7 +170,9 @@ const Index = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <FeaturedMedicines />
+        <div id="medicines-section">
+          <FeaturedMedicines />
+        </div>
       </motion.div>
 
       {/* Doctors Section with background gradient */}
@@ -180,7 +183,9 @@ const Index = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <DoctorsSection />
+          <div id="doctors-section">
+            <DoctorsSection />
+          </div>
         </motion.div>
       </div>
 

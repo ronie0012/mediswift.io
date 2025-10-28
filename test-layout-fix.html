@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Layout Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .chat-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 384px; /* w-96 = 384px */
+            height: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+        }
+        
+        .chat-header {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .chat-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .message {
+            display: flex;
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message.bot {
+            justify-content: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 90%;
+            padding: 12px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        
+        .message.user .message-bubble {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .message.bot .message-bubble {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bot-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .bot-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+        }
+        
+        .medicine-section {
+            margin: 12px 0;
+        }
+        
+        .medicine-title {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+        
+        .medicine-item {
+            background-color: #dbeafe;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+            font-size: 12px;
+        }
+        
+        .chat-input {
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .input-field {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .send-btn {
+            padding: 12px 16px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .send-btn:hover {
+            background-color: #2563eb;
+        }
+        
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-btn {
+            margin: 5px;
+            padding: 8px 12px;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .test-btn:hover {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-controls">
+        <h3>🧪 Layout Fix Test</h3>
+        <p>Testing improved chat widget layout:</p>
+        <button class="test-btn" onclick="addLongUserMessage()">Add Long User Message</button>
+        <button class="test-btn" onclick="addBotResponse()">Add Bot Response</button>
+        <button class="test-btn" onclick="clearMessages()">Clear Messages</button>
+        <br><br>
+        <p><strong>Improvements:</strong></p>
+        <ul style="font-size: 12px;">
+            <li>✅ Wider chat (384px vs 320px)</li>
+            <li>✅ Taller chat (500px vs 384px)</li>
+            <li>✅ Better message wrapping</li>
+            <li>✅ Proper flex layout</li>
+            <li>✅ 90% max-width for messages</li>
+        </ul>
+    </div>
+
+    <div class="chat-widget">
+        <div class="chat-header">
+            <div class="chat-title">
+                AI Assistant
+                <div class="status-dot"></div>
+            </div>
+            <button class="close-btn">×</button>
+        </div>
+        
+        <div class="chat-content" id="chatContent">
+            <div class="message bot">
+                <div class="message-bubble">
+                    <div class="bot-header">
+                        <div class="bot-indicator"></div>
+                        <span>AI Assistant</span>
+                    </div>
+                    <div>Welcome to MediSwift AI Assistant! How can I help you with your healthcare needs today? You can ask me about medicines for specific symptoms like headache, fever, cold, or digestive issues.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" class="input-field" placeholder="Ask about medicines for headache, fever, cold..." id="messageInput">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function addMessage(content, isBot = false) {
+            const chatContent = document.getElementById('chatContent');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isBot ? 'bot' : 'user'}`;
+            
+            if (isBot) {
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        <div class="bot-header">
+                            <div class="bot-indicator"></div>
+                            <span>AI Assistant</span>
+                        </div>
+                        <div>${formatBotMessage(content)}</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        <div style="font-weight: 500;">${content}</div>
+                    </div>
+                `;
+            }
+            
+            chatContent.appendChild(messageDiv);
+            chatContent.scrollTop = chatContent.scrollHeight;
+        }
+        
+        function formatBotMessage(message) {
+            if (message.includes('Commonly used medicines include:')) {
+                const sections = message.split('\n\n');
+                let formatted = '';
+                
+                sections.forEach(section => {
+                    if (section.includes('Commonly used medicines include:')) {
+                        const lines = section.split('\n');
+                        const title = lines[0];
+                        const medicines = lines.slice(1).filter(line => line.trim());
+                        
+                        formatted += `<div class="medicine-section">`;
+                        formatted += `<div class="medicine-title">${title}</div>`;
+                        medicines.forEach(med => {
+                            const cleanMed = med.replace(/^\d+\.\s*/, '').trim();
+                            if (cleanMed) {
+                                formatted += `<div class="medicine-item">${cleanMed}</div>`;
+                            }
+                        });
+                        formatted += `</div>`;
+                    } else if (section.trim()) {
+                        formatted += `<p style="margin: 8px 0; line-height: 1.4;">${section.trim()}</p>`;
+                    }
+                });
+                
+                return formatted;
+            }
+            
+            return message.replace(/\n/g, '<br>');
+        }
+        
+        function addLongUserMessage() {
+            addMessage("What is Paracetamol and how does it work? I need detailed information about dosage, side effects, and when to use it for headaches and fever.", false);
+        }
+        
+        function addBotResponse() {
+            const response = `For headache related issues, here's some information:
+
+For headaches, over-the-counter pain relievers can be effective. However, if you experience severe or persistent headaches, it's important to consult with a healthcare professional.
+
+Commonly used medicines include:
+1. Paracetamol 500mg - General pain relief (Typical dosage: 1-2 tablets every 4-6 hours, Price: ₹12-15)
+2. Aspirin 75mg - Pain and inflammation relief (Typical dosage: 1 tablet daily or as prescribed, Price: ₹8-10)
+3. Ibuprofen 200mg - Pain and inflammation relief (Typical dosage: 1-2 tablets every 6-8 hours, Price: ₹15-20)
+
+Remember: This information is for educational purposes only. Always read the package insert and consult with a healthcare professional before taking any medication.`;
+            
+            addMessage(response, true);
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (message) {
+                addMessage(message, false);
+                input.value = '';
+                
+                // Simulate bot response after delay
+                setTimeout(() => {
+                    if (message.toLowerCase().includes('paracetamol')) {
+                        addMessage("Paracetamol (also known as Acetaminophen) is a common pain reliever and fever reducer. It's generally safe when used as directed. Typical adult dosage is 500-1000mg every 4-6 hours, not exceeding 4000mg in 24 hours. Always follow package instructions or consult a healthcare provider.\n\nAvailable in our store:\n- Paracetamol 500mg (10 tablets) - ₹12-15", true);
+                    } else {
+                        addBotResponse();
+                    }
+                }, 1000);
+            }
+        }
+        
+        function clearMessages() {
+            const chatContent = document.getElementById('chatContent');
+            chatContent.innerHTML = `
+                <div class="message bot">
+                    <div class="message-bubble">
+                        <div class="bot-header">
+                            <div class="bot-indicator"></div>
+                            <span>AI Assistant</span>
+                        </div>
+                        <div>Welcome to MediSwift AI Assistant! How can I help you with your healthcare needs today?</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Auto-demo
+        setTimeout(() => {
+            addLongUserMessage();
+            setTimeout(() => {
+                addMessage("Paracetamol (also known as Acetaminophen) is a common pain reliever and fever reducer. It's generally safe when used as directed. Typical adult dosage is 500-1000mg every 4-6 hours, not exceeding 4000mg in 24 hours. Always follow package instructions or consult a healthcare provider.\n\nAvailable in our store:\n- Paracetamol 500mg (10 tablets) - ₹12-15", true);
+            }, 1500);
+        }, 2000);
+    </script>
+</body>
+</html>

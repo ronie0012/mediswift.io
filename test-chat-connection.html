@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        .system-message {
+            background-color: #ffc107;
+            color: #333;
+            font-style: italic;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MediSwift Chat Connection Test</h1>
+    
+    <div id="status" class="status info">
+        Ready to test chat connection
+    </div>
+    
+    <div>
+        <button id="connectBtn" class="btn-primary" onclick="connectToChat()">Connect to Chat</button>
+        <button id="disconnectBtn" class="btn-danger" onclick="disconnectFromChat()" disabled>Disconnect</button>
+    </div>
+    
+    <div id="messages"></div>
+    
+    <div>
+        <input type="text" id="messageInput" placeholder="Type your message here..." disabled>
+        <button id="sendBtn" class="btn-success" onclick="sendMessage()" disabled>Send</button>
+    </div>
+    
+    <div>
+        <h3>Quick Test Messages:</h3>
+        <button onclick="sendTestMessage('I have a headache')" disabled class="test-btn">Test: Headache</button>
+        <button onclick="sendTestMessage('What is Paracetamol?')" disabled class="test-btn">Test: Medicine Info</button>
+        <button onclick="sendTestMessage('I have fever')" disabled class="test-btn">Test: Fever</button>
+        <button onclick="sendTestMessage('Hello')" disabled class="test-btn">Test: Greeting</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function addMessage(message, type = 'system') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.textContent = message;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connectToChat() {
+            try {
+                updateStatus('Connecting to WebSocket...', 'warning');
+                
+                // Connect to WebSocket without authentication for testing
+                ws = new WebSocket('ws://localhost:8000/ws/chat/');
+                
+                ws.onopen = function(event) {
+                    isConnected = true;
+                    updateStatus('✅ Connected to chat server successfully!', 'success');
+                    addMessage('Connected to MediSwift Chat Server', 'system');
+                    
+                    // Enable controls
+                    document.getElementById('connectBtn').disabled = true;
+                    document.getElementById('disconnectBtn').disabled = false;
+                    document.getElementById('messageInput').disabled = false;
+                    document.getElementById('sendBtn').disabled = false;
+                    
+                    // Enable test buttons
+                    document.querySelectorAll('.test-btn').forEach(btn => btn.disabled = false);
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log('Received:', data);
+                        
+                        if (data.type === 'welcome') {
+                            addMessage(`Welcome: ${data.message}`, 'bot');
+                        } else if (data.type === 'message') {
+                            if (data.is_bot) {
+                                addMessage(`Bot: ${data.message}`, 'bot');
+                            }
+                        } else if (data.type === 'error') {
+                            addMessage(`Error: ${data.message}`, 'system');
+                        }
+                    } catch (error) {
+                        console.error('Error parsing message:', error);
+                        addMessage(`Error parsing message: ${event.data}`, 'system');
+                    }
+                };
+                
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    updateStatus('❌ WebSocket connection error', 'error');
+                    addMessage('Connection error occurred', 'system');
+                };
+                
+                ws.onclose = function(event) {
+                    isConnected = false;
+                    updateStatus(`🔌 Connection closed (Code: ${event.code})`, 'warning');
+                    addMessage(`Connection closed: ${event.reason || 'Unknown reason'}`, 'system');
+                    
+                    // Disable controls
+                    document.getElementById('connectBtn').disabled = false;
+                    document.getElementById('disconnectBtn').disabled = true;
+                    document.getElementById('messageInput').disabled = true;
+                    document.getElementById('sendBtn').disabled = true;
+                    
+                    // Disable test buttons
+                    document.querySelectorAll('.test-btn').forEach(btn => btn.disabled = true);
+                };
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateStatus('❌ Failed to connect to chat server', 'error');
+                addMessage(`Connection failed: ${error.message}`, 'system');
+            }
+        }
+
+        function disconnectFromChat() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && ws && isConnected) {
+                try {
+                    // Add user message to display
+                    addMessage(`You: ${message}`, 'user');
+                    
+                    // Send message to server
+                    ws.send(JSON.stringify({ message: message }));
+                    
+                    // Clear input
+                    input.value = '';
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    addMessage(`Error sending message: ${error.message}`, 'system');
+                }
+            }
+        }
+
+        function sendTestMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Auto-connect on page load for testing
+        window.addEventListener('load', function() {
+            setTimeout(connectToChat, 1000);
+        });
+    </script>
+</body>
+</html>

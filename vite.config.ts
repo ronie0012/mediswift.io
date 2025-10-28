@@ -39,19 +39,28 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           'vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          'three': ['three', '@react-three/fiber', '@react-three/drei'],
         }
+      },
+      external: (id) => {
+        // Handle problematic dependencies
+        if (id.includes('three-stdlib/libs/lottie')) {
+          return false;
+        }
+        return false;
       }
     },
     chunkSizeWarningLimit: 1000,
-    minify: 'terser',
-    terserOptions: {
+    minify: mode === 'production' ? 'terser' : false,
+    terserOptions: mode === 'production' ? {
       compress: {
         drop_console: true,
         drop_debugger: true
       }
-    },
+    } : undefined,
     sourcemap: mode === 'development',
     outDir: 'dist',
     assetsDir: 'assets',
+    target: 'es2020',
   },
 }));

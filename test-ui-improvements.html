@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSwift Chat UI Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.connected { background-color: #d4edda; color: #155724; }
+        .status.disconnected { background-color: #f8d7da; color: #721c24; }
+        .status.connecting { background-color: #fff3cd; color: #856404; }
+        .chat-container {
+            border: 1px solid #ddd;
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #fafafa;
+        }
+        .message {
+            margin: 15px 0;
+            display: flex;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message.bot {
+            justify-content: flex-start;
+        }
+        .message-content {
+            max-width: 85%;
+            padding: 12px;
+            border-radius: 12px;
+            position: relative;
+        }
+        .message.user .message-content {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+        }
+        .message.bot .message-content {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .bot-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .bot-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #28a745;
+            border-radius: 50%;
+        }
+        .medicine-section {
+            margin: 12px 0;
+        }
+        .medicine-title {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+        .medicine-item {
+            background-color: #e3f2fd;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 6px;
+            border-left: 3px solid #2196f3;
+            font-size: 12px;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .test-buttons button {
+            background-color: #28a745;
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+        .test-buttons button:hover {
+            background-color: #218838;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #007bff;
+            border-radius: 50%;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🩺 MediSwift Chat UI Test (Improved)</h1>
+        
+        <div id="status" class="status connected">
+            ✅ Connected - Testing UI Improvements
+        </div>
+        
+        <div class="test-buttons">
+            <button onclick="addWelcomeMessage()">🎉 Add Welcome</button>
+            <button onclick="addUserMessage()">👤 Add User Message</button>
+            <button onclick="addBotResponse()">🤖 Add Bot Response</button>
+            <button onclick="showLoading()">⏳ Show Loading</button>
+            <button onclick="clearChat()">🗑️ Clear Chat</button>
+        </div>
+        
+        <div id="chat" class="chat-container">
+            <div style="text-align: center; color: #6c757d; padding: 20px;">
+                <div style="font-size: 32px; margin-bottom: 10px;">💬</div>
+                <p style="font-weight: bold; margin-bottom: 8px;">Welcome to MediSwift AI Assistant!</p>
+                <p style="font-size: 12px; line-height: 1.4;">
+                    Ask me about medicines for headache, fever, cold, or other health concerns.
+                </p>
+                <div style="margin-top: 15px;">
+                    <p style="font-size: 11px; color: #999;">Try asking:</p>
+                    <p style="font-size: 11px; color: #007bff;">"I have a headache"</p>
+                    <p style="font-size: 11px; color: #007bff;">"What is Paracetamol?"</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Ask about medicines for headache, fever, cold..." value="">
+            <button onclick="sendTestMessage()">Send</button>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 6px;">
+            <h3>🎨 UI Improvements Made:</h3>
+            <ul style="font-size: 14px; line-height: 1.6;">
+                <li>✅ <strong>Fixed duplicate messages</strong> - Removed backend echo</li>
+                <li>✅ <strong>Improved message formatting</strong> - Better medicine response layout</li>
+                <li>✅ <strong>Enhanced visual design</strong> - Better colors, spacing, and shadows</li>
+                <li>✅ <strong>Added bot indicator</strong> - Green dot and "AI Assistant" label</li>
+                <li>✅ <strong>Better loading state</strong> - Improved typing indicator</li>
+                <li>✅ <strong>Enhanced empty state</strong> - Welcome message with examples</li>
+                <li>✅ <strong>Medicine formatting</strong> - Structured display with highlights</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let messageCount = 0;
+
+        function addMessage(content, isBot = false, isLoading = false) {
+            const chatEl = document.getElementById('chat');
+            
+            if (!isBot && !isLoading) {
+                // Clear welcome message when first real message is added
+                if (messageCount === 0) {
+                    chatEl.innerHTML = '';
+                }
+            }
+            
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${isBot ? 'bot' : 'user'}`;
+            
+            if (isLoading) {
+                messageEl.innerHTML = `
+                    <div class="message-content">
+                        <div class="bot-header">
+                            <div class="bot-indicator"></div>
+                            <span>AI Assistant</span>
+                        </div>
+                        <div class="loading">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <span style="margin-left: 8px; font-size: 12px; color: #6c757d;">Thinking...</span>
+                        </div>
+                    </div>
+                `;
+            } else if (isBot) {
+                messageEl.innerHTML = `
+                    <div class="message-content">
+                        <div class="bot-header">
+                            <div class="bot-indicator"></div>
+                            <span>AI Assistant</span>
+                        </div>
+                        ${formatBotMessage(content)}
+                    </div>
+                `;
+            } else {
+                messageEl.innerHTML = `
+                    <div class="message-content">
+                        <div style="font-weight: 500; font-size: 14px;">${content}</div>
+                    </div>
+                `;
+            }
+            
+            chatEl.appendChild(messageEl);
+            chatEl.scrollTop = chatEl.scrollHeight;
+            
+            if (!isLoading) messageCount++;
+        }
+
+        function formatBotMessage(message) {
+            if (message.includes('Commonly used medicines include:')) {
+                const sections = message.split('\n\n');
+                let formatted = '';
+                
+                sections.forEach(section => {
+                    if (section.includes('Commonly used medicines include:')) {
+                        const lines = section.split('\n');
+                        const title = lines[0];
+                        const medicines = lines.slice(1).filter(line => line.trim());
+                        
+                        formatted += `<div class="medicine-section">`;
+                        formatted += `<div class="medicine-title">${title}</div>`;
+                        medicines.forEach(med => {
+                            const cleanMed = med.replace(/^\d+\.\s*/, '').trim();
+                            if (cleanMed) {
+                                formatted += `<div class="medicine-item">${cleanMed}</div>`;
+                            }
+                        });
+                        formatted += `</div>`;
+                    } else if (section.trim()) {
+                        formatted += `<p style="margin: 8px 0; line-height: 1.4; font-size: 13px;">${section.trim()}</p>`;
+                    }
+                });
+                
+                return formatted;
+            }
+            
+            return `<div style="font-size: 13px; line-height: 1.4;">${message}</div>`;
+        }
+
+        function addWelcomeMessage() {
+            addMessage("Welcome to MediSwift AI Assistant! How can I help you with your healthcare needs today? You can ask me about medicines for specific symptoms like headache, fever, cold, or digestive issues.", true);
+        }
+
+        function addUserMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim() || "I have a headache";
+            addMessage(message, false);
+            input.value = '';
+        }
+
+        function addBotResponse() {
+            const response = `For headache related issues, here's some information:
+
+For headaches, over-the-counter pain relievers can be effective. However, if you experience severe or persistent headaches, it's important to consult with a healthcare professional.
+
+Commonly used medicines include:
+1. Paracetamol 500mg - General pain relief (Typical dosage: 1-2 tablets every 4-6 hours, Price: ₹12-15)
+2. Aspirin 75mg - Pain and inflammation relief (Typical dosage: 1 tablet daily or as prescribed, Price: ₹8-10)
+3. Ibuprofen 200mg - Pain and inflammation relief (Typical dosage: 1-2 tablets every 6-8 hours, Price: ₹15-20)
+
+Remember: This information is for educational purposes only. Always read the package insert and consult with a healthcare professional before taking any medication.`;
+            
+            addMessage(response, true);
+        }
+
+        function showLoading() {
+            addMessage("", true, true);
+            
+            // Remove loading and add response after 2 seconds
+            setTimeout(() => {
+                const chatEl = document.getElementById('chat');
+                const lastMessage = chatEl.lastElementChild;
+                if (lastMessage) {
+                    lastMessage.remove();
+                }
+                addBotResponse();
+            }, 2000);
+        }
+
+        function sendTestMessage() {
+            addUserMessage();
+            setTimeout(() => showLoading(), 500);
+        }
+
+        function clearChat() {
+            const chatEl = document.getElementById('chat');
+            chatEl.innerHTML = `
+                <div style="text-align: center; color: #6c757d; padding: 20px;">
+                    <div style="font-size: 32px; margin-bottom: 10px;">💬</div>
+                    <p style="font-weight: bold; margin-bottom: 8px;">Welcome to MediSwift AI Assistant!</p>
+                    <p style="font-size: 12px; line-height: 1.4;">
+                        Ask me about medicines for headache, fever, cold, or other health concerns.
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <p style="font-size: 11px; color: #999;">Try asking:</p>
+                        <p style="font-size: 11px; color: #007bff;">"I have a headache"</p>
+                        <p style="font-size: 11px; color: #007bff;">"What is Paracetamol?"</p>
+                    </div>
+                </div>
+            `;
+            messageCount = 0;
+        }
+
+        // Auto-demo
+        setTimeout(() => {
+            addWelcomeMessage();
+        }, 1000);
+    </script>
+</body>
+</html>

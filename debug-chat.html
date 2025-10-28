@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Chat Connection</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .info { background: #e3f2fd; color: #1565c0; }
+        button { padding: 10px 20px; margin: 5px; }
+        input { padding: 10px; width: 300px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>MediSwift Chat Debug</h1>
+    
+    <div>
+        <button onclick="testConnection()">Test WebSocket Connection</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <div>
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendTestMessage()">Send Message</button>
+    </div>
+    
+    <div id="logs"></div>
+
+    <script>
+        let ws = null;
+        
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(logDiv);
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+        
+        function testConnection() {
+            log('🔄 Starting WebSocket connection test...', 'info');
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('⚠️ WebSocket already connected. Closing first.', 'info');
+                ws.close();
+            }
+            
+            const wsUrl = 'ws://localhost:8000/ws/chat/';
+            log(`🔗 Connecting to: ${wsUrl}`, 'info');
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function(event) {
+                    log('✅ WebSocket connection opened successfully!', 'success');
+                    log('📡 Connection ready state: ' + ws.readyState, 'success');
+                };
+                
+                ws.onmessage = function(event) {
+                    log('📨 Received message: ' + event.data, 'success');
+                    try {
+                        const data = JSON.parse(event.data);
+                        log('📋 Parsed data: ' + JSON.stringify(data, null, 2), 'info');
+                    } catch (e) {
+                        log('⚠️ Could not parse as JSON: ' + e.message, 'error');
+                    }
+                };
+                
+                ws.onerror = function(error) {
+                    log('❌ WebSocket error occurred: ' + error, 'error');
+                    log('🔍 Error details: ' + JSON.stringify(error), 'error');
+                };
+                
+                ws.onclose = function(event) {
+                    log(`🔌 WebSocket closed. Code: ${event.code}, Reason: ${event.reason}`, 'info');
+                    if (event.code !== 1000) {
+                        log('⚠️ Abnormal closure detected', 'error');
+                    }
+                };
+                
+            } catch (error) {
+                log('❌ Failed to create WebSocket: ' + error.message, 'error');
+            }
+        }
+        
+        function sendTestMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                log('⚠️ Please enter a message', 'error');
+                return;
+            }
+            
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('❌ WebSocket not connected. Please test connection first.', 'error');
+                return;
+            }
+            
+            try {
+                const data = JSON.stringify({ message: message });
+                log('📤 Sending: ' + data, 'info');
+                ws.send(data);
+                input.value = '';
+            } catch (error) {
+                log('❌ Failed to send message: ' + error.message, 'error');
+            }
+        }
+        
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendTestMessage();
+            }
+        });
+        
+        // Initial log
+        log('🚀 Chat debug tool loaded. Click "Test WebSocket Connection" to start.', 'info');
+        log('📋 Make sure Django server is running on localhost:8000', 'info');
+    </script>
+</body>
+</html>

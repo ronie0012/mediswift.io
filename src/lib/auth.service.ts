@@ -34,6 +34,11 @@ interface AuthResponse {
   };
 }
 
+// Function to get the authentication token
+export const getAuthToken = (): string | null => {
+  return localStorage.getItem('access_token');
+};
+
 const authService = {
   login: async (credentials: LoginData): Promise<AuthResponse> => {
     const response = await api.post('/auth/token/', credentials);

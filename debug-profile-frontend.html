@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Profile Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Profile Frontend</h1>
+        
+        <div class="test-section">
+            <h3>1. Check Environment Variables</h3>
+            <button onclick="checkEnvVars()">Check Env Vars</button>
+            <div id="envResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Test Direct API Call</h3>
+            <button onclick="testDirectAPI()">Test Direct API</button>
+            <div id="directResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Simulate Frontend Login</h3>
+            <button onclick="simulateLogin()">Simulate Login</button>
+            <div id="loginResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Test Profile with Frontend API</h3>
+            <button onclick="testProfileWithFrontendAPI()">Test Profile</button>
+            <div id="profileResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Check Local Storage</h3>
+            <button onclick="checkLocalStorage()">Check Local Storage</button>
+            <div id="storageResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the frontend API configuration
+        const API_URL = 'http://localhost:8000/api';
+        
+        // Create axios-like API instance
+        const api = {
+            async request(config) {
+                const url = `${API_URL}${config.url}`;
+                const options = {
+                    method: config.method || 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...config.headers
+                    }
+                };
+                
+                if (config.data) {
+                    options.body = JSON.stringify(config.data);
+                }
+                
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    const error = new Error(`HTTP ${response.status}`);
+                    error.response = {
+                        status: response.status,
+                        data: await response.json().catch(() => ({}))
+                    };
+                    throw error;
+                }
+                
+                return {
+                    data: await response.json(),
+                    status: response.status
+                };
+            },
+            
+            get(url, config = {}) {
+                return this.request({ ...config, method: 'GET', url });
+            },
+            
+            post(url, data, config = {}) {
+                return this.request({ ...config, method: 'POST', url, data });
+            },
+            
+            patch(url, data, config = {}) {
+                return this.request({ ...config, method: 'PATCH', url, data });
+            }
+        };
+        
+        function checkEnvVars() {
+            const resultDiv = document.getElementById('envResult');
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h4>Environment Variables</h4>
+                    <pre>API_URL: ${API_URL}
+Frontend URL: ${window.location.origin}
+Current Page: ${window.location.href}</pre>
+                </div>
+            `;
+        }
+        
+        async function testDirectAPI() {
+            const resultDiv = document.getElementById('directResult');
+            resultDiv.innerHTML = '<p>Testing direct API call...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/me/`);
+                if (response.status === 401) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Direct API Call Works</h4>
+                            <p>Got expected 401 (unauthorized) response</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>⚠️ Unexpected Response</h4>
+                            <p>Status: ${response.status}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Network Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function simulateLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.innerHTML = '<p>Simulating login...</p>';
+            
+            try {
+                const response = await api.post('/auth/token/', {
+                    username: 'chattest',
+                    password: 'testpass123'
+                });
+                
+                // Store tokens like the frontend would
+                localStorage.setItem('access_token', response.data.access);
+                localStorage.setItem('refresh_token', response.data.refresh);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ Login Successful</h4>
+                        <pre>${JSON.stringify(response.data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Login Failed</h4>
+                        <p>${error.message}</p>
+                        <pre>${JSON.stringify(error.response?.data || {}, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testProfileWithFrontendAPI() {
+            const resultDiv = document.getElementById('profileResult');
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<div class="error">❌ Please login first</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Testing profile with frontend API...</p>';
+            
+            try {
+                const response = await api.get('/auth/me/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ Profile Retrieved Successfully</h4>
+                        <pre>${JSON.stringify(response.data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Profile Request Failed</h4>
+                        <p>Error: ${error.message}</p>
+                        <p>Status: ${error.response?.status}</p>
+                        <pre>${JSON.stringify(error.response?.data || {}, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        function checkLocalStorage() {
+            const resultDiv = document.getElementById('storageResult');
+            const token = localStorage.getItem('access_token');
+            const refreshToken = localStorage.getItem('refresh_token');
+            const user = localStorage.getItem('user');
+            
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h4>Local Storage Contents</h4>
+                    <pre>Access Token: ${token ? 'Present' : 'Missing'}
+Refresh Token: ${refreshToken ? 'Present' : 'Missing'}
+User Data: ${user ? 'Present' : 'Missing'}
+
+User Data Content:
+${user || 'No user data'}</pre>
+                </div>
+            `;
+        }
+        
+        // Auto-run environment check
+        window.addEventListener('load', () => {
+            checkEnvVars();
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,17 @@
 // Chat service for handling WebSocket connections
 import { getAuthToken } from "./auth.service";
 
-const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+// Get WebSocket URL based on environment
+const getWebSocketUrl = () => {
+  // In production, use the environment variable or fallback
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_WS_BASE_URL || 'wss://mediswift-backend.vercel.app';
+  }
+  // In development, use localhost
+  return import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+};
+
+const WS_BASE_URL = getWebSocketUrl();
 
 export class ChatService {
   private ws: WebSocket | null = null;
@@ -103,3 +113,8 @@ export class ChatService {
 
 // Export a singleton instance
 export const chatService = new ChatService();
+
+// Export for debugging
+if (typeof window !== 'undefined') {
+  (window as any).chatService = chatService;
+}

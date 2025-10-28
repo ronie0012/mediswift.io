@@ -1,42 +1,17 @@
-
-import { ReactNode, Suspense } from "react";
+import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import { motion } from "framer-motion";
-import { ErrorBoundary } from 'react-error-boundary';
+import ChatWidget from "@/components/chat/ChatWidget";
 
-interface LayoutProps {
-  children: ReactNode;
-}
-
-// Create a fallback component for the ErrorBoundary
-const ErrorFallback = () => (
-  <div className="w-full h-[50vh] flex items-center justify-center">
-    <div className="text-blue-500 text-xl">Sorry, something went wrong. Please refresh the page.</div>
-  </div>
-);
-
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children }: { children?: React.ReactNode }) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <motion.main
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flex-grow"
-      >
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={
-            <div className="w-full h-[50vh] flex items-center justify-center">
-              <div className="text-blue-500 text-xl animate-pulse">Loading MediSwift...</div>
-            </div>
-          }>
-            {children}
-          </Suspense>
-        </ErrorBoundary>
-      </motion.main>
+      <main className="flex-grow">
+        {children ? children : <Outlet />}
+      </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 };

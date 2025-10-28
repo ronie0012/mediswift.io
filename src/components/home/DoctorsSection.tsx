@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronRight, Star } from "lucide-react";
@@ -14,36 +15,6 @@ const doctors = [
     reviewCount: 150,
     availability: "Available Today",
     image: "https://randomuser.me/api/portraits/men/65.jpg"
-  },
-  {
-    id: 2,
-    name: "Dr. Vikram Patel",
-    specialty: "Cardiologist",
-    experience: "18 years",
-    rating: 4.8,
-    reviewCount: 200,
-    availability: "Available Tomorrow",
-    image: "https://randomuser.me/api/portraits/men/45.jpg"
-  },
-  {
-    id: 3,
-    name: "Dr. Sanjay Gupta",
-    specialty: "Neurologist",
-    experience: "15 years",
-    rating: 4.7,
-    reviewCount: 160,
-    availability: "Available Today",
-    image: "https://randomuser.me/api/portraits/men/32.jpg"
-  },
-  {
-    id: 4,
-    name: "Dr. Rohan Joshi",
-    specialty: "Pediatrician",
-    experience: "14 years",
-    rating: 4.9,
-    reviewCount: 220,
-    availability: "Available in 2 days",
-    image: "https://randomuser.me/api/portraits/men/86.jpg"
   }
 ];
 
@@ -82,6 +53,10 @@ const DoctorCard = ({ doctor }: { doctor: any }) => {
 };
 
 const DoctorsSection = () => {
+  useEffect(() => {
+    console.log("DoctorsSection component rendered");
+  }, []);
+  
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">

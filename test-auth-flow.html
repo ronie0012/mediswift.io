@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auth Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test Authentication Flow</h1>
+        
+        <div class="test-section">
+            <h3>Current Status</h3>
+            <div id="currentStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>1. Test Login</h3>
+            <button onclick="testLogin()">Login as chattest</button>
+            <div id="loginResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Test Profile Access</h3>
+            <button onclick="testProfile()">Access Profile</button>
+            <div id="profileResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Test Frontend URL</h3>
+            <button onclick="testFrontendProfile()">Open Frontend Profile</button>
+            <div id="frontendResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Clear Auth Data</h3>
+            <button onclick="clearAuth()">Clear All Auth Data</button>
+            <div id="clearResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        
+        function updateStatus() {
+            const statusDiv = document.getElementById('currentStatus');
+            const token = localStorage.getItem('access_token');
+            const user = localStorage.getItem('user');
+            
+            statusDiv.innerHTML = `
+                <div class="status ${token ? 'success' : 'error'}">
+                    Authentication Status: ${token ? 'LOGGED IN' : 'NOT LOGGED IN'}
+                </div>
+                <pre>Access Token: ${token ? 'Present' : 'None'}
+User Data: ${user ? JSON.stringify(JSON.parse(user), null, 2) : 'None'}</pre>
+            `;
+        }
+        
+        async function testLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.innerHTML = '<p>Logging in...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/token/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'chattest',
+                        password: 'testpass123'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Store auth data like the frontend does
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Login Successful</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    updateStatus();
+                } else {
+                    const errorData = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Login Failed</h4>
+                            <pre>${JSON.stringify(errorData, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Network Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testProfile() {
+            const resultDiv = document.getElementById('profileResult');
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<div class="error">❌ Please login first</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Accessing profile...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/me/`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Profile Access Successful</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Profile Access Failed</h4>
+                            <p>Status: ${response.status}</p>
+                            <pre>${JSON.stringify(errorData, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Network Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function testFrontendProfile() {
+            const resultDiv = document.getElementById('frontendResult');
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<div class="error">❌ Please login first</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h4>Opening Frontend Profile Page</h4>
+                    <p>Auth data is set in localStorage. Opening profile page...</p>
+                    <a href="http://localhost:8080/profile" target="_blank" style="color: #007bff;">
+                        → Open Profile Page in New Tab
+                    </a>
+                </div>
+            `;
+            
+            // Also open automatically
+            setTimeout(() => {
+                window.open('http://localhost:8080/profile', '_blank');
+            }, 1000);
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            
+            document.getElementById('clearResult').innerHTML = `
+                <div class="success">
+                    <h4>✅ Auth Data Cleared</h4>
+                    <p>All authentication data has been removed from localStorage</p>
+                </div>
+            `;
+            updateStatus();
+        }
+        
+        // Initialize status on page load
+        window.addEventListener('load', () => {
+            updateStatus();
+        });
+    </script>
+</body>
+</html>
