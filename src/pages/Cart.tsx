@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { useCart, CartItem } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { useOrders } from "@/context/OrderContext";
+import { useCheckout } from "@/lib/api.hooks";
 import { Button } from "@/components/ui/button";
 import { Trash2, Minus, Plus, ShoppingBag, CreditCard, Truck, MapPin, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,42 +18,32 @@ import OrderTracker from "@/components/order/OrderTracker";
 
 // Helper function to get proper image URL
 const getImageUrl = (item: CartItem): string => {
-  // Check for valid image URL
   if (item.image && typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('/'))) {
     return item.image;
   }
-  
-  // Check for other image fields
   if (item.imageUrl && typeof item.imageUrl === 'string') {
     return item.imageUrl;
   }
-  
-  // Fallback to placeholder
   return '/placeholder-medicine.jpg';
 };
 
 const CartContent = () => {
   const { items, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { isAuthenticated, user } = useAuth();
-  const { createOrder, getOrderById, isLoading: isOrderLoading } = useOrders();
+  
+  // Replace useOrders with our API hook
+  const checkoutMutation = useCheckout();
+  
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState<"card" | "upi" | "cod">("card");
-  const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(!isAuthenticated);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState(15);
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   
   const { selectedAddress } = useAddress();
   
-  // Debug cart items
-  useEffect(() => {
-    console.log("Current cart items:", items);
-  }, [items]);
-  
-  // Check if user is authenticated on component mount and when auth status changes
   useEffect(() => {
     setShowLoginAlert(!isAuthenticated);
   }, [isAuthenticated]);
@@ -74,50 +64,37 @@ const CartContent = () => {
   const total = subtotal + deliveryFee + tax;
 
   const handleCheckout = async (values: any) => {
-    // Check if user is logged in
     if (!isAuthenticated) {
       toast.error("Please log in to continue");
       navigate("/login");
       return;
     }
     
-    // Check if address is selected
     if (!selectedAddress) {
       toast.error("Please select a delivery address");
       setShowAddressSelector(true);
       return;
     }
     
-    setProcessingPayment(true);
-    
-    // Format the address as a string
     const addressString = `${selectedAddress.name}, ${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.pincode}, Phone: ${selectedAddress.phone}`;
     
-    // Create the order using OrderContext
-    const newOrderId = await createOrder({
-      items: items,
-      totalAmount: total,
-      deliveryAddress: addressString,
-      paymentMethod: paymentMethod
-    });
-    
-    if (newOrderId) {
-      setOrderId(newOrderId);
+    try {
+      const result = await checkoutMutation.mutateAsync({
+        name: selectedAddress.name,
+        email: user?.email || "customer@mediswift.io",
+        phone: selectedAddress.phone || "0000000000",
+        address: addressString,
+        payment_method: paymentMethod,
+        items: items.map(i => ({ id: i.id, quantity: i.quantity }))
+      });
+      
+      setOrderId(String(result.id));
       setPaymentComplete(true);
-      
-      // Get the order to get the estimated delivery time
-      const order = getOrderById(newOrderId);
-      if (order && order.estimatedDeliveryTime) {
-        setEstimatedDeliveryTime(order.estimatedDeliveryTime);
-      }
-      
       toast.success("Payment successful! Your order is confirmed.");
       clearCart();
-    } else {
-      toast.error("Payment failed. Please try again.");
+    } catch (e) {
+      toast.error("Checkout failed. Please try again or check your stock requirements.");
     }
-    
-    setProcessingPayment(false);
   };
 
   if (orderPlaced) {
@@ -542,9 +519,9 @@ const CartContent = () => {
                             <Button 
                               type="submit" 
                               className="w-full bg-medical-500 hover:bg-medical-600"
-                              disabled={processingPayment || isOrderLoading}
+                              disabled={checkoutMutation.isPending}
                             >
-                              {(processingPayment || isOrderLoading) ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
+                              {checkoutMutation.isPending ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
                             </Button>
                           </div>
                         </form>

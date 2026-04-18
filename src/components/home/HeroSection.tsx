@@ -58,30 +58,33 @@ const HeroSection = () => {
               </Button>
             </div>
             
-            <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="pt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               <motion.div 
-                className="flex items-center bg-white/50 backdrop-blur-sm p-3 rounded-lg shadow-sm"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                className="flex items-center glass-panel p-4 hover:shadow-lg transition-all duration-300 group"
+                whileHover={{ y: -5 }}
               >
-                <Clock className="h-6 w-6 text-medical-500 mr-2 flex-shrink-0" />
-                <span className="text-sm font-medium text-gray-700">10-min Delivery</span>
+                <div className="bg-medical-100 p-3 rounded-full mr-4 group-hover:bg-medical-500 transition-colors duration-300">
+                  <Clock className="h-6 w-6 text-medical-600 group-hover:text-white transition-colors duration-300" />
+                </div>
+                <span className="text-sm font-semibold text-gray-800">30-Minute Delivery</span>
               </motion.div>
               <motion.div 
-                className="flex items-center bg-white/50 backdrop-blur-sm p-3 rounded-lg shadow-sm"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                className="flex items-center glass-panel p-4 hover:shadow-lg transition-all duration-300 group"
+                whileHover={{ y: -5 }}
               >
-                <MapPin className="h-6 w-6 text-medical-500 mr-2 flex-shrink-0" />
-                <span className="text-sm font-medium text-gray-700">Live Tracking</span>
+                <div className="bg-medical-100 p-3 rounded-full mr-4 group-hover:bg-medical-500 transition-colors duration-300">
+                  <MapPin className="h-6 w-6 text-medical-600 group-hover:text-white transition-colors duration-300" />
+                </div>
+                <span className="text-sm font-semibold text-gray-800">100% Authentic Medicines</span>
               </motion.div>
               <motion.div 
-                className="flex items-center bg-white/50 backdrop-blur-sm p-3 rounded-lg shadow-sm"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                className="flex items-center glass-panel p-4 hover:shadow-lg transition-all duration-300 group"
+                whileHover={{ y: -5 }}
               >
-                <ShieldCheck className="h-6 w-6 text-medical-500 mr-2 flex-shrink-0" />
-                <span className="text-sm font-medium text-gray-700">Verified Doctors</span>
+                <div className="bg-medical-100 p-3 rounded-full mr-4 group-hover:bg-medical-500 transition-colors duration-300">
+                  <ShieldCheck className="h-6 w-6 text-medical-600 group-hover:text-white transition-colors duration-300" />
+                </div>
+                <span className="text-sm font-semibold text-gray-800">Licensed Pharmacies</span>
               </motion.div>
             </div>
           </motion.div>
@@ -111,25 +114,25 @@ const HeroSection = () => {
         
         {/* Search bar */}
         <motion.div 
-          className="mt-12 md:mt-16 max-w-4xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
+          className="mt-16 md:mt-20 max-w-4xl mx-auto relative z-10"
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
         >
-          <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-100">
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3 md:gap-4">
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl">
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-grow">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-medical-400" />
                 <input 
                   type="text"
                   placeholder="Search for medicines, doctors, or services..." 
-                  className="w-full h-12 sm:h-14 pl-12 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-transparent text-base sm:text-lg"
+                  className="w-full h-14 sm:h-16 pl-16 pr-6 py-2 rounded-2xl bg-white/60 backdrop-blur-md border border-white/50 focus:outline-none focus:ring-4 focus:ring-medical-500/20 focus:border-medical-500 text-base sm:text-lg text-gray-800 placeholder-gray-400 shadow-inner transition-all duration-300"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button type="submit" className="bg-medical-500 hover:bg-medical-600 h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg">
-                Search
+              <Button type="submit" className="bg-medical-600 hover:bg-medical-700 h-14 sm:h-16 px-8 sm:px-10 text-base sm:text-lg rounded-2xl shadow-lg shadow-medical-500/30 transition-all duration-300 hover:-translate-y-1">
+                Search Now
               </Button>
             </form>
           </div>

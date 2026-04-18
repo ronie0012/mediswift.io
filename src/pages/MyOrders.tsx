@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useOrders, Order, OrderStatus } from "@/context/OrderContext";
+import { useMyOrders } from "@/lib/api.hooks";
+// Removed useOrders dependency as we use the backend now
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -33,28 +34,46 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 
 // Define the type for filter status to include "all" or any valid OrderStatus
-type FilterStatusType = "all" | OrderStatus;
+type OrderStatus = string;
+type FilterStatusType = "all" | string;
+
+// Define a local Order interface matching the original structure the UI expects
+interface LocalOrder {
+  id: string;
+  orderDate: string;
+  deliveryDate: string | null;
+  deliveryAddress: string;
+  totalAmount: number;
+  status: string;
+  items: { name: string; quantity: number; price: number }[];
+  paymentMethod: string;
+  estimatedDeliveryTime: number;
+}
 
 const MyOrders = () => {
   const { user } = useAuth();
-  const { getUserOrders, cancelOrder, isLoading } = useOrders();
+  const { data: apiOrders, isLoading } = useMyOrders();
+  
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<LocalOrder | null>(null);
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [filterStatus, setFilterStatus] = useState<FilterStatusType>("all");
-  const [orders, setOrders] = useState<Order[]>([]);
-
-  // Get user orders when the component mounts
-  useEffect(() => {
-    if (user) {
-      const userOrders = getUserOrders();
-      console.log("User orders:", userOrders);
-      setOrders(userOrders);
-    }
-  }, [user, getUserOrders]);
+  
+  // Transform backend API Order type to LocalOrder type expected by UI
+  const orders: LocalOrder[] = apiOrders ? apiOrders.map(o => ({
+    id: String(o.id),
+    orderDate: o.created_at,
+    deliveryDate: o.status === 'delivered' ? o.created_at : null,
+    deliveryAddress: o.shipping_address,
+    totalAmount: parseFloat(o.total_amount),
+    status: o.status,
+    items: o.items.map(i => ({ name: i.medicine_name, quantity: i.quantity, price: parseFloat(i.price) })),
+    paymentMethod: o.payment_method,
+    estimatedDeliveryTime: 15
+  })) : [];
 
   // Filter and sort orders
   const filteredOrders = orders
@@ -94,15 +113,11 @@ const MyOrders = () => {
         : dateA.getTime() - dateB.getTime();
     });
 
-  const getStatusBadgeVariant = (status: OrderStatus) => {
+  const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "order_placed":
-        return "outline";
-      case "processing":
+      case "pending":
         return "outline";
       case "shipped":
-        return "secondary";
-      case "out_for_delivery":
         return "secondary";
       case "delivered":
         return "default";
@@ -113,28 +128,18 @@ const MyOrders = () => {
     }
   };
 
-  const handleTrackOrder = (order: Order) => {
+  const handleTrackOrder = (order: LocalOrder) => {
     setSelectedOrder(order);
     setIsTrackingOpen(true);
   };
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = (order: LocalOrder) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
   };
 
-  const handleCancelOrder = async (order: Order) => {
-    if (window.confirm(`Are you sure you want to cancel order ${order.id}?`)) {
-      const success = await cancelOrder(order.id);
-      if (success) {
-        // Update the local order list to reflect the cancellation
-        setOrders(prevOrders => 
-          prevOrders.map(o => 
-            o.id === order.id ? { ...o, status: "cancelled" } : o
-          )
-        );
-      }
-    }
+  const handleCancelOrder = async (order: LocalOrder) => {
+    toast.error("Order cancellations must be processed by calling support directly.");
   };
 
   const clearSearch = () => {
@@ -147,7 +152,10 @@ const MyOrders = () => {
     setSearchQuery("");
   };
 
-  const mapOrderStatusToTrackerStatus = (status: OrderStatus) => status;
+  const mapOrderStatusToTrackerStatus = (status: string) => {
+    if (status === 'pending') return 'processing';
+    return status;
+  };
 
   const handleDownloadInvoice = (orderId: string) => {
     // In a real app, this would generate and download an invoice
@@ -164,25 +172,18 @@ const MyOrders = () => {
     }
   };
 
-  // Get a user-friendly status name
-  const getStatusDisplayName = (status: OrderStatus): string => {
+  const getStatusDisplayName = (status: string): string => {
     switch (status) {
-      case "order_placed":
-        return "Order Placed";
-      case "processing":
-        return "Processing";
+      case "pending":
+        return "Pending / Processing";
       case "shipped":
         return "Shipped";
-      case "out_for_delivery":
-        return "Out for Delivery";
       case "delivered":
         return "Delivered";
       case "cancelled":
         return "Cancelled";
       default:
-        // Since we've handled all known cases, this should never happen
-        // but TypeScript doesn't know that, so we'll provide a safe default
-        return "Unknown Status";
+        return status;
     }
   };
 

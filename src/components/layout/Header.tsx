@@ -44,7 +44,7 @@ const Header = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className="bg-white border-b border-gray-200 sticky top-0 z-50"
+      className="bg-white/70 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50 shadow-sm"
     >
       <nav className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">

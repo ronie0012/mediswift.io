@@ -1,11 +1,13 @@
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
+import CategorySection from "@/components/home/CategorySection";
 import ServiceFeatures from "@/components/home/ServiceFeatures";
 import EmergencyCall from "@/components/home/EmergencyCall";
 import FeaturedMedicines from "@/components/home/FeaturedMedicines";
 import DoctorsSection from "@/components/home/DoctorsSection";
 import StatisticsSection from "@/components/home/StatisticsSection";
 import NewsSection from "@/components/home/NewsSection";
+import PrescriptionBanner from "@/components/home/PrescriptionBanner";
 import ApiTest from '@/components/ApiTest';
 import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from 'react-error-boundary';
@@ -78,6 +80,9 @@ const Index = () => {
       {/* Hero Section */}
       <HeroSection />
 
+      {/* Categories */}
+      <CategorySection />
+
       {/* Statistics Section */}
       <StatisticsSection />
 
@@ -146,42 +151,49 @@ const Index = () => {
       </section>
 
       {/* Services Section */}
-      <ServiceFeatures />
+      <div className="py-12 lg:py-20">
+        <ServiceFeatures />
+      </div>
 
       {/* Emergency Call Section with enhanced shadow */}
-      <div className="py-6 bg-gradient-to-b from-white to-gray-50">
+      <div className="py-16 lg:py-24 bg-gradient-to-b from-white to-gray-50/50 relative">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02]"></div>
         <motion.div 
-          className="container mx-auto px-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          className="container mx-auto px-4 relative z-10"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
         >
-          <div className="shadow-xl rounded-3xl overflow-hidden">
+          <div className="shadow-2xl shadow-medical-500/10 rounded-[2.5rem] overflow-hidden border border-gray-100">
             <EmergencyCall />
           </div>
         </motion.div>
       </div>
 
       {/* Featured Medicines Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-      >
-        <div id="medicines-section">
-          <FeaturedMedicines />
-        </div>
-      </motion.div>
+      <div className="py-4 bg-white">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
+          {/* Prescription Upload Banner */}
+          <PrescriptionBanner />
+          <div id="medicines-section">
+            <FeaturedMedicines />
+          </div>
+        </motion.div>
+      </div>
 
       {/* Doctors Section with background gradient */}
-      <div className="bg-gradient-to-b from-gray-50 to-white py-6">
+      <div className="bg-gradient-to-b from-medical-50/30 to-white py-16 lg:py-24">
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
         >
           <div id="doctors-section">
             <DoctorsSection />

@@ -65,7 +65,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="John Doe"
           required
         />
       </div>
@@ -76,7 +75,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
           id="street"
           value={street}
           onChange={(e) => setStreet(e.target.value)}
-          placeholder="123 Main St, Apt 4B"
           required
         />
       </div>
@@ -88,7 +86,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
             id="city"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="New York"
             required
           />
         </div>
@@ -99,7 +96,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
             id="state"
             value={state}
             onChange={(e) => setState(e.target.value)}
-            placeholder="NY"
             required
           />
         </div>
@@ -112,7 +108,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
             id="pincode"
             value={pincode}
             onChange={(e) => setPincode(e.target.value)}
-            placeholder="10001"
             required
           />
         </div>
@@ -123,7 +118,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
             id="phone"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="+1 (123) 456-7890"
             required
           />
         </div>

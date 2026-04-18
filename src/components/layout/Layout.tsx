@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import ChatWidget from "@/components/chat/ChatWidget";
 
 const Layout = ({ children }: { children?: React.ReactNode }) => {
   return (
@@ -11,7 +10,6 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
         {children ? children : <Outlet />}
       </main>
       <Footer />
-      <ChatWidget />
     </div>
   );
 };

@@ -28,7 +28,6 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import { AddressProvider } from "@/context/AddressContext";
 import { OrderProvider } from "@/context/OrderContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import ChatWidget from "./components/chat/ChatWidget";
 
 // Lazy load the new pages
 const About = lazy(() => import("./pages/About"));
@@ -45,6 +44,14 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Support = lazy(() => import("./pages/Support"));
 const Refund = lazy(() => import("./pages/Refund"));
+// Admin pages
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const MarketingDashboard = lazy(() => import("./pages/admin/MarketingDashboard"));
+const RevenueDashboard = lazy(() => import("./pages/admin/RevenueDashboard"));
+const CRMDashboard = lazy(() => import("./pages/admin/CRMDashboard"));
+const InventoryDashboard = lazy(() => import("./pages/admin/InventoryDashboard"));
+const OrdersDashboard = lazy(() => import("./pages/admin/OrdersDashboard"));
+const Security = lazy(() => import("./pages/Security"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,7 +73,6 @@ const App = () => (
                 <AppointmentProvider>
                   <Toaster />
                   <Sonner />
-                  <ChatWidget />
                   <BrowserRouter>
                     <Suspense fallback={<LoadingSpinner size={32} />}>
                       <Routes>
@@ -101,6 +107,15 @@ const App = () => (
                         <Route path="/privacy" element={<Privacy />} />
                         <Route path="/support" element={<Support />} />
                         <Route path="/refund" element={<Refund />} />
+                        {/* Security page */}
+                        <Route path="/security" element={<Security />} />
+                        {/* Admin pages */}
+                        <Route path="/admin/login" element={<AdminLogin />} />
+                        <Route path="/admin/marketing" element={<MarketingDashboard />} />
+                        <Route path="/admin/revenue" element={<RevenueDashboard />} />
+                        <Route path="/admin/crm" element={<CRMDashboard />} />
+                        <Route path="/admin/inventory" element={<InventoryDashboard />} />
+                        <Route path="/admin/orders" element={<OrdersDashboard />} />
                         
                         <Route path="*" element={<NotFound />} />
                       </Routes>

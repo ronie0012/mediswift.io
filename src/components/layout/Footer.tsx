@@ -37,10 +37,10 @@ const Footer = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto mb-16 bg-white p-8 rounded-2xl shadow-lg border border-blue-100"
+          className="max-w-4xl mx-auto mb-16 glass-panel p-8 sm:p-12 rounded-3xl shadow-2xl shadow-medical-500/10 text-center relative z-10"
         >
-          <div className="text-center mb-6">
-            <h3 className="text-2xl font-bold mb-2">Subscribe to our Newsletter</h3>
+          <div className="mb-6 max-w-2xl mx-auto">
+            <h3 className="text-3xl font-display font-bold mb-3 text-gray-900">Subscribe to our Newsletter</h3>
             <p className="text-gray-600">Get the latest updates on new medicines and health tips.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -204,6 +204,18 @@ const Footer = () => {
                 <Link to="/refund" className="text-gray-700 hover:text-medical-500 flex items-center group">
                   <ArrowRight className="h-4 w-4 mr-2 text-medical-400 transition-transform duration-300 group-hover:translate-x-1" /> 
                   <span className="transition-colors duration-300">Refund Policy</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/security" className="text-gray-700 hover:text-medical-500 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 text-medical-400 transition-transform duration-300 group-hover:translate-x-1" /> 
+                  <span className="transition-colors duration-300">Security Policy</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/login" className="text-gray-700 hover:text-medical-500 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 text-medical-400 transition-transform duration-300 group-hover:translate-x-1" /> 
+                  <span className="transition-colors duration-300">Admin Dashboard</span>
                 </Link>
               </li>
             </ul>

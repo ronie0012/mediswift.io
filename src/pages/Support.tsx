@@ -4,9 +4,44 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, MessageCircle, Clock, FileText, HelpCircle } from "lucide-react";
+import { Phone, Mail, MessageCircle, Clock, FileText, HelpCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useSubmitFeedback } from "@/lib/api.hooks";
+import { useToast } from "@/components/ui/use-toast";
 
 const Support = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    category: "",
+    subject: "",
+    message: ""
+  });
+  
+  const { mutateAsync, isPending } = useSubmitFeedback();
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.email || !formData.category || !formData.message) {
+      toast({ title: "Incomplete Form", description: "Please fill out all required fields.", variant: "destructive" });
+      return;
+    }
+    
+    try {
+      await mutateAsync({
+        name: formData.name,
+        email: formData.email,
+        category: formData.category,
+        subject: formData.subject || `Support Request from ${formData.name}`,
+        message: formData.message + (formData.phone ? `\n\nPhone: ${formData.phone}` : '')
+      });
+      toast({ title: "Request Submitted!", description: "Our team will get back to you shortly." });
+      setFormData({ name: "", email: "", phone: "", category: "", subject: "", message: "" });
+    } catch (error) {
+      toast({ title: "Submission Failed", description: "There was an error communicating with our servers.", variant: "destructive" });
+    }
+  };
   return (
     <PageTemplate title="Customer Support" subtitle="We're here to help you with any issues or questions">
       <div className="space-y-8">
@@ -78,39 +113,38 @@ const Support = () => {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
+                    Full Name <span className="text-red-500">*</span>
                   </label>
-                  <Input id="name" placeholder="Your full name" />
+                  <Input id="name" placeholder="Your full name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                 </div>
                 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
+                    Email Address <span className="text-red-500">*</span>
                   </label>
-                  <Input id="email" type="email" placeholder="your@email.com" />
+                  <Input id="email" type="email" placeholder="your@email.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
                 </div>
                 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number
                   </label>
-                  <Input id="phone" placeholder="Your phone number" />
+                  <Input id="phone" placeholder="Your phone number" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
                 </div>
                 
                 <div>
                   <label htmlFor="issue-type" className="block text-sm font-medium text-gray-700 mb-1">
-                    Issue Type
+                    Issue Type <span className="text-red-500">*</span>
                   </label>
-                  <Select>
+                  <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
                     <SelectTrigger id="issue-type">
                       <SelectValue placeholder="Select issue type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="order">Order Issue</SelectItem>
-                      <SelectItem value="delivery">Delivery Problem</SelectItem>
-                      <SelectItem value="payment">Payment Concern</SelectItem>
-                      <SelectItem value="appointment">Appointment Issue</SelectItem>
-                      <SelectItem value="account">Account Problem</SelectItem>
+                      <SelectItem value="late_delivery">Delivery Problem</SelectItem>
+                      <SelectItem value="payment_issue">Payment Concern</SelectItem>
+                      <SelectItem value="wrong_medicine">Wrong Medicine</SelectItem>
+                      <SelectItem value="app_bug">App Bug</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -122,18 +156,23 @@ const Support = () => {
                   <label htmlFor="order-id" className="block text-sm font-medium text-gray-700 mb-1">
                     Order/Appointment ID (if applicable)
                   </label>
-                  <Input id="order-id" placeholder="Enter ID if relevant to your query" />
+                  <Input id="order-id" placeholder="Enter ID if relevant to your query" value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} />
                 </div>
                 
                 <div className="flex-grow">
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                    Message
+                    Message <span className="text-red-500">*</span>
                   </label>
-                  <Textarea id="message" placeholder="Please describe your issue in detail" className="min-h-[120px]" />
+                  <Textarea id="message" placeholder="Please describe your issue in detail" className="min-h-[120px]" value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} />
                 </div>
                 
                 <div className="pt-4">
-                  <Button className="w-full bg-medical-500 hover:bg-medical-600">
+                  <Button 
+                    className="w-full bg-medical-500 hover:bg-medical-600"
+                    onClick={handleSubmit}
+                    disabled={isPending}
+                  >
+                    {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Submit Request
                   </Button>
                 </div>

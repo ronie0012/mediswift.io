@@ -17,15 +17,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mediswift_backend.settings')
 django_asgi_app = get_asgi_application()
 
 # Now import Django-dependent modules after Django is set up
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
-from chat.routing import websocket_urlpatterns
+from channels.routing import ProtocolTypeRouter
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": AuthMiddlewareStack(
-        URLRouter(
-            websocket_urlpatterns
-        )
-    ),
 })
