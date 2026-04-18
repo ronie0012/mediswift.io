@@ -201,7 +201,7 @@ def feedback_analysis(request):
     total = CustomerFeedback.objects.count()
     clusters_qs = (
         CustomerFeedback.objects
-        .values('category', 'status')
+        .values('category')
         .annotate(count=Count('id'))
         .order_by('-count')
     )
@@ -221,23 +221,11 @@ def feedback_analysis(request):
         'other': 'Customer contacted directly for resolution',
     }
 
-    by_category = {}
-    for item in clusters_qs:
-        cat = item['category']
-        by_category[cat] = by_category.get(cat, 0) + item['count']
-
-    # Inject baseline showcase data if live data is sparse (Assignment criteria: display realistic analytics)
-    baseline_active = total < 100
-    if baseline_active:
-        total += 1247
-        by_category['late_delivery'] = by_category.get('late_delivery', 0) + 635  # ~51%
-        by_category['wrong_medicine'] = by_category.get('wrong_medicine', 0) + 249
-        by_category['payment_issue'] = by_category.get('payment_issue', 0) + 187
-        by_category['app_bug'] = by_category.get('app_bug', 0) + 112
-        by_category['other'] = by_category.get('other', 0) + 64
 
     clusters = []
-    for cat, count in sorted(by_category.items(), key=lambda x: -x[1]):
+    for item in clusters_qs:
+        cat = item['category']
+        count = item['count']
         percentage = round((count / total * 100), 1) if total else 0
         clusters.append({
             'issue': category_labels.get(cat, cat),
@@ -310,31 +298,20 @@ def revenue_stats(request):
     if not request.user.is_staff:
         return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
 
-    # Calculate actual sales revenue
-    sales = float(Order.objects.filter(status__in=['pending', 'shipped', 'delivered']).aggregate(Sum('total_amount'))['total_amount__sum'] or 0)
-    total_orders = Order.objects.count()
-    users = __import__('django.contrib.auth.models', fromlist=['User']).User.objects.count()
-    
-    # Generate realistic supplementary models mathematically tied to the live sales velocity + a baseline showcase
-    base_velocity = max(sales, 15000)
-    subscription = round(users * 499 + 12500, 2)
-    transaction_fee = total_orders * 40 + round(base_velocity * 0.05, 2)
-    advertising = round(base_velocity * 0.08 + 15000, 2)
-    affiliate = round(base_velocity * 0.12 + 5000, 2)
-    
-    total_revenue = sales + subscription + transaction_fee + advertising + affiliate
+    # Live revenue from actual medicine orders only (exclude cancelled orders)
+    sales = float(
+        Order.objects
+        .exclude(status='cancelled')
+        .aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    )
 
     return Response({
-        'total': round(total_revenue, 2),
+        'total': round(sales, 2),
         'currency': 'INR',
-        'period': 'current_month',
-        'note': 'Calculated live from Database Orders and dynamic growth multipliers.',
+        'period': 'all_time',
+        'note': 'Calculated from live non-cancelled medicine orders only.',
         'breakdown': [
             {'stream': 'Direct Medicine Sales', 'model_type': 'sales', 'amount': sales},
-            {'stream': 'MediSwift Plus Subscriptions', 'model_type': 'subscription', 'amount': subscription},
-            {'stream': 'Delivery & Convenience Fees', 'model_type': 'transaction_fee', 'amount': transaction_fee},
-            {'stream': 'Sponsored Listings', 'model_type': 'advertising', 'amount': advertising},
-            {'stream': 'Lab Test Referral Commission', 'model_type': 'affiliate', 'amount': affiliate},
         ]
     })
 
@@ -347,7 +324,6 @@ router.register(r'admin/orders', OrderViewSet, basename='admin-orders')
 router.register(r'categories', MedicineCategoryViewSet, basename='category')
 
 urlpatterns = [
-    path('', include(router.urls)),
     path('health/', health_check, name='health_check'),
     path('medicines/featured/', featured_medicines, name='featured-medicines'),
     path('prescriptions/upload/', upload_prescription, name='upload-prescription'),
@@ -358,4 +334,5 @@ urlpatterns = [
     path('admin/auth/check/', admin_auth_check, name='admin-auth-check'),
     path('admin/marketing/stats/', marketing_stats, name='marketing-stats'),
     path('admin/revenue/stats/', revenue_stats, name='revenue-stats'),
+    path('', include(router.urls)),
 ]
